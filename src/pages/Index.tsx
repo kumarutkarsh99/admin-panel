@@ -140,6 +140,7 @@ const Index = () => {
           </div>
         </div>
 
+
         {/* Post Job Modal */}
         <PostNewJobModal
           open={isModalOpen}
