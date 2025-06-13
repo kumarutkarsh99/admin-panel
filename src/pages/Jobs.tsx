@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import PostNewJobModal from "@/components/modals/PostNewJobModal";
 
+
 type Job = {
   id: number;
   title: string;
@@ -305,6 +306,7 @@ const Jobs = () => {
             <Button
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
             >
               Previous
             </Button>
@@ -313,8 +315,9 @@ const Jobs = () => {
               return (
                 <Button
                   key={page}
-                  variant={page === currentPage ? "default" : "outline"}
+                  variant={page === currentPage ? "outline" : "default"}
                   onClick={() => setCurrentPage(page)}
+                  className= {page==currentPage ? "" : "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"}
                 >
                   {page}
                 </Button>
@@ -323,6 +326,7 @@ const Jobs = () => {
             <Button
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
             >
               Next
             </Button>

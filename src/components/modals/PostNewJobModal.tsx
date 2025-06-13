@@ -1,6 +1,6 @@
 // PostNewJobModal.tsx
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -57,6 +57,17 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({ open, onClose }) => {
   const [keywordInput, setKeywordInput] = useState("");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(false);
+
+  // Reset form whenever modal is opened
+  useEffect(() => {
+    if (open) {
+      setFormData(initialForm);
+      setAdditionalInput("");
+      setKeywordInput("");
+      setErrors({});
+      setLoading(false);
+    }
+  }, [open]);
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
@@ -151,9 +162,6 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({ open, onClose }) => {
       const data = await res.json();
       console.log("Job Created:", data);
       toast.success("Job Created Successfully");
-      setFormData(initialForm);
-      setAdditionalInput("");
-      setKeywordInput("");
       onClose();
     } catch (err) {
       toast.error("Failed to create job");
@@ -164,7 +172,7 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({ open, onClose }) => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="sm:max-w-5xl rounded-xl overflow-hidden p-0">
         <div className="max-h-[90vh] overflow-y-auto p-6">
           <DialogHeader>
@@ -433,7 +441,11 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({ open, onClose }) => {
                     e.key === "Enter" && (e.preventDefault(), addKeyword())
                   }
                 />
-                <Button type="button" onClick={addKeyword} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300">
+                <Button
+                  type="button"
+                  onClick={addKeyword}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
+                >
                   Add
                 </Button>
               </div>
@@ -459,7 +471,7 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({ open, onClose }) => {
             <div>
               <label className="text-sm">Salary From</label>
               <Input
-                type="number"
+                name="salary_from"
                 value={formData.salary.from}
                 onChange={(e) =>
                   handleNestedChange("salary", "from", Number(e.target.value))
@@ -472,7 +484,7 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({ open, onClose }) => {
             <div>
               <label className="text-sm">Salary To</label>
               <Input
-                type="number"
+                name="salary_to"
                 value={formData.salary.to}
                 onChange={(e) =>
                   handleNestedChange("salary", "to", Number(e.target.value))

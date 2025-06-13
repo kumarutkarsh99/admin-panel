@@ -1,4 +1,4 @@
-
+import { useState } from "react";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Plus, Search, Building2, MapPin, Phone, Mail, Users, Briefcase, MoreHorizontal } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import AddClientModal from "@/components/modals/AddClientModal";
 
 const clients = [
   {
@@ -91,6 +92,9 @@ const getStatusColor = (status: string) => {
 };
 
 const Clients = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [openEditModal, setOpenEditModal] = useState(false);
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -100,11 +104,16 @@ const Clients = () => {
             <h1 className="text-3xl font-bold text-slate-800">Clients</h1>
             <p className="text-slate-600 mt-1">Manage your client relationships and track their hiring needs.</p>
           </div>
-          <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300">
+          <Button onClick={() => setIsModalOpen(true)} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300">
             <Plus className="w-4 h-4 mr-2" />
             Add New Client
           </Button>
         </div>
+
+        <AddClientModal
+          open={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        />
 
         {/* Search and Filters */}
         <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">

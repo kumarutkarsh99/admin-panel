@@ -170,36 +170,66 @@ export default function EditJobModal({ open, onOpenChange, jobId }) {
 
           {/* General Info */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input
-              name="job_title"
-              placeholder="Job Title"
-              value={form.job_title}
-              onChange={handleChange}
-            />
-            <Input
-              name="job_code"
-              placeholder="Job Code"
-              value={form.job_code}
-              onChange={handleChange}
-            />
-            <Input
-              name="department"
-              placeholder="Department"
-              value={form.department}
-              onChange={handleChange}
-            />
-            <Input
-              name="workplace"
-              placeholder="Workplace (e.g. Remote, Hybrid)"
-              value={form.workplace}
-              onChange={handleChange}
-            />
-            <Input
-              name="office_primary_location"
-              placeholder="Primary Office Location"
-              value={form.office_primary_location}
-              onChange={handleChange}
-            />
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Job Title
+              </label>
+              <Input
+                name="job_title"
+                placeholder="Job Title"
+                value={form.job_title}
+                onChange={handleChange}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Job Code</label>
+              <Input
+                name="job_code"
+                placeholder="Job Code"
+                value={form.job_code}
+                onChange={handleChange}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Department
+              </label>
+              <Input
+                name="department"
+                placeholder="Department"
+                value={form.department}
+                onChange={handleChange}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Workspace
+              </label>
+              <Select
+                value={form.workplace}
+                onValueChange={(val) => handleSelectChange("workplace", val)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="On-Site">On-Site</SelectItem>
+                  <SelectItem value="Hybrid">Hybrid</SelectItem>
+                  <SelectItem value="Remote">Remote</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Office Location
+              </label>
+              <Input
+                name="office_primary_location"
+                placeholder="Primary Office Location"
+                value={form.office_primary_location}
+                onChange={handleChange}
+              />
+            </div>
           </div>
 
           {/* Checkbox */}
@@ -266,100 +296,100 @@ export default function EditJobModal({ open, onOpenChange, jobId }) {
               <label className="block text-sm font-medium mb-1">
                 Employment Type
               </label>
-              <Select
+              <Input
+                name="employment_type"
+                placeholder="Employment Type"
                 value={form.employment_type}
-                onValueChange={(val) =>
-                  handleSelectChange("employment_type", val)
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Full-time">Full-time</SelectItem>
-                  <SelectItem value="Part-time">Part-time</SelectItem>
-                  <SelectItem value="Contract">Contract</SelectItem>
-                  <SelectItem value="Internship">Internship</SelectItem>
-                </SelectContent>
-              </Select>
+                onChange={handleChange}
+              />
             </div>
 
             <div>
               <label className="block text-sm font-medium mb-1">
                 Experience
               </label>
-              <Select
+              <Input
+                name="experience"
+                placeholder="Experience"
                 value={form.experience}
-                onValueChange={(val) => handleSelectChange("experience", val)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select experience" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Entry level">Entry level</SelectItem>
-                  <SelectItem value="Mid level">Mid level</SelectItem>
-                  <SelectItem value="Senior level">Senior level</SelectItem>
-                </SelectContent>
-              </Select>
+                onChange={handleChange}
+              />
             </div>
 
             <div>
               <label className="block text-sm font-medium mb-1">
                 Education
               </label>
-              <Select
+              <Input
+                name="education"
+                placeholder="Education"
                 value={form.education}
-                onValueChange={(val) => handleSelectChange("education", val)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select education" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Bachelor">Bachelor</SelectItem>
-                  <SelectItem value="Master">Master</SelectItem>
-                  <SelectItem value="PhD">PhD</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
+                onChange={handleChange}
+              />
             </div>
           </div>
 
           {/* Company Info */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Industry
+              </label>
             <Input
               name="company_industry"
               placeholder="Industry"
               value={form.company_industry}
               onChange={handleChange}
             />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Job Function
+              </label>
             <Input
               name="company_job_function"
               placeholder="Job Function"
               value={form.company_job_function}
               onChange={handleChange}
             />
+            </div>
           </div>
 
           {/* Salary Section */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Salary From
+              </label>
             <Input
               name="salary_from"
               placeholder="Salary From"
               value={form.salary_from}
               onChange={handleChange}
             />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Salary To
+              </label>
             <Input
               name="salary_to"
               placeholder="Salary To"
               value={form.salary_to}
               onChange={handleChange}
             />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Currency
+              </label>
             <Input
               name="salary_currency"
               placeholder="Currency"
               value={form.salary_currency}
               onChange={handleChange}
             />
+            </div>
           </div>
 
           {/* Keywords */}
@@ -389,7 +419,10 @@ export default function EditJobModal({ open, onOpenChange, jobId }) {
 
           {/* Submit Button */}
           <div className="pt-4 flex justify-end">
-            <Button onClick={handleSubmit} className="px-6 py-2 text-base bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300">
+            <Button
+              onClick={handleSubmit}
+              className="px-6 py-2 text-base bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
+            >
               Save Changes
             </Button>
           </div>
