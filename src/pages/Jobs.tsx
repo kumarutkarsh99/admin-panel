@@ -96,7 +96,7 @@ const Jobs = () => {
   };
 
   useEffect(() => {
-    fetch("/api/jobs/getAlljobs")
+    fetch("/api/jobs/getAllJobs")
       .then(async (res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
