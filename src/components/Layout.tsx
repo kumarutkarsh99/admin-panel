@@ -110,7 +110,7 @@ export default function Layout({ children }: LayoutProps) {
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
-                      className="p-0 h-8 rounded-full overflow-hidden flex items-center gap-2"
+                      className="p-0 h-8 rounded-full overflow-hidden flex items-center gap-2 focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                     >
                       <img
                         src={user.avatarUrl}
