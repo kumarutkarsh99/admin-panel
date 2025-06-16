@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import {useEffect, useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,6 +47,110 @@ type Client = {
   totalHires?: number;
   joinedDate?: string;
   logo?: string;
+import axios from "axios";
+const API_BASE_URL ='http://51.20.181.155:3000';
+console.log(API_BASE_URL)
+
+interface Client {
+  id: number;
+  name: string;
+  industry: string;
+  location: string;
+  contact_person: string;
+  email: string;
+  phone: string;
+  status: string;
+  activeJobs: number;
+  totalHires: number;
+  joinedDate: string;
+  logo: string;
+  street1: string;
+  street2: string;
+  city:string;
+  state:string;
+  country:string;
+}
+
+// const clients = [
+//   {
+//     id: 1,
+//     name: "TechCorp Solutions",
+//     industry: "Technology",
+//     location: "San Francisco, CA",
+//     contactPerson: "Sarah Mitchell",
+//     email: "sarah.mitchell@techcorp.com",
+//     phone: "+1 (555) 123-4567",
+//     status: "Active",
+//     activeJobs: 5,
+//     totalHires: 23,
+//     joinedDate: "Jan 2024",
+//     logo: "TC"
+//   },
+//   {
+//     id: 2,
+//     name: "Healthcare Plus",
+//     industry: "Healthcare",
+//     location: "New York, NY", 
+//     contactPerson: "Dr. James Wilson",
+//     email: "j.wilson@healthcareplus.com",
+//     phone: "+1 (555) 987-6543",
+//     status: "Active",
+//     activeJobs: 3,
+//     totalHires: 12,
+//     joinedDate: "Mar 2024",
+//     logo: "HP"
+//   },
+//   {
+//     id: 3,
+//     name: "FinanceFlow Inc",
+//     industry: "Finance",
+//     location: "Chicago, IL",
+//     contactPerson: "Emma Rodriguez",
+//     email: "emma.r@financeflow.com",
+//     phone: "+1 (555) 456-7890",
+//     status: "Active",
+//     activeJobs: 2,
+//     totalHires: 8,
+//     joinedDate: "Feb 2024",
+//     logo: "FF"
+//   },
+//   {
+//     id: 4,
+//     name: "Creative Studios",
+//     industry: "Marketing",
+//     location: "Los Angeles, CA",
+//     contactPerson: "Alex Chen",
+//     email: "alex@creativestudios.com",
+//     phone: "+1 (555) 321-0987",
+//     status: "Inactive",
+//     activeJobs: 0,
+//     totalHires: 15,
+//     joinedDate: "Dec 2023",
+//     logo: "CS"
+//   },
+//   {
+//     id: 5,
+//     name: "RetailMax Group",
+//     industry: "Retail",
+//     location: "Seattle, WA",
+//     contactPerson: "Lisa Thompson",
+//     email: "lisa.t@retailmax.com",
+//     phone: "+1 (555) 654-3210",
+//     status: "Pending",
+//     activeJobs: 1,
+//     totalHires: 0,
+//     joinedDate: "May 2024",
+//     logo: "RM"
+//   }
+// ];
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case "Active": return "bg-green-100 text-green-800";
+    case "Inactive": return "bg-red-100 text-red-800";
+    case "Pending": return "bg-yellow-100 text-yellow-800";
+    default: return "bg-gray-100 text-gray-800";
+  }
 };
 
 const Clients = () => {
@@ -62,6 +166,8 @@ const Clients = () => {
 
   // modals
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
@@ -99,6 +205,22 @@ const Clients = () => {
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const startIdx = (currentPage - 1) * itemsPerPage;
   const pageItems = filtered.slice(startIdx, startIdx + itemsPerPage);
+    useEffect(() => {
+    fetchClients();
+  }, []);
+   const fetchClients = async () => {
+    try {
+      setIsLoading(true);
+      
+      const response = await   axios.get(`${API_BASE_URL}/client/getAllClient`);// Replace with your actual API URL
+      setClients(response.data.result);
+      console.log(response.data.result)
+    } catch (error) {
+      console.error("Failed to fetch clients:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <Layout>
@@ -179,6 +301,13 @@ const Clients = () => {
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-xl font-semibold text-slate-800">{client.name}</h3>
+                        <Badge className={getStatusColor(client.status)}>{client.status}</Badge>
+                      </div>
+                      
+                      <p className="text-slate-600 font-medium mb-3">{client.industry} </p>
+                      
                       <h3 className="text-xl font-semibold text-slate-800">
                         {client.name}
                       </h3>
@@ -188,6 +317,11 @@ const Clients = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                         <div className="flex items-center gap-2 text-sm text-slate-600">
                           <Building2 className="w-4 h-4" />
+                          <span className="font-medium">{client.contact_person}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-slate-600">
+                          <MapPin className="w-4 h-4" />
+                          {client.street1}{client.street2}{client.city}{client.state}{client.country}
                           {`${client.city}, ${client.state}`}
                         </div>
                         <div className="flex items-center gap-2 text-sm text-slate-600">
