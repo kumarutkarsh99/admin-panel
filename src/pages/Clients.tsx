@@ -119,6 +119,10 @@ const Clients = () => {
   const [clients, setClients] = useState<Client[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [openEditModal, setOpenEditModal] = useState(false);
+  const [searchText, setSearchText] = useState('');
+const [filterStatus, setFilterStatus] = useState('');
+const [filterIndustry, setFilterIndustry] = useState('');
+const [filterLocation, setFilterLocation] = useState('');
     useEffect(() => {
     fetchClients();
   }, []);
@@ -263,4 +267,4 @@ const Clients = () => {
   );
 };
 
-export default Clients;
+export default Clients; 
