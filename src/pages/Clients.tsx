@@ -11,7 +11,6 @@ import {
   MapPin,
   Phone,
   Mail,
-  Users,
   Briefcase,
   MoreHorizontal,
 } from "lucide-react";
@@ -32,23 +31,22 @@ type Client = {
   id: number;
   name: string;
   industry: string;
-  location?: string;
-  contact_person?: string;
-  email?: string;
+  city: string;
+  state: string;
+  website: string;
   phone: string;
+  tags: string[];
+  created_dt: string;
+  // any extra optional fields you added in Dev can stay here
+  contact_person?: string;
+  street1?: string;
+  street2?: string;
+  country?: string;
   status?: string;
   activeJobs?: number;
   totalHires?: number;
   joinedDate?: string;
   logo?: string;
-  street1: string;
-  street2: string;
-  city: string;
-  state: string;
-  country: string;
-  website: string;
-  tags: string[];
-  created_dt: string;
 };
 
 const Clients = () => {
@@ -81,7 +79,7 @@ const Clients = () => {
   const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this client?")) return;
     try {
-      await axios.delete(`/api/client/${id}`);
+      await axios.delete(`${API_BASE_URL}/client/${id}`);
       toast.success("Client deleted");
       setClients((c) => c.filter((x) => x.id !== id));
       const maxPage = Math.ceil((clients.length - 1) / itemsPerPage);
@@ -180,25 +178,16 @@ const Clients = () => {
                         {client.name.slice(0, 2).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-xl font-semibold text-slate-800">
-                          {client.name}
-                        </h3>
-                      </div>
-
+                      <h3 className="text-xl font-semibold text-slate-800">
+                        {client.name}
+                      </h3>
                       <p className="text-slate-600 font-medium mb-3">
                         {client.industry || "Industry not specified"}
                       </p>
-
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                         <div className="flex items-center gap-2 text-sm text-slate-600">
                           <Building2 className="w-4 h-4" />
-                          <span className="font-medium">LinkedIn</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-slate-600">
-                          <MapPin className="w-4 h-4" />
                           {`${client.city}, ${client.state}`}
                         </div>
                         <div className="flex items-center gap-2 text-sm text-slate-600">
@@ -210,7 +199,6 @@ const Clients = () => {
                           {client.phone}
                         </div>
                       </div>
-
                       <div className="flex items-center gap-6 text-sm">
                         <div className="flex items-center gap-1">
                           <Briefcase className="w-4 h-4 text-blue-500" />
