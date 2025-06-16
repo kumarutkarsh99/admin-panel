@@ -22,6 +22,7 @@ import {
 import { ChevronDown } from "lucide-react";
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
+import axios from "axios";
 
 interface AddClientModalProps {
   open: boolean;
@@ -161,22 +162,17 @@ const AddClientModal: React.FC<AddClientModalProps> = ({ open, onClose }) => {
         allParsedData.push(...parsedData);
       }
       console.log("Uploading parsed data:", allParsedData);
-      const res = await fetch("/api/clients/create", {
-        method: "POST",
+      await axios.post("/api/client/createClient", allParsedData, {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(allParsedData),
       });
-
-      if (!res.ok) throw new Error("Upload failed");
-      await res.json();
 
       toast.success("File(s) uploaded successfully");
       onClose();
     } catch (err) {
-      console.error(err);
-      toast.error("File upload failed");
+      console.error("Upload failed:", err);
+      toast.error(err?.response?.data?.message || "File upload failed");
     } finally {
       setUploading(false);
     }
@@ -227,13 +223,7 @@ const AddClientModal: React.FC<AddClientModalProps> = ({ open, onClose }) => {
     setLoading(true);
     console.log("Submitting client:", formData);
     try {
-      const res = await fetch("/api/client/createClient", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-      if (!res.ok) throw new Error("Create client failed");
-      await res.json();
+      await axios.post("/api/client/createClient", formData);
       toast.success("Client added successfully");
       onClose();
     } catch (err) {

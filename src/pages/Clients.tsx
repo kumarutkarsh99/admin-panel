@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -23,42 +22,77 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import AddClientModal from "@/components/modals/AddClientModal";
+import EditClientModal from "@/components/modals/EditClientModal"; // ← create this
+import axios from "axios";
+import { toast } from "sonner";
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "Active":
-      return "bg-green-100 text-green-800";
-    case "Inactive":
-      return "bg-red-100 text-red-800";
-    case "Pending":
-      return "bg-yellow-100 text-yellow-800";
-    default:
-      return "bg-gray-100 text-gray-800";
-  }
+type Client = {
+  id: number;
+  name: string;
+  industry: string;
+  city: string;
+  state: string;
+  website: string;
+  phone: string;
+  tags: string[];
+  created_dt: string;
 };
 
 const Clients = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [clients, setClients] = useState<any[]>([]);
+  // data + UI state
+  const [clients, setClients] = useState<Client[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // search + pagination
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  // modals
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
   useEffect(() => {
-    const fetchClients = async () => {
-      try {
-        const res = await fetch("/api/client/getAllClient");
-        const data = await res.json();
-        if (data.status) {
-          setClients(data.result);
-        }
-      } catch (err) {
-        console.error("Failed to fetch clients:", err);
-      }
-    };
-    fetchClients();
+    axios
+      .get("/api/client/getAllClient")
+      .then(({ data }) => {
+        if (data.status) setClients(data.result);
+        else throw new Error("API error");
+      })
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
   }, []);
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("Are you sure you want to delete this client?")) return;
+    try {
+      await axios.delete(`/api/client/${id}`);
+      toast.success("Client deleted");
+      setClients((c) => c.filter((x) => x.id !== id));
+      const maxPage = Math.ceil((clients.length - 1) / itemsPerPage);
+      if (currentPage > maxPage) setCurrentPage(maxPage);
+    } catch (err: any) {
+      toast.error("Delete failed: " + err.message);
+    }
+  };
+
+  // filter + page
+  const filtered = clients.filter((c) =>
+    [c.name, c.industry, c.city, c.state]
+      .join(" ")
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase())
+  );
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const startIdx = (currentPage - 1) * itemsPerPage;
+  const pageItems = filtered.slice(startIdx, startIdx + itemsPerPage);
 
   return (
     <Layout>
       <div className="space-y-6">
+        {/* Header */}
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-slate-800">Clients</h1>
@@ -67,18 +101,23 @@ const Clients = () => {
             </p>
           </div>
           <Button
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => setIsAddOpen(true)}
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
           >
             <Plus className="w-4 h-4 mr-2" /> Add New Client
           </Button>
         </div>
 
-        <AddClientModal
-          open={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-        />
+        <AddClientModal open={isAddOpen} onClose={() => setIsAddOpen(false)} />
+        {selectedClient && (
+          <EditClientModal
+            open={isEditOpen}
+            onOpenChange={setIsEditOpen}
+            clientId={selectedClient.id}
+          />
+        )}
 
+        {/* Search & Filters */}
         <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">
           <CardContent className="p-6">
             <div className="flex flex-col sm:flex-row gap-4">
@@ -87,6 +126,11 @@ const Clients = () => {
                 <Input
                   placeholder="Search clients..."
                   className="pl-10 bg-white/80"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setCurrentPage(1);
+                  }}
                 />
               </div>
               <div className="flex gap-2">
@@ -104,8 +148,13 @@ const Clients = () => {
           </CardContent>
         </Card>
 
+        {/* Loading / Error */}
+        {loading && <p>Loading clients…</p>}
+        {error && <p className="text-red-600">Error: {error}</p>}
+
+        {/* Client List */}
         <div className="space-y-4">
-          {clients.map((client) => (
+          {pageItems.map((client) => (
             <Card
               key={client.id}
               className="border-0 shadow-sm bg-white/60 backdrop-blur-sm hover:shadow-lg transition-all duration-300"
@@ -181,11 +230,21 @@ const Clients = () => {
                         align="end"
                         className="bg-white/95 backdrop-blur-sm"
                       >
-                        <DropdownMenuItem>Edit Client</DropdownMenuItem>
-                        <DropdownMenuItem>View Contract</DropdownMenuItem>
-                        <DropdownMenuItem>Send Report</DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setSelectedClient(client);
+                            setIsEditOpen(true);
+                          }}
+                        >
+                          Edit Client
+                        </DropdownMenuItem>
                         <DropdownMenuItem className="text-red-600">
                           Archive Client
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleDelete(client.id)}
+                        >
+                          Delete Client
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -195,6 +254,43 @@ const Clients = () => {
             </Card>
           ))}
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center space-x-2 mt-4">
+            <Button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              Previous
+            </Button>
+            {[...Array(totalPages)].map((_, idx) => {
+              const page = idx + 1;
+              return (
+                <Button
+                  key={page}
+                  variant={page === currentPage ? "outline" : "default"}
+                  onClick={() => setCurrentPage(page)}
+                  className={
+                    page === currentPage
+                      ? ""
+                      : "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
+                  }
+                >
+                  {page}
+                </Button>
+              );
+            })}
+            <Button
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              Next
+            </Button>
+          </div>
+        )}
       </div>
     </Layout>
   );

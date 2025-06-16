@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { toast } from "sonner";
+import axios from "axios";
 
 interface PostNewJobModalProps {
   open: boolean;
@@ -154,13 +155,8 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({ open, onClose }) => {
     };
 
     try {
-      const res = await fetch("/api/jobs/createJob", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      console.log("Job Created:", data);
+      const res = await axios.post("/api/jobs/createJob", payload);
+      console.log("Job Created:", res.data);
       toast.success("Job Created Successfully");
       onClose();
     } catch (err) {
