@@ -22,18 +22,31 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import AddClientModal from "@/components/modals/AddClientModal";
-import EditClientModal from "@/components/modals/EditClientModal"; // ← create this
+import EditClientModal from "@/components/modals/EditClientModal";
 import axios from "axios";
 import { toast } from "sonner";
+
+const API_BASE_URL = "/api";
 
 type Client = {
   id: number;
   name: string;
   industry: string;
+  location?: string;
+  contact_person?: string;
+  email?: string;
+  phone: string;
+  status?: string;
+  activeJobs?: number;
+  totalHires?: number;
+  joinedDate?: string;
+  logo?: string;
+  street1: string;
+  street2: string;
   city: string;
   state: string;
+  country: string;
   website: string;
-  phone: string;
   tags: string[];
   created_dt: string;
 };
@@ -56,7 +69,7 @@ const Clients = () => {
 
   useEffect(() => {
     axios
-      .get("/api/client/getAllClient")
+      .get(`${API_BASE_URL}/client/getAllClient`)
       .then(({ data }) => {
         if (data.status) setClients(data.result);
         else throw new Error("API error");
