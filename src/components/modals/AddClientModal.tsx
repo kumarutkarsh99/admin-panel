@@ -20,6 +20,9 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { ChevronDown } from "lucide-react";
+import Papa from "papaparse";
+import * as XLSX from "xlsx";
+import axios from "axios";
 
 interface AddClientModalProps {
   open: boolean;
@@ -82,54 +85,94 @@ const AddClientModal: React.FC<AddClientModalProps> = ({ open, onClose }) => {
   const [tagInput, setTagInput] = useState("");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [fileError, setFileError] = useState("");
   const [uploading, setUploading] = useState(false);
 
-  // Reset state when modal opens
   useEffect(() => {
     if (open) {
       setFormData(initialClientForm);
       setTagInput("");
       setErrors({});
       setLoading(false);
-      setFile(null);
+      setSelectedFiles([]);
       setFileError("");
       setUploading(false);
     }
   }, [open]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setFileError("");
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const validTypes = [
+        "text/csv",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      ];
+      const selected = Array.from(files);
+      const invalidFiles = selected.filter(
+        (file) => !validTypes.includes(file.type)
+      );
+
+      if (invalidFiles.length > 0) {
+        setFileError("Only CSV and Excel files are allowed.");
+        setSelectedFiles([]);
+      } else {
+        setFileError("");
+        setSelectedFiles(selected);
+      }
     }
+  };
+
+  const parseCSV = (file: File): Promise<any[]> =>
+    new Promise((resolve, reject) => {
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => resolve(results.data),
+        error: (error) => reject(error),
+      });
+    });
+
+  const parseExcel = async (file: File): Promise<any[]> => {
+    const data = await file.arrayBuffer();
+    const workbook = XLSX.read(data);
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    return XLSX.utils.sheet_to_json(worksheet);
   };
 
   const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file) {
-      setFileError("Please select a file to upload.");
+    if (selectedFiles.length === 0) {
+      setFileError("Please select at least one file to upload.");
       return;
     }
 
-    const uploadData = new FormData();
-    uploadData.append("file", file);
-
     setUploading(true);
     try {
-      const res = await fetch("/api/clients/upload", {
-        method: "POST",
-        body: uploadData,
+      const allParsedData: any[] = [];
+
+      for (const file of selectedFiles) {
+        const isCSV = file.type === "text/csv";
+        const parsedData = isCSV
+          ? await parseCSV(file)
+          : await parseExcel(file);
+
+        allParsedData.push(...parsedData);
+      }
+      console.log("Uploading parsed data:", allParsedData);
+      await axios.post("/api/client/createClient", allParsedData, {
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
-      if (!res.ok) throw new Error("Upload failed");
-      await res.json();
-      toast.success("File uploaded successfully");
+
+      toast.success("File(s) uploaded successfully");
       onClose();
     } catch (err) {
-      console.error(err);
-      toast.error("File upload failed");
+      console.error("Upload failed:", err);
+      toast.error(err?.response?.data?.message || "File upload failed");
     } finally {
       setUploading(false);
     }
@@ -140,7 +183,7 @@ const AddClientModal: React.FC<AddClientModalProps> = ({ open, onClose }) => {
     if (!formData.name.trim()) newErrors.name = "Name is required.";
     if (!formData.website.trim()) newErrors.website = "Website is required.";
     if (!formData.street1.trim())
-      newErrors.street1 = "Street address is required.";
+      newErrors.street1 = "Street 1 address is required.";
     if (!formData.city.trim()) newErrors.city = "City is required.";
     if (!formData.state.trim()) newErrors.state = "State is required.";
     if (!formData.country.trim()) newErrors.country = "Country is required.";
@@ -178,15 +221,9 @@ const AddClientModal: React.FC<AddClientModalProps> = ({ open, onClose }) => {
     e.preventDefault();
     if (!validateForm()) return;
     setLoading(true);
-
+    console.log("Submitting client:", formData);
     try {
-      const res = await fetch("/api/clients/createClient", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-      if (!res.ok) throw new Error("Create client failed");
-      await res.json();
+      await axios.post("/api/client/createClient", formData);
       toast.success("Client added successfully");
       onClose();
     } catch (err) {
@@ -197,9 +234,50 @@ const AddClientModal: React.FC<AddClientModalProps> = ({ open, onClose }) => {
     }
   };
 
+  const handleClose = () => {
+    setFormData({
+      name: "",
+      website: "",
+      careersPage: "",
+      linkedin: "",
+      street1: "",
+      street2: "",
+      city: "",
+      state: "",
+      country: "",
+      zipcode: "",
+      phone: "",
+      tags: [],
+      industry: "",
+      size: "",
+      currency: "",
+      revenue: "",
+    });
+    setErrors({});
+    setTagInput("");
+    setSelectedFiles([]);
+    setFileError("");
+    onClose();
+  };
+
+  const DialogDescription = () => (
+    <p id="dialog-description" className="sr-only">
+      Fill in the client details and submit to add a new client or upload a
+      CSV/Excel file.
+    </p>
+  );
+
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="sm:max-w-5xl rounded-xl overflow-hidden p-0">
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) handleClose();
+      }}
+    >
+      <DialogContent
+        aria-describedby="dialog-description"
+        className="sm:max-w-5xl rounded-xl overflow-hidden p-0"
+      >
         <div className="max-h-[90vh] overflow-y-auto p-6">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold mb-4">
@@ -261,16 +339,24 @@ const AddClientModal: React.FC<AddClientModalProps> = ({ open, onClose }) => {
                     onChange={(e) => handleChange("linkedin", e.target.value)}
                   />
                 </div>
-                <div className="md:col-span-2">
-                  <label className="text-sm">Street Address</label>
+                <div className="md:col-span-1">
+                  <label className="text-sm">Street Address 1</label>
                   <Input
-                    placeholder="Street address"
+                    placeholder="Street address 1"
                     value={formData.street1}
                     onChange={(e) => handleChange("street1", e.target.value)}
                   />
                   {errors.street1 && (
                     <p className="text-red-500 text-xs">{errors.street1}</p>
                   )}
+                </div>
+                <div className="md:col-span-1">
+                  <label className="text-sm">Street Address 2</label>
+                  <Input
+                    placeholder="Street address 2"
+                    value={formData.street2}
+                    onChange={(e) => handleChange("street2", e.target.value)}
+                  />
                 </div>
                 <div>
                   <label className="text-sm">City</label>
@@ -370,11 +456,11 @@ const AddClientModal: React.FC<AddClientModalProps> = ({ open, onClose }) => {
                 <div>
                   <label className="text-sm">Industry</label>
                   <Select
-                    value={formData.industry}
+                    value={formData.industry || ""}
                     onValueChange={(val) => handleChange("industry", val)}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select" />
+                      <SelectValue placeholder="Select Industry" />
                     </SelectTrigger>
                     <SelectContent className="max-h-60 overflow-y-auto">
                       <SelectScrollUpButton />
@@ -486,7 +572,11 @@ const AddClientModal: React.FC<AddClientModalProps> = ({ open, onClose }) => {
                 {/* Actions */}
                 <div className="md:col-span-2 flex justify-end gap-3 mt-4">
                   <DialogClose asChild>
-                    <Button variant="outline" disabled={loading}>
+                    <Button
+                      variant="outline"
+                      disabled={uploading}
+                      onClick={handleClose}
+                    >
                       Cancel
                     </Button>
                   </DialogClose>
@@ -503,10 +593,11 @@ const AddClientModal: React.FC<AddClientModalProps> = ({ open, onClose }) => {
 
             <TabsContent value="upload">
               <form onSubmit={handleUploadSubmit} className="space-y-4">
-                <label className="text-sm">Upload CSV or Excel File</label>
+                <label className="text-sm">Upload CSV or Excel File(s)</label>
                 <Input
                   type="file"
                   accept=".csv, .xlsx, .xls"
+                  multiple
                   onChange={handleFileChange}
                 />
                 {fileError && (
@@ -515,13 +606,17 @@ const AddClientModal: React.FC<AddClientModalProps> = ({ open, onClose }) => {
 
                 <div className="flex justify-end gap-3 mt-6">
                   <DialogClose asChild>
-                    <Button variant="outline" disabled={uploading}>
+                    <Button
+                      variant="outline"
+                      disabled={loading}
+                      onClick={handleClose}
+                    >
                       Cancel
                     </Button>
                   </DialogClose>
                   <Button
                     type="submit"
-                    disabled={uploading}
+                    disabled={uploading || selectedFiles.length === 0}
                     className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
                   >
                     {uploading ? "Uploading..." : "Upload & Add Client(s)"}
