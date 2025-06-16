@@ -33,6 +33,7 @@ interface ClientForm {
   website: string;
   careersPage: string;
   street1: string;
+  street2: string;
   city: string;
   state: string;
   country: string;
@@ -51,6 +52,7 @@ const initialClientForm: ClientForm = {
   website: "",
   careersPage: "",
   street1: "",
+  street2: "",
   city: "",
   state: "",
   country: "",
@@ -185,7 +187,7 @@ const AddClientModal: React.FC<AddClientModalProps> = ({ open, onClose }) => {
     if (!formData.name.trim()) newErrors.name = "Name is required.";
     if (!formData.website.trim()) newErrors.website = "Website is required.";
     if (!formData.street1.trim())
-      newErrors.street1 = "Street address is required.";
+      newErrors.street1 = "Street 1 address is required.";
     if (!formData.city.trim()) newErrors.city = "City is required.";
     if (!formData.state.trim()) newErrors.state = "State is required.";
     if (!formData.country.trim()) newErrors.country = "Country is required.";
@@ -223,9 +225,9 @@ const AddClientModal: React.FC<AddClientModalProps> = ({ open, onClose }) => {
     e.preventDefault();
     if (!validateForm()) return;
     setLoading(true);
-
+    console.log("Submitting client:", formData);
     try {
-      const res = await fetch("/api/clients/create", {
+      const res = await fetch("/api/client/createClient", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -249,6 +251,7 @@ const AddClientModal: React.FC<AddClientModalProps> = ({ open, onClose }) => {
       careersPage: "",
       linkedin: "",
       street1: "",
+      street2: "",
       city: "",
       state: "",
       country: "",
@@ -346,16 +349,24 @@ const AddClientModal: React.FC<AddClientModalProps> = ({ open, onClose }) => {
                     onChange={(e) => handleChange("linkedin", e.target.value)}
                   />
                 </div>
-                <div className="md:col-span-2">
-                  <label className="text-sm">Street Address</label>
+                <div className="md:col-span-1">
+                  <label className="text-sm">Street Address 1</label>
                   <Input
-                    placeholder="Street address"
+                    placeholder="Street address 1"
                     value={formData.street1}
                     onChange={(e) => handleChange("street1", e.target.value)}
                   />
                   {errors.street1 && (
                     <p className="text-red-500 text-xs">{errors.street1}</p>
                   )}
+                </div>
+                <div className="md:col-span-1">
+                  <label className="text-sm">Street Address 2</label>
+                  <Input
+                    placeholder="Street address 2"
+                    value={formData.street2}
+                    onChange={(e) => handleChange("street2", e.target.value)}
+                  />
                 </div>
                 <div>
                   <label className="text-sm">City</label>
@@ -455,11 +466,11 @@ const AddClientModal: React.FC<AddClientModalProps> = ({ open, onClose }) => {
                 <div>
                   <label className="text-sm">Industry</label>
                   <Select
-                    value={formData.industry}
+                    value={formData.industry || ""}
                     onValueChange={(val) => handleChange("industry", val)}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select" />
+                      <SelectValue placeholder="Select Industry" />
                     </SelectTrigger>
                     <SelectContent className="max-h-60 overflow-y-auto">
                       <SelectScrollUpButton />
