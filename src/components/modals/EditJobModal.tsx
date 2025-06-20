@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import axios from "axios";
 import { toast } from "sonner";
 import {
   Select,
@@ -49,10 +50,10 @@ export default function EditJobModal({ open, onOpenChange, jobId }) {
   useEffect(() => {
     if (open && jobId) {
       setLoading(true);
-      fetch(`/api/jobs/${jobId}`)
-        .then((res) => res.json())
+      axios
+        .get(`/api/jobs/${jobId}`)
         .then((res) => {
-          const job = res.result[0];
+          const job = res.data.result[0];
           setForm({
             job_title: job.job_title || "",
             job_code: job.job_code || "",
@@ -142,16 +143,11 @@ export default function EditJobModal({ open, onOpenChange, jobId }) {
 
   const handleSubmit = async () => {
     try {
-      const response = await fetch(`/api/jobs/${jobId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-
-      if (!response.ok) throw new Error("Update failed");
-
+      setLoading(true);
+      await axios.put(`/api/jobs/${jobId}`, form);
       toast.success("Job updated successfully!");
       onOpenChange(false);
+      setLoading(false);
     } catch (err) {
       console.error("Error updating job:", err);
       toast.error("Failed to update job.");
@@ -332,26 +328,24 @@ export default function EditJobModal({ open, onOpenChange, jobId }) {
           {/* Company Info */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Industry
-              </label>
-            <Input
-              name="company_industry"
-              placeholder="Industry"
-              value={form.company_industry}
-              onChange={handleChange}
-            />
+              <label className="block text-sm font-medium mb-1">Industry</label>
+              <Input
+                name="company_industry"
+                placeholder="Industry"
+                value={form.company_industry}
+                onChange={handleChange}
+              />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">
                 Job Function
               </label>
-            <Input
-              name="company_job_function"
-              placeholder="Job Function"
-              value={form.company_job_function}
-              onChange={handleChange}
-            />
+              <Input
+                name="company_job_function"
+                placeholder="Job Function"
+                value={form.company_job_function}
+                onChange={handleChange}
+              />
             </div>
           </div>
 
@@ -361,34 +355,32 @@ export default function EditJobModal({ open, onOpenChange, jobId }) {
               <label className="block text-sm font-medium mb-1">
                 Salary From
               </label>
-            <Input
-              name="salary_from"
-              placeholder="Salary From"
-              value={form.salary_from}
-              onChange={handleChange}
-            />
+              <Input
+                name="salary_from"
+                placeholder="Salary From"
+                value={form.salary_from}
+                onChange={handleChange}
+              />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">
                 Salary To
               </label>
-            <Input
-              name="salary_to"
-              placeholder="Salary To"
-              value={form.salary_to}
-              onChange={handleChange}
-            />
+              <Input
+                name="salary_to"
+                placeholder="Salary To"
+                value={form.salary_to}
+                onChange={handleChange}
+              />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Currency
-              </label>
-            <Input
-              name="salary_currency"
-              placeholder="Currency"
-              value={form.salary_currency}
-              onChange={handleChange}
-            />
+              <label className="block text-sm font-medium mb-1">Currency</label>
+              <Input
+                name="salary_currency"
+                placeholder="Currency"
+                value={form.salary_currency}
+                onChange={handleChange}
+              />
             </div>
           </div>
 
@@ -421,9 +413,10 @@ export default function EditJobModal({ open, onOpenChange, jobId }) {
           <div className="pt-4 flex justify-end">
             <Button
               onClick={handleSubmit}
+              disabled={loading}
               className="px-6 py-2 text-base bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
             >
-              Save Changes
+              {loading ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         </div>

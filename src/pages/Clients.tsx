@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {useEffect, useState } from "react";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,79 +8,102 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Plus, Search, Building2, MapPin, Phone, Mail, Users, Briefcase, MoreHorizontal } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import AddClientModal from "@/components/modals/AddClientModal";
+import axios from "axios";
+const API_BASE_URL ='http://51.20.181.155:3000';
+console.log(API_BASE_URL)
 
-const clients = [
-  {
-    id: 1,
-    name: "TechCorp Solutions",
-    industry: "Technology",
-    location: "San Francisco, CA",
-    contactPerson: "Sarah Mitchell",
-    email: "sarah.mitchell@techcorp.com",
-    phone: "+1 (555) 123-4567",
-    status: "Active",
-    activeJobs: 5,
-    totalHires: 23,
-    joinedDate: "Jan 2024",
-    logo: "TC"
-  },
-  {
-    id: 2,
-    name: "Healthcare Plus",
-    industry: "Healthcare",
-    location: "New York, NY", 
-    contactPerson: "Dr. James Wilson",
-    email: "j.wilson@healthcareplus.com",
-    phone: "+1 (555) 987-6543",
-    status: "Active",
-    activeJobs: 3,
-    totalHires: 12,
-    joinedDate: "Mar 2024",
-    logo: "HP"
-  },
-  {
-    id: 3,
-    name: "FinanceFlow Inc",
-    industry: "Finance",
-    location: "Chicago, IL",
-    contactPerson: "Emma Rodriguez",
-    email: "emma.r@financeflow.com",
-    phone: "+1 (555) 456-7890",
-    status: "Active",
-    activeJobs: 2,
-    totalHires: 8,
-    joinedDate: "Feb 2024",
-    logo: "FF"
-  },
-  {
-    id: 4,
-    name: "Creative Studios",
-    industry: "Marketing",
-    location: "Los Angeles, CA",
-    contactPerson: "Alex Chen",
-    email: "alex@creativestudios.com",
-    phone: "+1 (555) 321-0987",
-    status: "Inactive",
-    activeJobs: 0,
-    totalHires: 15,
-    joinedDate: "Dec 2023",
-    logo: "CS"
-  },
-  {
-    id: 5,
-    name: "RetailMax Group",
-    industry: "Retail",
-    location: "Seattle, WA",
-    contactPerson: "Lisa Thompson",
-    email: "lisa.t@retailmax.com",
-    phone: "+1 (555) 654-3210",
-    status: "Pending",
-    activeJobs: 1,
-    totalHires: 0,
-    joinedDate: "May 2024",
-    logo: "RM"
-  }
-];
+interface Client {
+  id: number;
+  name: string;
+  industry: string;
+  location: string;
+  contactPerson: string;
+  email: string;
+  phone: string;
+  status: string;
+  activeJobs: number;
+  totalHires: number;
+  joinedDate: string;
+  logo: string;
+  street1: string;
+  street2: string;
+  city:string;
+  state:string;
+  country:string
+}
+
+// const clients = [
+//   {
+//     id: 1,
+//     name: "TechCorp Solutions",
+//     industry: "Technology",
+//     location: "San Francisco, CA",
+//     contactPerson: "Sarah Mitchell",
+//     email: "sarah.mitchell@techcorp.com",
+//     phone: "+1 (555) 123-4567",
+//     status: "Active",
+//     activeJobs: 5,
+//     totalHires: 23,
+//     joinedDate: "Jan 2024",
+//     logo: "TC"
+//   },
+//   {
+//     id: 2,
+//     name: "Healthcare Plus",
+//     industry: "Healthcare",
+//     location: "New York, NY", 
+//     contactPerson: "Dr. James Wilson",
+//     email: "j.wilson@healthcareplus.com",
+//     phone: "+1 (555) 987-6543",
+//     status: "Active",
+//     activeJobs: 3,
+//     totalHires: 12,
+//     joinedDate: "Mar 2024",
+//     logo: "HP"
+//   },
+//   {
+//     id: 3,
+//     name: "FinanceFlow Inc",
+//     industry: "Finance",
+//     location: "Chicago, IL",
+//     contactPerson: "Emma Rodriguez",
+//     email: "emma.r@financeflow.com",
+//     phone: "+1 (555) 456-7890",
+//     status: "Active",
+//     activeJobs: 2,
+//     totalHires: 8,
+//     joinedDate: "Feb 2024",
+//     logo: "FF"
+//   },
+//   {
+//     id: 4,
+//     name: "Creative Studios",
+//     industry: "Marketing",
+//     location: "Los Angeles, CA",
+//     contactPerson: "Alex Chen",
+//     email: "alex@creativestudios.com",
+//     phone: "+1 (555) 321-0987",
+//     status: "Inactive",
+//     activeJobs: 0,
+//     totalHires: 15,
+//     joinedDate: "Dec 2023",
+//     logo: "CS"
+//   },
+//   {
+//     id: 5,
+//     name: "RetailMax Group",
+//     industry: "Retail",
+//     location: "Seattle, WA",
+//     contactPerson: "Lisa Thompson",
+//     email: "lisa.t@retailmax.com",
+//     phone: "+1 (555) 654-3210",
+//     status: "Pending",
+//     activeJobs: 1,
+//     totalHires: 0,
+//     joinedDate: "May 2024",
+//     logo: "RM"
+//   }
+// ];
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -93,7 +116,25 @@ const getStatusColor = (status: string) => {
 
 const Clients = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [openEditModal, setOpenEditModal] = useState(false);
+    useEffect(() => {
+    fetchClients();
+  }, []);
+   const fetchClients = async () => {
+    try {
+      setIsLoading(true);
+      
+      const response = await   axios.get(`${API_BASE_URL}/client/getAllClient`);// Replace with your actual API URL
+      setClients(response.data.result);
+      console.log(response.data.result)
+    } catch (error) {
+      console.error("Failed to fetch clients:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <Layout>
@@ -163,7 +204,7 @@ const Clients = () => {
                         </div>
                         <div className="flex items-center gap-2 text-sm text-slate-600">
                           <MapPin className="w-4 h-4" />
-                          {client.location}
+                          {client.street1}{client.street2}{client.city}{client.state}{client.country}
                         </div>
                         <div className="flex items-center gap-2 text-sm text-slate-600">
                           <Mail className="w-4 h-4" />
