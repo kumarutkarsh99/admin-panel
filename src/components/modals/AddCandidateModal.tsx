@@ -30,21 +30,31 @@ interface CandidateForm {
   email: string;
   phone: string;
   linkedin: string;
+  headline: string;
+  status: string;
+  address: string;
+  experience: string;
   photo_url: string;
+  education: string;
+  summary: string;
   resume_url: string;
   cover_letter: string;
+  rating: string;
+  hmapproval: string;
+  recruiter_status: string;
+  current_company: string;
+  current_ctc: string;
+  expected_ctc: string;
+  skill: string[];
+  college: string;
+  degree: string;
+  currency: string;
   street1: string;
   street2: string;
   city: string;
   state: string;
   country: string;
   zipcode: string;
-  skills: string[];
-  experience: string;
-  education: string;
-  summary: string;
-  currency: string;
-  compensation: number;
 }
 
 interface AddCandidateModalProps {
@@ -59,22 +69,32 @@ const initialCandidateForm: CandidateForm = {
   last_name: "",
   email: "",
   phone: "",
+  headline: "",
   linkedin: "",
+  status: "",
+  address: "",
+  experience: "",
   photo_url: "",
+  education: "",
+  summary: "",
   resume_url: "",
   cover_letter: "",
+  rating: "",
+  hmapproval: "",
+  recruiter_status: "",
+  current_company: "",
+  current_ctc: "",
+  expected_ctc: "",
+  skill: [],
+  college: "",
+  degree: "",
+  currency: "",
   street1: "",
   street2: "",
   city: "",
   state: "",
   country: "",
   zipcode: "",
-  skills: [],
-  experience: "",
-  education: "",
-  summary: "",
-  currency: "",
-  compensation: 0,
 };
 
 const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
@@ -90,6 +110,8 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
   const [fileError, setFileError] = useState<string>("");
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState<number>(0);
+  const [linkedinUrl, setLinkedinUrl] = useState<string>("");
+  const [importing, setImporting] = useState(false);
 
   const currencyOptions = useMemo(
     () => [
@@ -107,15 +129,63 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
     []
   );
 
+  const candidateStatus = useMemo(
+    () => ["Application", "Screening", "Interview", "Hired", "Rejected"],
+    []
+  );
+
+  const hmApproval = useMemo(
+    () => ["Pending", "Approved", "Rejected", "Not Required"],
+    []
+  );
+
+  const recruiterStatus = useMemo(
+    () => [
+      "New Application",
+      "Initial Review",
+      "Screening Complete",
+      "Recommended",
+      "Not Suitable",
+    ],
+    []
+  );
+
+  const ratingStyles: Record<number, { selectedBg: string; hoverBg: string }> =
+    {
+      1: { selectedBg: "bg-red-600 text-white", hoverBg: "hover:bg-red-200" },
+      2: {
+        selectedBg: "bg-orange-500 text-white",
+        hoverBg: "hover:bg-orange-200",
+      },
+      3: {
+        selectedBg: "bg-yellow-500 text-white",
+        hoverBg: "hover:bg-yellow-200",
+      },
+      4: {
+        selectedBg: "bg-green-500 text-white",
+        hoverBg: "hover:bg-green-200",
+      },
+      5: {
+        selectedBg: "bg-blue-600  text-white",
+        hoverBg: "hover:bg-blue-200",
+      },
+    };
+
+  const resetForm = () => {
+    setFormData(initialCandidateForm);
+    setTagInput("");
+    setErrors({});
+    setSelectedFiles([]);
+    setParsedRows([]);
+    setFileError("");
+    setProgress(0);
+    setLinkedinUrl("");
+    setImporting(false);
+  };
+
   useEffect(() => {
     if (open) {
-      setFormData(initialCandidateForm);
-      setErrors({});
-      setTagInput("");
-      setSelectedFiles([]);
-      setParsedRows([]);
-      setFileError("");
-      setProgress(0);
+      resetForm();
     }
   }, [open]);
 
@@ -124,10 +194,10 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
   };
 
   const addTag = () => {
-    if (tagInput && !formData.skills.includes(tagInput)) {
+    if (tagInput && !formData.skill.includes(tagInput)) {
       setFormData((prev) => ({
         ...prev,
-        skills: [...prev.skills, tagInput],
+        skill: [...prev.skill, tagInput],
       }));
       setTagInput("");
     }
@@ -136,16 +206,16 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
   const removeTag = (tag: string) => {
     setFormData((prev) => ({
       ...prev,
-      skills: prev.skills.filter((t) => t !== tag),
+      skill: prev.skill.filter((t) => t !== tag),
     }));
   };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.first_name) newErrors.first_name = "First Name is Required";
-    if (!formData.email) newErrors.email = "Last Name is Required";
-    if (!formData.phone) newErrors.phone = "Contact Number is Required";
-    if (!formData.resume_url) newErrors.resume_url = "Resume Url is Required";
+    if (!formData.email) newErrors.email = "Email is Required";
+    if (!formData.phone) newErrors.phone = "Phone Number is Required";
+    if (!formData.resume_url) newErrors.resume_url = "Resume is Required";
     if (!formData.education)
       newErrors.education = "Education details are Required";
     setErrors(newErrors);
@@ -154,16 +224,36 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    // if (!validateForm()) {
-    //   toast.error("Please enter required fields.");
-    //   return;
-    // }
+    if (!validateForm()) {
+      toast.error("Please enter required fields.");
+      return;
+    }
     setLoading(true);
+
+    const fullAddress = [
+      formData.street1,
+      formData.street2,
+      formData.city,
+      formData.state,
+      formData.country,
+      formData.zipcode,
+    ]
+      .filter(Boolean)
+      .join(", ");
+
+    const { street1, street2, city, state, country, zipcode, ...rest } =
+      formData;
+
+    const payload = {
+      ...rest,
+      address: fullAddress,
+    };
+
     try {
-      console.log(formData);
-      return false;
-      await axios.post("/api/candidate/createCandidate", formData);
+      console.log(payload);
+      await axios.post("/api/candidate/createCandidate", payload);
       toast.success("Candidate added successfully");
+      resetForm();
       handleClose();
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
@@ -184,6 +274,15 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
     let filesProcessed = 0;
 
     files.forEach((file) => {
+      const valid = [
+        "text/csv",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      ];
+      if (!valid.includes(file.type)) {
+        return setFileError(`Unsupported type: ${file.name}`);
+      }
+
       if (file.type === "text/csv") {
         Papa.parse(file, {
           header: true,
@@ -234,18 +333,62 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
     setUploading(true);
     try {
       console.log(parsedRows);
-      await axios.post("/api/candidate/bulkUpload", parsedRows, {
+      await axios.post("/api/candidate/createCandidatesBulk", parsedRows, {
         headers: { "Content-Type": "application/json" },
         onUploadProgress: (evt) => {
           setProgress(Math.round((evt.loaded / evt.total!) * 100));
         },
       });
       toast.success("Upload successful");
+      resetForm();
       handleClose();
     } catch (err) {
       toast.error("Upload failed");
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleLinkedInImport = async (
+    linkedinUrlsText: string,
+    setImporting: React.Dispatch<React.SetStateAction<boolean>>,
+    handleClose: () => void
+  ) => {
+    const urls = Array.from(
+      new Set(
+        linkedinUrlsText
+          .split("\n")
+          .map((u) => u.trim())
+          .filter((u) => u)
+      )
+    );
+    const invalid = urls.filter(
+      (u) =>
+        !/^https:\/\/(www\.)?linkedin\.com\/in\/[a-zA-Z0-9\-_.]+\/?$/.test(u)
+    );
+
+    if (invalid.length) {
+      return toast.error(`Invalid URL(s): ${invalid.join(", ")}`);
+    }
+
+    if (!urls.length) {
+      toast.error("Please enter at least one LinkedIn URL.");
+      return;
+    }
+
+    setImporting(true);
+    try {
+      await axios.post("/api/candidate/linkedinImportBulk", {
+        urls,
+      });
+
+      toast.success("LinkedIn profiles imported successfully.");
+      resetForm();
+      handleClose();
+    } catch (err) {
+      toast.error("Bulk import failed.");
+    } finally {
+      setImporting(false);
     }
   };
 
@@ -260,11 +403,17 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
           </DialogHeader>
 
           <Tabs defaultValue="manual" className="w-full">
-            <TabsList className="mb-6">
-              <TabsTrigger value="manual">Manual Entry</TabsTrigger>
-              <TabsTrigger value="upload">Upload File</TabsTrigger>
+            <TabsList className="mb-6 w-full flex justify-around">
+              <TabsTrigger className="w-full" value="manual">
+                Manual Entry
+              </TabsTrigger>
+              <TabsTrigger className="w-full" value="upload">
+                Bulk Upload
+              </TabsTrigger>
+              <TabsTrigger className="w-full" value="linkedin">
+                LinkedIn Import
+              </TabsTrigger>
             </TabsList>
-
             <TabsContent value="manual">
               <form
                 onSubmit={handleSubmit}
@@ -288,8 +437,13 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
                   },
                   {
                     key: "phone",
-                    label: "Contact Number",
+                    label: "Phone Number",
                     placeholder: "+1 (555) 555‑5555",
+                  },
+                  {
+                    key: "headline",
+                    label: "Headline",
+                    placeholder: "Paste text or link",
                   },
                   {
                     key: "linkedin",
@@ -305,11 +459,6 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
                     key: "resume_url",
                     label: "Resume",
                     placeholder: "PDF or DOC link",
-                  },
-                  {
-                    key: "headline",
-                    label: "Headline",
-                    placeholder: "Paste text or link",
                   },
                   {
                     key: "street1",
@@ -337,6 +486,21 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
                     label: "Zipcode",
                     placeholder: "Postal code",
                   },
+                  {
+                    key: "current_company",
+                    label: "Current Company",
+                    placeholder: "Your current company",
+                  },
+                  {
+                    key: "college",
+                    label: "College",
+                    placeholder: "Your last attended college",
+                  },
+                  {
+                    key: "degree",
+                    label: "Highest Degree",
+                    placeholder: "Btech/BA/...",
+                  },
                 ].map(({ key, label, placeholder }) => (
                   <div key={key}>
                     <label className="text-sm" htmlFor={key}>
@@ -358,7 +522,6 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
                     )}
                   </div>
                 ))}
-
                 <div className="md:col-span-2">
                   <label className="text-sm">Skills</label>
                   <div className="flex gap-2">
@@ -374,12 +537,13 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
                       type="button"
                       onClick={addTag}
                       disabled={!tagInput.trim()}
+                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
                     >
                       Add
                     </Button>
                   </div>
                   <div className="mt-2 flex gap-2 flex-wrap">
-                    {formData.skills.map((tag, idx) => (
+                    {formData.skill.map((tag, idx) => (
                       <span
                         key={idx}
                         className="px-2 py-1 bg-gray-200 rounded text-sm"
@@ -396,7 +560,6 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
                     ))}
                   </div>
                 </div>
-
                 {[
                   {
                     key: "experience",
@@ -433,6 +596,96 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
                     />
                   </div>
                 ))}
+                <div className="md:col-span-1 flex-wrap gap-4">
+                  <label className="text-sm">Recruiter Status</label>
+                  <Select
+                    value={formData.recruiter_status}
+                    onValueChange={(val) =>
+                      handleChange("recruiter_status", val)
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-60 overflow-y-auto">
+                      <SelectScrollUpButton />
+                      {recruiterStatus.map((curr) => (
+                        <SelectItem key={curr} value={curr}>
+                          {curr}
+                        </SelectItem>
+                      ))}
+                      <SelectScrollDownButton />
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="md:col-span-1 flex-wrap gap-4">
+                  <label className="text-sm">Candidate Status</label>
+                  <Select
+                    value={formData.status}
+                    onValueChange={(val) => handleChange("status", val)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-60 overflow-y-auto">
+                      <SelectScrollUpButton />
+                      {candidateStatus.map((curr) => (
+                        <SelectItem key={curr} value={curr}>
+                          {curr}
+                        </SelectItem>
+                      ))}
+                      <SelectScrollDownButton />
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="md:col-span-1 flex-wrap gap-4">
+                  <label className="text-sm">HM Approval</label>
+                  <Select
+                    value={formData.hmapproval}
+                    onValueChange={(val) => handleChange("hmapproval", val)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-60 overflow-y-auto">
+                      <SelectScrollUpButton />
+                      {hmApproval.map((curr) => (
+                        <SelectItem key={curr} value={curr}>
+                          {curr}
+                        </SelectItem>
+                      ))}
+                      <SelectScrollDownButton />
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-center border rounded-lg w-full h-10 mt-6 overflow-hidden">
+                  <label className="text-sm whitespace-nowrap w-[30%] flex justify-center items-center">
+                    Rating
+                  </label>
+                  <div className="grid grid-cols-5 flex-1 h-full">
+                    {[1, 2, 3, 4, 5].map((n) => {
+                      const { selectedBg, hoverBg } = ratingStyles[n];
+                      const isSelected = formData.rating === n.toString();
+
+                      return (
+                        <button
+                          key={n}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleChange("rating", n.toString());
+                          }}
+                          className={`w-full h-full flex items-center justify-center text-sm font-medium transition-colors duration-150 ${
+                            isSelected ? selectedBg : `bg-gray-100 ${hoverBg}`
+                          }`}
+                        >
+                          {n}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
 
                 <div className="md:col-span-2 flex gap-4">
                   <div className="w-1/5">
@@ -455,18 +708,28 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="w-4/5">
-                    <label className="text-sm">Compensation</label>
+
+                  <div className="w-2/5">
+                    <label className="text-sm">Current CTC</label>
                     <Input
-                      type="number"
-                      value={formData.compensation}
+                      value={formData.current_ctc}
+                      placeholder="Current CTC"
                       onChange={(e) =>
-                        handleChange("compensation", Number(e.target.value))
+                        handleChange("current_ctc", Number(e.target.value))
+                      }
+                    />
+                  </div>
+                  <div className="w-2/5">
+                    <label className="text-sm">Expected CTC</label>
+                    <Input
+                      value={formData.expected_ctc}
+                      placeholder="Expected CTC"
+                      onChange={(e) =>
+                        handleChange("expected_ctc", Number(e.target.value))
                       }
                     />
                   </div>
                 </div>
-
                 <div className="md:col-span-2 flex justify-end gap-3 mt-4">
                   <DialogClose asChild>
                     <Button
@@ -495,21 +758,30 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
                   multiple
                   accept=".csv,.xlsx,.xls"
                   onChange={handleFileChange}
+                  aria-label="Upload CSV or Excel file"
                 />
-                {fileError && <p className="text-red-500">{fileError}</p>}
+                {fileError && <p className="text-red-500 mt-2">{fileError}</p>}
 
+                {/* Preview warning */}
                 {parsedRows.length > 0 && (
-                  <div className="max-h-96 overflow-auto mt-4">
+                  <p className="text-sm italic text-gray-600 mt-4">
+                    ⚠️ These rows are only in preview. Click “Upload” to save.
+                  </p>
+                )}
+
+                {/* Data preview table */}
+                {parsedRows.length > 0 && (
+                  <div className="max-h-96 overflow-auto mt-2">
                     <table className="min-w-full divide-y divide-gray-200 table-fixed">
                       <thead className="bg-gray-100 sticky top-0">
                         <tr>
-                          <th className="px-4 py-2 text-left text-xs font-semibold text-red-700 uppercase tracking-wider">
+                          <th className="px-4 py-2 text-xs font-semibold uppercase">
                             Remove
                           </th>
                           {headers.map((h) => (
                             <th
                               key={h}
-                              className="px-4 py-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider"
+                              className="px-4 py-2 text-xs font-semibold uppercase"
                             >
                               {h}
                             </th>
@@ -519,7 +791,7 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
                       <tbody className="bg-white divide-y divide-gray-200">
                         {parsedRows.map((row, i) => (
                           <tr key={i} className="hover:bg-gray-50">
-                            <td className="px-4 py-2 whitespace-nowrap text-sm text-red-800">
+                            <td className="px-4 py-2">
                               <Button
                                 type="button"
                                 variant="ghost"
@@ -529,17 +801,15 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
                                   removeRow(i);
                                 }}
                               >
-                                &times;
+                                ×
                               </Button>
                             </td>
                             {headers.map((key, j) => (
                               <td
                                 key={`${i}-${j}`}
-                                className="px-4 py-2 whitespace-nowrap text-sm text-gray-800"
+                                className="px-4 py-2 whitespace-nowrap text-sm"
                               >
-                                {row[key] !== undefined && row[key] !== null
-                                  ? String(row[key])
-                                  : ""}
+                                {row[key] ?? ""}
                               </td>
                             ))}
                           </tr>
@@ -549,29 +819,80 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
                   </div>
                 )}
 
+                {/* Progress bar */}
                 {uploading && (
                   <progress
                     value={progress}
                     max={100}
                     className="w-full mt-4"
+                    aria-valuenow={progress}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
                   />
                 )}
 
-                <div className="mt-4 flex justify-end">
+                {/* Actions */}
+                <div className="mt-4 flex justify-end gap-2">
                   <DialogClose asChild>
-                    <Button variant="outline" disabled={uploading}>
+                    <Button
+                      variant="outline"
+                      onClick={resetForm}
+                      disabled={uploading}
+                    >
                       Cancel
                     </Button>
                   </DialogClose>
                   <Button
                     type="submit"
                     disabled={uploading || !parsedRows.length}
-                    className="ml-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
+                    className="bg-gradient-to-r from-blue-600 to-purple-600"
                   >
                     {uploading ? `Uploading ${progress}%` : "Upload"}
                   </Button>
                 </div>
               </form>
+            </TabsContent>
+
+            <TabsContent value="linkedin">
+              <div>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleLinkedInImport(
+                      linkedinUrl,
+                      setImporting,
+                      handleClose
+                    );
+                  }}
+                  className="space-y-4"
+                >
+                  <label className="text-sm">LinkedIn Profile URLs</label>
+                  <Textarea
+                    placeholder="Enter one URL per line"
+                    rows={5}
+                    value={linkedinUrl}
+                    onChange={(e) => setLinkedinUrl(e.target.value)}
+                  />
+                  <div className="mt-4 flex justify-end">
+                    <DialogClose asChild>
+                      <Button
+                        variant="outline"
+                        disabled={uploading}
+                        onClick={resetForm}
+                      >
+                        Cancel
+                      </Button>
+                    </DialogClose>
+                    <Button
+                      type="submit"
+                      disabled={importing}
+                      className="ml-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
+                    >
+                      {importing ? "Importing..." : "Import All"}
+                    </Button>
+                  </div>
+                </form>
+              </div>
             </TabsContent>
           </Tabs>
         </div>
