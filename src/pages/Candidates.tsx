@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/table";
 import axios from "axios";
 import { saveAs } from "file-saver";
+import { toast } from "sonner";
 
 const API_BASE_URL = "http://51.20.181.155:3000";
 
@@ -73,29 +74,52 @@ interface CandidateForm {
 
 const getStatusColor = (status: string) =>
   ({
-    Application: "bg-blue-100 text-blue-800",
-    Screening: "bg-yellow-100 text-yellow-800",
-    Interview: "bg-purple-100 text-purple-800",
-    Hired: "bg-green-100 text-green-800",
-    Rejected: "bg-red-100 text-red-800",
-  }[status] || "bg-gray-100 text-gray-800");
+    Application:
+      "bg-blue-100 text-blue-800 hover:bg-blue-200 hover:text-blue-900",
+    Screening:
+      "bg-yellow-100 text-yellow-800 hover:bg-yellow-200 hover:text-yellow-900",
+    Interview:
+      "bg-purple-100 text-purple-800 hover:bg-purple-200 hover:text-purple-900",
+    Hired:
+      "bg-green-100 text-green-800 hover:bg-green-200 hover:text-green-900",
+    Rejected: "bg-red-100 text-red-800 hover:bg-red-200 hover:text-red-900",
+  }[status] ||
+  "bg-gray-100 text-gray-800 hover:bg-gray-200 hover:text-gray-900");
 
 const getRecruiterStatusColor = (status: string) =>
   ({
-    "New Application": "bg-blue-100 text-blue-700",
-    "Initial Review": "bg-yellow-100 text-yellow-700",
-    "Screening Complete": "bg-purple-100 text-purple-700",
-    Recommended: "bg-green-100 text-green-700",
-    "Not Suitable": "bg-red-100 text-red-700",
-  }[status] || "bg-gray-100 text-gray-700");
+    "New Application":
+      "bg-blue-100 text-blue-700 hover:bg-blue-200 hover:text-blue-800",
+    "Initial Review":
+      "bg-yellow-100 text-yellow-700 hover:bg-yellow-200 hover:text-yellow-800",
+    "Screening Complete":
+      "bg-purple-100 text-purple-700 hover:bg-purple-200 hover:text-purple-800",
+    Recommended:
+      "bg-green-100 text-green-700 hover:bg-green-200 hover:text-green-800",
+    "Not Suitable":
+      "bg-red-100 text-red-700 hover:bg-red-200 hover:text-red-800",
+  }[status] ||
+  "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:text-gray-800");
 
 const getHMApprovalColor = (status: string) =>
   ({
-    Pending: "bg-yellow-100 text-yellow-800",
-    Approved: "bg-green-100 text-green-800",
-    Rejected: "bg-red-100 text-red-800",
-    "Not Required": "bg-gray-100 text-gray-600",
-  }[status] || "bg-gray-100 text-gray-600");
+    Pending:
+      "bg-yellow-100 text-yellow-800 hover:bg-yellow-200 hover:text-yellow-900",
+    Approved:
+      "bg-green-100 text-green-800 hover:bg-green-200 hover:text-green-900",
+    Rejected: "bg-red-100 text-red-800 hover:bg-red-200 hover:text-red-900",
+    "Not Required":
+      "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-700",
+  }[status] ||
+  "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-700");
+
+const TABS = [
+  ["All", "all"],
+  ["Status", "status"],
+  ["Recruiter", "recruiter"],
+  ["HM Approval", "hm"],
+  ["CTC Range", "ctc"],
+] as const;
 
 export default function Candidates() {
   const [candidates, setCandidates] = useState<CandidateForm[]>([]);
@@ -103,7 +127,11 @@ export default function Candidates() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
-  const itemsPerPage = 2;
+  const [activeTab, setActiveTab] = useState<
+    "all" | "status" | "recruiter" | "hm" | "ctc"
+  >("all");
+  const term = searchQuery.toLowerCase().trim();
+  const itemsPerPage = 5;
 
   useEffect(() => {
     fetchCandidates();
@@ -124,13 +152,41 @@ export default function Candidates() {
   };
 
   const filtered = candidates.filter((c) => {
-    const term = searchQuery.toLowerCase();
-    return (
-      c.first_name.toLowerCase().includes(term) ||
-      c.last_name.toLowerCase().includes(term) ||
-      c.skill.join(" ").toLowerCase().includes(term) ||
-      c.current_company.toLowerCase().includes(term)
-    );
+    if (!term) return true;
+
+    switch (activeTab) {
+      case "status":
+        return c.status?.toLowerCase().includes(term);
+      case "recruiter":
+        return c.recruiter_status?.toLowerCase().includes(term);
+      case "hm":
+        return c.hmapproval?.toLowerCase().includes(term);
+      case "ctc":
+        const ctcValue = parseFloat(c.current_ctc);
+        if (term.includes("-")) {
+          const [min, max] = term.split("-").map(Number);
+          return (
+            !isNaN(min) && !isNaN(max) && ctcValue >= min && ctcValue <= max
+          );
+        }
+        return c.current_ctc?.toLowerCase().includes(term);
+      case "all":
+      default:
+        const name = `${c.first_name} ${c.last_name}`.toLowerCase();
+        const skills = c.skill?.join(" ").toLowerCase() || "";
+        const company = c.current_company?.toLowerCase() || "";
+        const email = c.email?.toLowerCase() || "";
+        const phone = c.phone?.toLowerCase() || "";
+        const rating = c.rating || "";
+        return (
+          name.includes(term) ||
+          skills.includes(term) ||
+          company.includes(term) ||
+          email.includes(term) ||
+          phone.includes(term) ||
+          rating.includes(term)
+        );
+    }
   });
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
@@ -138,6 +194,11 @@ export default function Candidates() {
   const paginated = filtered.slice(start, start + itemsPerPage);
 
   const handleExport = () => {
+    if (!filtered.length) {
+      alert("No candidates to export.");
+      return;
+    }
+
     const header = [
       "Name",
       "Email",
@@ -152,6 +213,7 @@ export default function Candidates() {
       "Location",
       "Skills",
     ];
+
     const rows = filtered.map((c) => [
       `${c.first_name} ${c.last_name}`,
       c.email,
@@ -164,12 +226,17 @@ export default function Candidates() {
       c.expected_ctc,
       c.currency,
       `${c.street1}, ${c.city}, ${c.state}, ${c.country}, ${c.zipcode}`,
-      c.skill.join(";"),
+      c.skill?.join(";") || "",
     ]);
-    alert("download?");
-    const csv = [header.join(","), ...rows.map((r) => r.join(","))].join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+
+    const csvContent = [header, ...rows]
+      .map((r) => r.map((field) => `"${field}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+
     saveAs(blob, "candidates.csv");
+    toast.success("Exported CSV file successfully!");
   };
 
   return (
@@ -187,7 +254,7 @@ export default function Candidates() {
           </div>
           <div className="flex gap-2">
             <Button
-              onClick={() => handleExport}
+              onClick={handleExport}
               variant="outline"
               className="bg-white/80"
             >
@@ -215,29 +282,42 @@ export default function Candidates() {
         {/* Search and Quick Actions */}
         <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">
           <CardContent className="p-4">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="relative flex-1">
+            <div className="flex flex-col sm:flex-row justify-between gap-3">
+              <div className="relative w-full">
                 <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                 <Input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search candidates by name, skills, company..."
+                  placeholder={
+                    activeTab === "all"
+                      ? "Search any field…"
+                      : `Search by ${
+                          activeTab === "status"
+                            ? "Status"
+                            : activeTab === "recruiter"
+                            ? "Recruiter Status"
+                            : activeTab === "hm"
+                            ? "HM Approval"
+                            : "CTC Range (e.g. 3-7)"
+                        }…`
+                  }
                   className="pl-10 bg-white/80 h-9"
                 />
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="bg-white/80">
-                  Status
-                </Button>
-                <Button variant="outline" size="sm" className="bg-white/80">
-                  Skills
-                </Button>
-                <Button variant="outline" size="sm" className="bg-white/80">
-                  CTC Range
-                </Button>
-                <Button variant="outline" size="sm" className="bg-white/80">
-                  Recruiter
-                </Button>
+                {TABS.map(([label, key]) => (
+                  <Button
+                    key={key}
+                    size="sm"
+                    variant={activeTab === key ? "secondary" : "outline"}
+                    onClick={() => {
+                      setActiveTab(key);
+                      setSearchQuery("");
+                    }}
+                  >
+                    {label}
+                  </Button>
+                ))}
               </div>
             </div>
           </CardContent>
@@ -252,21 +332,46 @@ export default function Candidates() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="max-h-[600px] overflow-y-auto">
+            <div className="max-h-[600px] max-w-[95vw] overflow-auto">
               <Table>
                 <TableHeader className="sticky top-0 bg-white/90 backdrop-blur-sm">
                   <TableRow>
-                    <TableHead className="w-[200px]">Candidate</TableHead>
-                    <TableHead className="w-[120px]">Status</TableHead>
-                    <TableHead className="w-[150px]">Current Company</TableHead>
-                    <TableHead className="w-[100px]">Current CTC</TableHead>
-                    <TableHead className="w-[200px]">Skills</TableHead>
-                    <TableHead className="w-[150px]">Education</TableHead>
-                    <TableHead className="w-[120px]">
+                    <TableHead className="whitespace-nowrap text-black">
+                      Name
+                    </TableHead>
+                    <TableHead className="whitespace-nowrap text-black">
+                      Headline
+                    </TableHead>
+                    <TableHead className="whitespace-nowrap text-black">
+                      Contact Details
+                    </TableHead>
+                    <TableHead className="whitespace-nowrap text-black">
+                      Current Company
+                    </TableHead>
+                    <TableHead className="whitespace-nowrap text-black">
+                      CTC
+                    </TableHead>
+                    <TableHead className="whitespace-nowrap text-black">
+                      Skills
+                    </TableHead>
+                    <TableHead className="whitespace-nowrap text-black">
+                      Education
+                    </TableHead>
+                    <TableHead className="whitespace-nowrap text-black">
+                      Rating
+                    </TableHead>
+                    <TableHead className="whitespace-nowrap text-black">
+                      Candidate Status
+                    </TableHead>
+                    <TableHead className="whitespace-nowrap text-black">
                       Recruiter Status
                     </TableHead>
-                    <TableHead className="w-[120px]">HM Approval</TableHead>
-                    <TableHead className="w-[120px]">Actions</TableHead>
+                    <TableHead className="whitespace-nowrap text-black">
+                      HM Approval
+                    </TableHead>
+                    <TableHead className="whitespace-nowrap text-black">
+                      Actions
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -280,87 +385,72 @@ export default function Candidates() {
                         key={candidate.id}
                         className="hover:bg-slate-50/50"
                       >
-                        <TableCell className="py-2">
+                        <TableCell className="py-2 min-w-[150px]">
                           <div className="flex items-center gap-2">
                             <Avatar className="w-8 h-8">
                               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-xs">
-                                {[candidate.first_name, candidate.last_name]
-                                  .filter(Boolean)
-                                  .join(",")}
-
+                                {[
+                                  candidate.first_name[0],
+                                  candidate.last_name[0],
+                                ].filter(Boolean)}
                                 {}
                               </AvatarFallback>
                             </Avatar>
-                            <div>
-                              <div className="font-medium text-sm text-slate-800">
-                                {candidate.first_name}
-                                {candidate.last_name}
-                              </div>
-                              <div className="text-xs text-slate-600">
-                                {candidate.headline}
-                              </div>
-                              <div className="flex items-center gap-1 text-xs text-slate-500">
-                                <MapPin className="w-3 h-3" />
-                                {candidate.address}
-                              </div>
+                            <div className="font-medium text-sm text-slate-600 whitespace-nowrap">
+                              {candidate.first_name + " " + candidate.last_name}
+                              {}
                             </div>
                           </div>
                         </TableCell>
 
-                        <TableCell className="py-2">
-                          <Badge
-                            className={`${getStatusColor(
-                              candidate.status
-                            )} text-xs`}
-                          >
-                            {candidate.status}
-                          </Badge>
-                          <div className="flex items-center gap-1 mt-1">
-                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                            <span className="text-xs text-slate-600">
-                              {candidate.rating}
-                            </span>
+                        <TableCell className="min-w-[150px]">
+                          <div className="text-sm text-slate-600 flex items-center whitespace-nowrap">
+                            {candidate.headline}
                           </div>
                         </TableCell>
 
-                        <TableCell className="py-2">
-                          <div className="flex items-center gap-1">
+                        <TableCell className="min-w-[230px]">
+                          <div className="text-sm whitespace-nowrap">
+                            <div className="text-slate-700">
+                              {candidate.phone}
+                            </div>
+                            <div className="text-slate-500">
+                              {candidate.email}
+                            </div>
+                          </div>
+                        </TableCell>
+
+                        <TableCell className="min-w-[150px]">
+                          <span className="inline-flex items-center gap-1 text-sm text-slate-500 whitespace-nowrap">
                             <Building2 className="w-3 h-3 text-slate-400" />
-                            <span className="text-sm text-slate-700">
-                              {candidate.current_company}
-                            </span>
-                          </div>
-                          <div className="text-xs text-slate-500">
-                            {candidate.experience}
-                          </div>
+                            {candidate.current_company}
+                          </span>
                         </TableCell>
 
-                        <TableCell className="py-2">
+                        <TableCell className="py-2 min-w-[150px] whitespace-nowrap">
                           <div className="flex items-center gap-1">
-                            <DollarSign className="w-3 h-3 text-green-600" />
-                            <span className="text-sm font-medium text-slate-700">
+                            <span className="inline-flex items-center gap-1 text-sm text-slate-700">
+                              <DollarSign className="w-3 h-3 text-green-600" />
                               {candidate.current_ctc}
                             </span>
                           </div>
-                          <div className="text-xs text-slate-500">
+                          <div className="text-sm text-slate-500">
                             Exp: {candidate.expected_ctc}
                           </div>
                         </TableCell>
 
-                        <TableCell className="py-2">
-                          <div className="flex flex-wrap gap-1">
+                        <TableCell className="py-2 min-w-[150px] whitespace-nowrap">
+                          <div className="flex flex-nowrap gap-1 overflow-x-auto">
                             {Array.isArray(candidate.skill) &&
-                              candidate.skill
-                                .slice(0, 2)
-                                .map((skill, index) => (
-                                  <Badge
-                                    key={index}
-                                    variant="secondary"
-                                    className="bg-slate-100 text-slate-700 text-xs"
-                                  >
-                                    {skill}
-                                  </Badge>
-                                ))}
+                              candidate.skill.slice(0, 2).map((skill, idx) => (
+                                <Badge
+                                  key={idx}
+                                  variant="secondary"
+                                  className="bg-slate-100 text-slate-700 text-xs"
+                                >
+                                  {skill}
+                                </Badge>
+                              ))}
 
                             {Array.isArray(candidate.skill) &&
                               candidate.skill.length > 2 && (
@@ -374,35 +464,52 @@ export default function Candidates() {
                           </div>
                         </TableCell>
 
-                        <TableCell className="py-2">
+                        <TableCell className="py-2 min-w-[150px] whitespace-nowrap">
                           <div className="flex items-center gap-1">
-                            <GraduationCap className="w-3 h-3 text-slate-400" />
-                            <div>
-                              <div className="text-sm text-slate-700">
-                                {candidate.college}
-                              </div>
-                              <div className="text-xs text-slate-500">
-                                {candidate.degree}
-                              </div>
-                            </div>
+                            <span className="inline-flex items-center font-medium gap-1 text-sm text-slate-600">
+                              <GraduationCap className="w-4 h-4 text-slate-600" />
+                              {candidate.college}
+                            </span>
+                          </div>
+                          <span className="text-xs text-slate-500">
+                            {candidate.degree}
+                          </span>
+                        </TableCell>
+
+                        <TableCell>
+                          <div className="flex items-center gap-1 mt-1">
+                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                            <span className="text-xs text-slate-600">
+                              {candidate.rating}
+                            </span>
                           </div>
                         </TableCell>
 
-                        <TableCell className="py-2">
+                        <TableCell className="p-2">
+                          <Badge
+                            className={`${getStatusColor(
+                              candidate.status
+                            )} text-xs w-full block text-center p-1`}
+                          >
+                            {candidate.status}
+                          </Badge>
+                        </TableCell>
+
+                        <TableCell className="p-2">
                           <Badge
                             className={`${getRecruiterStatusColor(
                               candidate.recruiter_status
-                            )} text-xs`}
+                            )} text-xs w-full block text-center p-1`}
                           >
                             {candidate.recruiter_status}
                           </Badge>
                         </TableCell>
 
-                        <TableCell className="py-2">
+                        <TableCell className="p-2">
                           <Badge
                             className={`${getHMApprovalColor(
                               candidate.hmapproval
-                            )} text-xs`}
+                            )} text-xs w-full block text-center p-1`}
                           >
                             {candidate.hmapproval}
                           </Badge>
@@ -446,6 +553,7 @@ export default function Candidates() {
           <Button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage((p) => p - 1)}
+            className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-sm"
           >
             Previous
           </Button>
@@ -456,6 +564,7 @@ export default function Candidates() {
                 key={page}
                 variant={page === currentPage ? "outline" : "default"}
                 onClick={() => setCurrentPage(page)}
+                className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-sm"
               >
                 {page}
               </Button>
@@ -464,6 +573,7 @@ export default function Candidates() {
           <Button
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage((p) => p + 1)}
+            className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-sm"
           >
             Next
           </Button>
