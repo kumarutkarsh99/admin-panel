@@ -16,16 +16,20 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+  const savedUser = localStorage.getItem("user");
+  return savedUser ? JSON.parse(savedUser) : null;
+});
 
   const login = async (email: string, password: string) => {
-    console.log("🔐 login() called with:", email, password); 
-    console.log("📩 Form values:", { email, password });
+    console.log("login() called with:", email, password); 
+    console.log("Form values:", { email, password });
     try {
       const response = await axios.post(`${API_BASE_URL}/user/login`, { email, password });
       const userData = response.data.message.result.user;
       console.log(userData, "trace the login credentials");
       setUser(userData);
+      localStorage.setItem("user", JSON.stringify(userData)); // ✅ persist user
     } catch (error) {
       console.error("Login failed", error);
       alert("Invalid credentials");

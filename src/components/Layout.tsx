@@ -29,6 +29,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const menuItems = [
   { title: "Dashboard", url: "/", icon: Home },
@@ -86,6 +88,8 @@ interface LayoutProps {
 }
 
 export default function Layout({ children }: LayoutProps) {
+const { logout } = useAuth();
+const navigate = useNavigate();
   const [user] = useState({
     name: "John Doe",
     avatarUrl:
@@ -93,7 +97,10 @@ export default function Layout({ children }: LayoutProps) {
   });
 
   const handleLogout = () => {
+
     // Add actual logout logic here (e.g., clearing tokens, redirecting)
+      logout();              // clear user and localStorage
+  navigate("/login");    // redirect to login page
     console.log("Logging out...");
   };
 
