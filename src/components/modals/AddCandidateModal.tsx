@@ -24,6 +24,8 @@ import {
 import { toast } from "sonner";
 import axios from "axios";
 
+const API_BASE_URL = "http://51.20.181.155:3000";
+
 interface CandidateForm {
   first_name: string;
   last_name: string;
@@ -251,7 +253,7 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
 
     try {
       console.log(payload);
-      await axios.post("/api/candidate/createCandidate", payload);
+      await axios.post(`${API_BASE_URL}/candidate/createCandidate`, payload);
       toast.success("Candidate added successfully");
       resetForm();
       handleClose();
@@ -333,12 +335,16 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
     setUploading(true);
     try {
       console.log(parsedRows);
-      await axios.post("/api/candidate/createCandidatesBulk", parsedRows, {
-        headers: { "Content-Type": "application/json" },
-        onUploadProgress: (evt) => {
-          setProgress(Math.round((evt.loaded / evt.total!) * 100));
-        },
-      });
+      await axios.post(
+        `${API_BASE_URL}/candidate/createCandidatesBulk`,
+        parsedRows,
+        {
+          headers: { "Content-Type": "application/json" },
+          onUploadProgress: (evt) => {
+            setProgress(Math.round((evt.loaded / evt.total!) * 100));
+          },
+        }
+      );
       toast.success("Upload successful");
       resetForm();
       handleClose();
@@ -378,7 +384,7 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
 
     setImporting(true);
     try {
-      await axios.post("/api/candidate/linkedinImportBulk", {
+      await axios.post(`${API_BASE_URL}/linkedinImportBulk`, {
         urls,
       });
 
