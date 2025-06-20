@@ -1,12 +1,37 @@
-// src/context/AuthContext.tsx
-import { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState } from "react";
+import axios from "axios";
+const API_BASE_URL ='http://51.20.181.155:3000';
+console.log(API_BASE_URL)
 
-const AuthContext = createContext({ user: null, login: () => {}, logout: () => {} });
+interface AuthContextType {
+  user: any;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => void;
+}
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null); // Replace with token/session check
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  login: async () => {},
+  logout: () => {},
+});
 
-  const login = () => setUser({ name: "John Doe" });
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState(null);
+
+  const login = async (email: string, password: string) => {
+    console.log("🔐 login() called with:", email, password); 
+    console.log("📩 Form values:", { email, password });
+    try {
+      const response = await axios.post(`${API_BASE_URL}/user/login`, { email, password });
+      const userData = response.data.message.result.user;
+      console.log(userData, "trace the login credentials");
+      setUser(userData);
+    } catch (error) {
+      console.error("Login failed", error);
+      alert("Invalid credentials");
+    }
+  };
+
   const logout = () => setUser(null);
 
   return (
