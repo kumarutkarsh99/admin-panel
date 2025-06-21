@@ -24,6 +24,8 @@ import Papa from "papaparse";
 import * as XLSX from "xlsx";
 import axios from "axios";
 
+const API_BASE_URL = "http://51.20.181.155:3000";
+
 interface AddClientModalProps {
   open: boolean;
   onClose: () => void;
@@ -162,7 +164,7 @@ const AddClientModal: React.FC<AddClientModalProps> = ({ open, onClose }) => {
         allParsedData.push(...parsedData);
       }
       console.log("Uploading parsed data:", allParsedData);
-      await axios.post("/api/client/createClient", allParsedData, {
+      await axios.post(`${API_BASE_URL}/client/createClient`, allParsedData, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -223,7 +225,7 @@ const AddClientModal: React.FC<AddClientModalProps> = ({ open, onClose }) => {
     setLoading(true);
     console.log("Submitting client:", formData);
     try {
-      await axios.post("/api/client/createClient", formData);
+      await axios.post(`${API_BASE_URL}/client/createClient`, formData);
       toast.success("Client added successfully");
       onClose();
     } catch (err) {
