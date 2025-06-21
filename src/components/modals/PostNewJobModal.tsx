@@ -15,6 +15,8 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { toast } from "sonner";
 import axios from "axios";
 
+const API_BASE_URL = "http://51.20.181.155:3000";
+
 interface PostNewJobModalProps {
   open: boolean;
   onClose: () => void;
@@ -155,7 +157,7 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({ open, onClose }) => {
     };
 
     try {
-      const res = await axios.post("/api/jobs/createJob", payload);
+      const res = await axios.post(`${API_BASE_URL}/jobs/createJob`, payload);
       console.log("Job Created:", res.data);
       toast.success("Job Created Successfully");
       onClose();

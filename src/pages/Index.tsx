@@ -27,6 +27,8 @@ import { useState } from "react";
 import PostNewJobModal from "@/components/modals/PostNewJobModal";
 import AddClientModal from "@/components/modals/AddClientModal";
 
+const API_BASE_URL = "http://51.20.181.155:3000";
+
 const metricsData = [
   {
     title: "Active Clients",

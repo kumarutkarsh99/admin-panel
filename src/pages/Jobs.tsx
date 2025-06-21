@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import PostNewJobModal from "@/components/modals/PostNewJobModal";
 
+const API_BASE_URL = "http://51.20.181.155:3000";
 
 type Job = {
   id: number;
@@ -80,7 +81,7 @@ const Jobs = () => {
     if (!confirm("Are you sure you want to delete this job?")) return;
 
     try {
-      const res = await fetch(`/api/jobs/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/jobs/${id}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -96,7 +97,7 @@ const Jobs = () => {
   };
 
   useEffect(() => {
-    fetch("/api/jobs/getAllJobs")
+    fetch(`${API_BASE_URL}/jobs/getAllJobs`)
       .then(async (res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
@@ -317,7 +318,11 @@ const Jobs = () => {
                   key={page}
                   variant={page === currentPage ? "outline" : "default"}
                   onClick={() => setCurrentPage(page)}
-                  className= {page==currentPage ? "" : "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"}
+                  className={
+                    page == currentPage
+                      ? ""
+                      : "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
+                  }
                 >
                   {page}
                 </Button>

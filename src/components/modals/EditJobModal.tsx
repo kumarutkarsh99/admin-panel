@@ -21,6 +21,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+const API_BASE_URL = "http://51.20.181.155:3000";
+
 export default function EditJobModal({ open, onOpenChange, jobId }) {
   const initialFormState = {
     job_title: "",
@@ -51,7 +53,7 @@ export default function EditJobModal({ open, onOpenChange, jobId }) {
     if (open && jobId) {
       setLoading(true);
       axios
-        .get(`/api/jobs/${jobId}`)
+        .get(`${API_BASE_URL}/jobs/${jobId}`)
         .then((res) => {
           const job = res.data.result[0];
           setForm({
@@ -144,7 +146,7 @@ export default function EditJobModal({ open, onOpenChange, jobId }) {
   const handleSubmit = async () => {
     try {
       setLoading(true);
-      await axios.put(`/api/jobs/${jobId}`, form);
+      await axios.put(`${API_BASE_URL}/jobs/${jobId}`, form);
       toast.success("Job updated successfully!");
       onOpenChange(false);
       setLoading(false);
