@@ -1,5 +1,5 @@
 import Layout from "@/components/Layout";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +36,7 @@ import {
 import axios from "axios";
 import { saveAs } from "file-saver";
 import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const API_BASE_URL = "http://51.20.181.155:3000";
 
@@ -136,7 +137,6 @@ const ALL_COLUMNS = [
   { key: "status", label: "Candidate Status" },
   { key: "recruiter_status", label: "Recruiter Status" },
   { key: "hmapproval", label: "HM Approval" },
-  { key: "actions", label: "Actions" },
 ];
 
 export default function Candidates() {
@@ -154,6 +154,36 @@ export default function Candidates() {
   const [visibleColumns, setVisibleColumns] = useState<string[]>(
     ALL_COLUMNS.map((c) => c.key)
   );
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+
+  const allIds = useMemo(() => candidates.map((c) => c.id), [candidates]);
+  const allSelected = useMemo(
+    () => allIds.length > 0 && allIds.every((id) => selected.has(id)),
+    [allIds, selected]
+  );
+
+  const toggleOne = (id: number) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (allSelected) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(allIds));
+    }
+  };
+
+  const handleDelete = () => {
+    console.log("delete: ", Array.from(selected));
+  };
+  const handleEdit = () => {
+    console.log("edit: ", Array.from(selected));
+  };
 
   useEffect(() => {
     fetchCandidates();
@@ -271,7 +301,7 @@ export default function Candidates() {
     <Layout>
       <div className="space-y-4">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-800">
               Candidates Pipeline
@@ -365,12 +395,58 @@ export default function Candidates() {
               Candidates ({filtered.length}) • Page {currentPage} of{" "}
               {totalPages}
             </CardTitle>
+            {/* Action bar when selections exist */}
+            {selected.size > 0 && (
+              <div className="flex items-center gap-4 p-2 rounded">
+                <span>{selected.size} selected</span>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setSelected(new Set());
+                  }}
+                  variant="outline"
+                >
+                  Clear Selection
+                </Button>
+                <Button size="sm" variant="outline">
+                  Email
+                </Button>
+                <Button size="sm" variant="outline">
+                  Disqualify
+                </Button>
+                <Button size="sm" variant="outline">
+                  Add to Campaign
+                </Button>
+                <Button size="sm" variant="outline">
+                  Pitch Candidates
+                </Button>
+                <Button size="sm" variant="outline">
+                  Add to Job
+                </Button>
+                <Button size="sm" onClick={handleEdit} variant="outline">
+                  Update fields
+                </Button>
+                <Button size="sm" onClick={handleDelete} variant="destructive">
+                  Delete records
+                </Button>
+              </div>
+            )}
           </CardHeader>
+
           <CardContent className="p-0">
             <div className="max-h-[600px] max-w-[95vw] overflow-auto">
               <Table>
                 <TableHeader className="sticky top-0 bg-white/90 backdrop-blur-sm">
                   <TableRow>
+                    {/* Select-all checkbox */}
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={allSelected}
+                        onCheckedChange={() => setSelected(new Set(allIds))}
+                        aria-label="Select all"
+                        className="outline-none border-0 bg-gray-200"
+                      />
+                    </TableHead>
                     {ALL_COLUMNS.map((col) =>
                       visibleColumns.includes(col.key) ? (
                         <TableHead
@@ -394,6 +470,14 @@ export default function Candidates() {
                         key={candidate.id}
                         className="hover:bg-slate-50/50"
                       >
+                        <TableCell className="w-12">
+                          <Checkbox
+                            checked={selected.has(candidate.id)}
+                            onCheckedChange={() => toggleOne(candidate.id)}
+                            aria-label={`Select ${candidate.first_name}`}
+                            className="outline-none border-0 bg-gray-200"
+                          />
+                        </TableCell>
                         {visibleColumns.includes("name") && (
                           <TableCell className="py-2 min-w-[150px]">
                             <div className="flex items-center gap-2">
@@ -556,32 +640,6 @@ export default function Candidates() {
                             </Badge>
                           </TableCell>
                         )}
-
-                        <TableCell className="py-2">
-                          <div className="flex gap-1">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-7 w-7 p-0"
-                            >
-                              <Eye className="w-3 h-3" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-7 w-7 p-0"
-                            >
-                              <MessageSquare className="w-3 h-3" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-7 w-7 p-0"
-                            >
-                              <Calendar className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        </TableCell>
                       </TableRow>
                     ))
                   )}
