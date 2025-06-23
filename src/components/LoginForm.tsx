@@ -1,20 +1,35 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-
+import { useAuth } from "@/context/AuthContext";
+import { useNavigate } from "react-router-dom";
 const LoginForm = () => {
+  const { user,login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const navigate = useNavigate();
+  console.log(user)
+    // 👇 if already logged in, redirect to dashboard
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard"); // or wherever you want
+    }
+  }, [user, navigate]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    try {
     e.preventDefault();
-    console.log("Login attempt:", { email, password, rememberMe });
+    await login(email, password); 
+    navigate("/");
     // Handle login logic here
+    } catch (error) {
+      console.error("Login failed", error);
+    }
   };
 
   return (
