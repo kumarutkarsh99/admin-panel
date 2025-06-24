@@ -319,10 +319,6 @@ export default function Candidates() {
               <Download className="w-4 h-4 mr-2" />
               Export
             </Button>
-            <Button onClick={() => setIsFilterOpen(true)} variant="outline">
-              <Filter className="w-4 h-4 mr-2" />
-              Filters
-            </Button>
             <Button
               onClick={() => setIsModalOpen(true)}
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
@@ -391,9 +387,19 @@ export default function Candidates() {
         {/* Compact Candidates Table */}
         <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg text-slate-800">
-              Candidates ({filtered.length}) • Page {currentPage} of{" "}
-              {totalPages}
+            <CardTitle className="text-lg text-slate-800 flex items-center justify-between">
+              <div>
+                Candidates ({filtered.length}) • Page {currentPage} of{" "}
+                {totalPages}
+              </div>
+              <Button
+                className="text-sm font-medium"
+                onClick={() => setIsFilterOpen(true)}
+                variant="outline"
+              >
+                <Filter className="w-4 h-4 mr-2" />
+                Filter Columns
+              </Button>
             </CardTitle>
             {/* Action bar when selections exist */}
             {selected.size > 0 && (
