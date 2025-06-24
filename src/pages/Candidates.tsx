@@ -1,11 +1,12 @@
 import Layout from "@/components/Layout";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import AddCandidateModal from "@/components/modals/AddCandidateModal";
+import { FilterColumnsModal } from "@/components/modals/FilterCoulmnModal";
 import {
   Search,
   Filter,
@@ -35,6 +36,7 @@ import {
 import axios from "axios";
 import { saveAs } from "file-saver";
 import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const API_BASE_URL = "http://51.20.181.155:3000";
 
@@ -121,6 +123,22 @@ const TABS = [
   ["CTC Range", "ctc"],
 ] as const;
 
+const ALL_COLUMNS = [
+  { key: "name", label: "Name" },
+  { key: "headline", label: "Headline" },
+  { key: "phone", label: "Phone Number" },
+  { key: "email", label: "Email Address" },
+  { key: "current_company", label: "Current Company" },
+  { key: "current_ctc", label: "Current CTC" },
+  { key: "expected_ctc", label: "Expected CTC" },
+  { key: "skill", label: "Skills" },
+  { key: "education", label: "Education" },
+  { key: "rating", label: "Rating" },
+  { key: "status", label: "Candidate Status" },
+  { key: "recruiter_status", label: "Recruiter Status" },
+  { key: "hmapproval", label: "HM Approval" },
+];
+
 export default function Candidates() {
   const [candidates, setCandidates] = useState<CandidateForm[]>([]);
   const [loading, setLoading] = useState(true);
@@ -132,6 +150,40 @@ export default function Candidates() {
   >("all");
   const term = searchQuery.toLowerCase().trim();
   const itemsPerPage = 5;
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(
+    ALL_COLUMNS.map((c) => c.key)
+  );
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+
+  const allIds = useMemo(() => candidates.map((c) => c.id), [candidates]);
+  const allSelected = useMemo(
+    () => allIds.length > 0 && allIds.every((id) => selected.has(id)),
+    [allIds, selected]
+  );
+
+  const toggleOne = (id: number) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (allSelected) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(allIds));
+    }
+  };
+
+  const handleDelete = () => {
+    console.log("delete: ", Array.from(selected));
+  };
+  const handleEdit = () => {
+    console.log("edit: ", Array.from(selected));
+  };
 
   useEffect(() => {
     fetchCandidates();
@@ -149,6 +201,12 @@ export default function Candidates() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleColumn = (key: string, show: boolean) => {
+    setVisibleColumns((prev) =>
+      show ? [...prev, key] : prev.filter((c) => c !== key)
+    );
   };
 
   const filtered = candidates.filter((c) => {
@@ -243,7 +301,7 @@ export default function Candidates() {
     <Layout>
       <div className="space-y-4">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-800">
               Candidates Pipeline
@@ -261,7 +319,7 @@ export default function Candidates() {
               <Download className="w-4 h-4 mr-2" />
               Export
             </Button>
-            <Button className="bg-gradient-to-r from-blue-600 to-purple-600">
+            <Button onClick={() => setIsFilterOpen(true)} variant="outline">
               <Filter className="w-4 h-4 mr-2" />
               Filters
             </Button>
@@ -274,6 +332,13 @@ export default function Candidates() {
             </Button>
           </div>
         </div>
+        <FilterColumnsModal
+          open={isFilterOpen}
+          onOpenChange={setIsFilterOpen}
+          columns={ALL_COLUMNS.filter((c) => c.key !== "name")}
+          visibleColumns={visibleColumns}
+          onChange={toggleColumn}
+        />
         <AddCandidateModal
           open={isModalOpen}
           handleClose={() => setIsModalOpen(false)}
@@ -330,48 +395,68 @@ export default function Candidates() {
               Candidates ({filtered.length}) • Page {currentPage} of{" "}
               {totalPages}
             </CardTitle>
+            {/* Action bar when selections exist */}
+            {selected.size > 0 && (
+              <div className="flex items-center gap-4 p-2 rounded">
+                <span>{selected.size} selected</span>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setSelected(new Set());
+                  }}
+                  variant="outline"
+                >
+                  Clear Selection
+                </Button>
+                <Button size="sm" variant="outline">
+                  Email
+                </Button>
+                <Button size="sm" variant="outline">
+                  Disqualify
+                </Button>
+                <Button size="sm" variant="outline">
+                  Add to Campaign
+                </Button>
+                <Button size="sm" variant="outline">
+                  Pitch Candidates
+                </Button>
+                <Button size="sm" variant="outline">
+                  Add to Job
+                </Button>
+                <Button size="sm" onClick={handleEdit} variant="outline">
+                  Update fields
+                </Button>
+                <Button size="sm" onClick={handleDelete} variant="destructive">
+                  Delete records
+                </Button>
+              </div>
+            )}
           </CardHeader>
+
           <CardContent className="p-0">
             <div className="max-h-[600px] max-w-[95vw] overflow-auto">
               <Table>
                 <TableHeader className="sticky top-0 bg-white/90 backdrop-blur-sm">
                   <TableRow>
-                    <TableHead className="whitespace-nowrap text-black">
-                      Name
+                    {/* Select-all checkbox */}
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={allSelected}
+                        onCheckedChange={() => setSelected(new Set(allIds))}
+                        aria-label="Select all"
+                        className="outline-none border-0 bg-gray-200"
+                      />
                     </TableHead>
-                    <TableHead className="whitespace-nowrap text-black">
-                      Headline
-                    </TableHead>
-                    <TableHead className="whitespace-nowrap text-black">
-                      Contact Details
-                    </TableHead>
-                    <TableHead className="whitespace-nowrap text-black">
-                      Current Company
-                    </TableHead>
-                    <TableHead className="whitespace-nowrap text-black">
-                      CTC
-                    </TableHead>
-                    <TableHead className="whitespace-nowrap text-black">
-                      Skills
-                    </TableHead>
-                    <TableHead className="whitespace-nowrap text-black">
-                      Education
-                    </TableHead>
-                    <TableHead className="whitespace-nowrap text-black">
-                      Rating
-                    </TableHead>
-                    <TableHead className="whitespace-nowrap text-black">
-                      Candidate Status
-                    </TableHead>
-                    <TableHead className="whitespace-nowrap text-black">
-                      Recruiter Status
-                    </TableHead>
-                    <TableHead className="whitespace-nowrap text-black">
-                      HM Approval
-                    </TableHead>
-                    <TableHead className="whitespace-nowrap text-black">
-                      Actions
-                    </TableHead>
+                    {ALL_COLUMNS.map((col) =>
+                      visibleColumns.includes(col.key) ? (
+                        <TableHead
+                          className="whitespace-nowrap text-black"
+                          key={col.key}
+                        >
+                          {col.label}
+                        </TableHead>
+                      ) : null
+                    )}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -385,161 +470,176 @@ export default function Candidates() {
                         key={candidate.id}
                         className="hover:bg-slate-50/50"
                       >
-                        <TableCell className="py-2 min-w-[150px]">
-                          <div className="flex items-center gap-2">
-                            <Avatar className="w-8 h-8">
-                              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-xs">
-                                {[
-                                  candidate.first_name[0],
-                                  candidate.last_name[0],
-                                ].filter(Boolean)}
+                        <TableCell className="w-12">
+                          <Checkbox
+                            checked={selected.has(candidate.id)}
+                            onCheckedChange={() => toggleOne(candidate.id)}
+                            aria-label={`Select ${candidate.first_name}`}
+                            className="outline-none border-0 bg-gray-200"
+                          />
+                        </TableCell>
+                        {visibleColumns.includes("name") && (
+                          <TableCell className="py-2 min-w-[150px]">
+                            <div className="flex items-center gap-2">
+                              <Avatar className="w-8 h-8">
+                                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-xs">
+                                  {[
+                                    candidate.first_name[0],
+                                    candidate.last_name[0],
+                                  ].filter(Boolean)}
+                                  {}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="font-medium text-sm text-slate-600 whitespace-nowrap">
+                                {candidate.first_name +
+                                  " " +
+                                  candidate.last_name}
                                 {}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="font-medium text-sm text-slate-600 whitespace-nowrap">
-                              {candidate.first_name + " " + candidate.last_name}
-                              {}
+                              </div>
                             </div>
-                          </div>
-                        </TableCell>
+                          </TableCell>
+                        )}
 
-                        <TableCell className="min-w-[150px]">
-                          <div className="text-sm text-slate-600 flex items-center whitespace-nowrap">
-                            {candidate.headline}
-                          </div>
-                        </TableCell>
+                        {visibleColumns.includes("headline") && (
+                          <TableCell className="min-w-[150px]">
+                            <div className="text-sm text-slate-600 flex items-center whitespace-nowrap">
+                              {candidate.headline}
+                            </div>
+                          </TableCell>
+                        )}
 
-                        <TableCell className="min-w-[230px]">
-                          <div className="text-sm whitespace-nowrap">
-                            <div className="text-slate-700">
+                        {visibleColumns.includes("phone") && (
+                          <TableCell className="min-w-[150px]">
+                            <div className="text-sm whitespace-nowrap text-slate-500">
                               {candidate.phone}
                             </div>
-                            <div className="text-slate-500">
+                          </TableCell>
+                        )}
+
+                        {visibleColumns.includes("email") && (
+                          <TableCell className="min-w-[150px]">
+                            <div className="text-sm whitespace-nowrap text-slate-500">
                               {candidate.email}
                             </div>
-                          </div>
-                        </TableCell>
+                          </TableCell>
+                        )}
 
-                        <TableCell className="min-w-[150px]">
-                          <span className="inline-flex items-center gap-1 text-sm text-slate-500 whitespace-nowrap">
-                            <Building2 className="w-3 h-3 text-slate-400" />
-                            {candidate.current_company}
-                          </span>
-                        </TableCell>
+                        {visibleColumns.includes("current_company") && (
+                          <TableCell className="min-w-[150px]">
+                            <span className="inline-flex items-center gap-1 text-sm text-slate-500 whitespace-nowrap">
+                              <Building2 className="w-3 h-3 text-slate-400" />
+                              {candidate.current_company}
+                            </span>
+                          </TableCell>
+                        )}
 
-                        <TableCell className="py-2 min-w-[150px] whitespace-nowrap">
-                          <div className="flex items-center gap-1">
+                        {visibleColumns.includes("current_ctc") && (
+                          <TableCell className="py-2 min-w-[150px] whitespace-nowrap">
                             <span className="inline-flex items-center gap-1 text-sm text-slate-700">
                               <DollarSign className="w-3 h-3 text-green-600" />
                               {candidate.current_ctc}
                             </span>
-                          </div>
-                          <div className="text-sm text-slate-500">
-                            Exp: {candidate.expected_ctc}
-                          </div>
-                        </TableCell>
+                          </TableCell>
+                        )}
 
-                        <TableCell className="py-2 min-w-[150px] whitespace-nowrap">
-                          <div className="flex flex-nowrap gap-1 overflow-x-auto">
-                            {Array.isArray(candidate.skill) &&
-                              candidate.skill.slice(0, 2).map((skill, idx) => (
-                                <Badge
-                                  key={idx}
-                                  variant="secondary"
-                                  className="bg-slate-100 text-slate-700 text-xs"
-                                >
-                                  {skill}
-                                </Badge>
-                              ))}
-
-                            {Array.isArray(candidate.skill) &&
-                              candidate.skill.length > 2 && (
-                                <Badge
-                                  variant="secondary"
-                                  className="bg-slate-100 text-slate-700 text-xs"
-                                >
-                                  +{candidate.skill.length - 2}
-                                </Badge>
-                              )}
-                          </div>
-                        </TableCell>
-
-                        <TableCell className="py-2 min-w-[150px] whitespace-nowrap">
-                          <div className="flex items-center gap-1">
-                            <span className="inline-flex items-center font-medium gap-1 text-sm text-slate-600">
-                              <GraduationCap className="w-4 h-4 text-slate-600" />
-                              {candidate.college}
+                        {visibleColumns.includes("expected_ctc") && (
+                          <TableCell className="py-2 min-w-[150px] whitespace-nowrap">
+                            <span className="inline-flex items-center gap-1 text-sm text-slate-700">
+                              <DollarSign className="w-3 h-3 text-green-600" />
+                              {candidate.expected_ctc}
                             </span>
-                          </div>
-                          <span className="text-xs text-slate-500">
-                            {candidate.degree}
-                          </span>
-                        </TableCell>
+                          </TableCell>
+                        )}
 
-                        <TableCell>
-                          <div className="flex items-center gap-1 mt-1">
-                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                            <span className="text-xs text-slate-600">
-                              {candidate.rating}
+                        {visibleColumns.includes("skill") && (
+                          <TableCell className="py-2 min-w-[150px] whitespace-nowrap">
+                            <div className="flex flex-nowrap gap-1 overflow-x-auto">
+                              {Array.isArray(candidate.skill) &&
+                                candidate.skill
+                                  .slice(0, 2)
+                                  .map((skill, idx) => (
+                                    <Badge
+                                      key={idx}
+                                      variant="secondary"
+                                      className="bg-slate-100 text-slate-700 text-xs"
+                                    >
+                                      {skill}
+                                    </Badge>
+                                  ))}
+
+                              {Array.isArray(candidate.skill) &&
+                                candidate.skill.length > 2 && (
+                                  <Badge
+                                    variant="secondary"
+                                    className="bg-slate-100 text-slate-700 text-xs"
+                                  >
+                                    +{candidate.skill.length - 2}
+                                  </Badge>
+                                )}
+                            </div>
+                          </TableCell>
+                        )}
+
+                        {visibleColumns.includes("education") && (
+                          <TableCell className="py-2 min-w-[150px] whitespace-nowrap">
+                            <div className="flex items-center gap-1">
+                              <span className="inline-flex items-center font-medium gap-1 text-sm text-slate-600">
+                                <GraduationCap className="w-4 h-4 text-slate-600" />
+                                {candidate.college}
+                              </span>
+                            </div>
+                            <span className="text-xs text-slate-500">
+                              {candidate.degree}
                             </span>
-                          </div>
-                        </TableCell>
+                          </TableCell>
+                        )}
 
-                        <TableCell className="p-2">
-                          <Badge
-                            className={`${getStatusColor(
-                              candidate.status
-                            )} text-xs w-full block text-center p-1`}
-                          >
-                            {candidate.status}
-                          </Badge>
-                        </TableCell>
+                        {visibleColumns.includes("rating") && (
+                          <TableCell>
+                            <div className="flex items-center gap-1 mt-1">
+                              <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                              <span className="text-xs text-slate-600">
+                                {candidate.rating}
+                              </span>
+                            </div>
+                          </TableCell>
+                        )}
 
-                        <TableCell className="p-2">
-                          <Badge
-                            className={`${getRecruiterStatusColor(
-                              candidate.recruiter_status
-                            )} text-xs w-full block text-center p-1`}
-                          >
-                            {candidate.recruiter_status}
-                          </Badge>
-                        </TableCell>
-
-                        <TableCell className="p-2">
-                          <Badge
-                            className={`${getHMApprovalColor(
-                              candidate.hmapproval
-                            )} text-xs w-full block text-center p-1`}
-                          >
-                            {candidate.hmapproval}
-                          </Badge>
-                        </TableCell>
-
-                        <TableCell className="py-2">
-                          <div className="flex gap-1">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-7 w-7 p-0"
+                        {visibleColumns.includes("status") && (
+                          <TableCell className="p-2">
+                            <Badge
+                              className={`${getStatusColor(
+                                candidate.status
+                              )} text-xs w-full block text-center p-1`}
                             >
-                              <Eye className="w-3 h-3" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-7 w-7 p-0"
+                              {candidate.status}
+                            </Badge>
+                          </TableCell>
+                        )}
+
+                        {visibleColumns.includes("recruiter_status") && (
+                          <TableCell className="p-2">
+                            <Badge
+                              className={`${getRecruiterStatusColor(
+                                candidate.recruiter_status
+                              )} text-xs w-full block text-center p-1`}
                             >
-                              <MessageSquare className="w-3 h-3" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-7 w-7 p-0"
+                              {candidate.recruiter_status}
+                            </Badge>
+                          </TableCell>
+                        )}
+
+                        {visibleColumns.includes("hmapproval") && (
+                          <TableCell className="p-2">
+                            <Badge
+                              className={`${getHMApprovalColor(
+                                candidate.hmapproval
+                              )} text-xs w-full block text-center`}
                             >
-                              <Calendar className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        </TableCell>
+                              {candidate.hmapproval}
+                            </Badge>
+                          </TableCell>
+                        )}
                       </TableRow>
                     ))
                   )}
