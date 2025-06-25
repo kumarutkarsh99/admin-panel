@@ -37,6 +37,7 @@ import axios from "axios";
 import { saveAs } from "file-saver";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
+import CandidateProfileModal from "@/components/modals/CandidateProfileModal";
 
 const API_BASE_URL = "http://51.20.181.155:3000";
 
@@ -155,6 +156,8 @@ export default function Candidates() {
     ALL_COLUMNS.map((c) => c.key)
   );
   const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [isOpen, setOpen] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
 
   const allIds = useMemo(() => candidates.map((c) => c.id), [candidates]);
   const allSelected = useMemo(
@@ -496,13 +499,23 @@ export default function Candidates() {
                                   {}
                                 </AvatarFallback>
                               </Avatar>
-                              <div className="font-medium text-sm text-slate-600 whitespace-nowrap">
+                              <button
+                                onClick={() => {
+                                  setSelectedCandidate(candidate);
+                                  setOpen(true);
+                                }}
+                                className="font-medium text-sm text-slate-600 whitespace-nowrap hover:underline focus:outline-none"
+                              >
                                 {candidate.first_name +
                                   " " +
                                   candidate.last_name}
-                                {}
-                              </div>
+                              </button>
                             </div>
+                            <CandidateProfileModal
+                              open={isOpen}
+                              onOpenChange={setOpen}
+                              candidate={selectedCandidate}
+                            />
                           </TableCell>
                         )}
 
