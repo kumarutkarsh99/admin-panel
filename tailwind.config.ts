@@ -18,6 +18,12 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				// the “sans” key will apply whenever you use `font-sans`
+				sans: ["Inter", "ui-sans-serif", "system-ui"],
+				// you can add custom keys, like `display`
+				display: ["Poppins", "ui-sans-serif", "system-ui"],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
