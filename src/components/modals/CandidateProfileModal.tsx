@@ -4,7 +4,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import CandidateProfilePage from "../CandidateProfilePage.tsx";
+import CandidateProfilePage from "../CandidateProfilePage";
 
 export default function CandidateProfileModal({
   open,
@@ -13,12 +13,35 @@ export default function CandidateProfileModal({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl p-0 overflow-hidden">
-        <DialogHeader>
-          <DialogTitle>Candidate Details</DialogTitle>
+      <DialogContent
+        className="
+          w-screen 
+          h-screen 
+          max-w-none 
+          max-h-none 
+          bg-gray-50 
+          p-0 
+          shadow-none 
+          rounded-none 
+          flex 
+          flex-col 
+          overflow-hidden
+        "
+      >
+        {/* Header */}
+        <DialogHeader className="border-b px-4 py-4 bg-gray-100">
+          <DialogTitle>Candidate Profile</DialogTitle>
         </DialogHeader>
-        <div className="flex h-[80vh]">
-          <CandidateProfilePage candidate={candidate}/>
+
+        {/* Scrollable Content */}
+        <div
+          className="
+            flex-1 
+            overflow-auto 
+            scrollbar-custom
+          "
+        >
+          <CandidateProfilePage candidate={candidate} />
         </div>
       </DialogContent>
     </Dialog>

@@ -8,91 +8,155 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import { CheckCircle } from "lucide-react";
 import StarRating from "./StarRating";
+import { Badge } from "@/components/ui/badge";
 
 export default function CandidateProfileCard({ candidate }) {
   const {
     first_name,
     last_name,
-    title,
-    location,
-    source,
     email,
     phone,
-    linkedin_url,
+    headline,
+    address,
+    photo_url,
+    education,
+    experience,
+    summary,
+    resume_url,
+    cover_letter,
+    status,
+    recruiter_status,
+    hmapproval,
+    current_ctc,
+    expected_ctc,
+    skill = [],
+    college,
+    degree,
+    current_company,
+    linkedIn,
     rating,
     owner,
     jobs = [],
-    custom_fields = {},
   } = candidate;
 
+  const initials = [first_name?.[0], last_name?.[0]].filter(Boolean).join("");
+
   return (
-    <Card className="w-72 p-4 flex flex-col space-y-4">
-      <div className="flex items-center space-x-3">
-        <Avatar className="h-12 w-12">
-          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-xs">
-            {[first_name[0], last_name[0]].filter(Boolean).join("")}
-          </AvatarFallback>
-        </Avatar>
+    <div className="w-full p-3">
+      {/* Profile Card */}
+      <Card className="p-4 space-y-4 outline-none border-none shadow-md">
+        <div className="flex items-center space-x-4">
+          <Avatar className="h-16 w-16">
+            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-xl">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1">
+            <h2 className="font-sans font-semibold text-2xl mb-1">
+              {first_name} {last_name}
+            </h2>
+            {headline && current_company && (
+              <p className="text-sm font-semibold font-sans text-gray-600 capitalize">
+                {headline} at {current_company}
+              </p>
+            )}
+          </div>
+        </div>
+        {college && (
+          <div className="flex flex-col">
+            <p className="text-md font-sans font-semibold text-gray-600">
+              {degree}
+            </p>
+            <p className="text-sm font-sans font-semibold text-gray-500">
+              {college}
+            </p>
+          </div>
+        )}
+
+        {skill && (
+          <div className="flex flex-wrap gap-2 ">
+            {skill.map((s) => (
+              <Badge
+                key={s}
+                className="bg-gradient-to-br from-blue-500 to-purple-500 text-white px-3 py-1"
+              >
+                {s}
+              </Badge>
+            ))}
+          </div>
+        )}
+
         <div>
-          <h2 className="font-bold text-lg">
-            {first_name} {last_name}
-          </h2>
-          {title && <p className="text-sm text-gray-500">{title}</p>}
-          {location && <p className="text-sm text-gray-500">{location}</p>}
-          {source && (
-            <p className="text-sm text-gray-500">Sourced via {source}</p>
+          {current_ctc && (
+            <p className="italic text-sm text-gray-700">
+              Current CTC: {current_ctc}
+            </p>
+          )}
+          {expected_ctc && (
+            <p className="italic text-sm text-gray-700">
+              Expected CTC: {expected_ctc}
+            </p>
           )}
         </div>
-      </div>
 
-      {candidate.bio && <p className="italic text-sm">{candidate.bio}</p>}
+        <div className="space-y-0 text-sm">
+          {email && (
+            <div className="flex items-center space-x-2 ">
+              {/* <span>📧</span> */}
+              <span className="font-serif flex items-center space-x-1 text-gray-600">
+                <span>{email}</span>
+                {/* <CheckCircle className="h-4 w-4 text-green-500" /> */}
+              </span>
+            </div>
+          )}
+          {phone && (
+            <p className="flex items-center space-x-2">
+              {/* <span>📞</span> */}
+              <span className="font-serif flex items-center space-x-1 text-gray-600">
+                {phone}
+              </span>
+            </p>
+          )}
+          {linkedIn && (
+            <p className="flex items-center space-x-2 text-blue-500">
+              <span>🔗</span>
+              <a href={linkedIn} target="_blank" rel="noreferrer">
+                LinkedIn
+              </a>
+            </p>
+          )}
+        </div>
 
-      <div className="space-y-1 text-sm">
-        {email && (
-          <p className="flex items-center space-x-2">
-            📧 <span>{email}</span>
-          </p>
-        )}
-        {phone && (
-          <p className="flex items-center space-x-2">
-            📞 <span>{phone}</span>
-          </p>
-        )}
-        {linkedin_url && (
-          <p className="flex items-center space-x-2 text-blue-500 cursor-pointer">
-            🔗{" "}
-            <a href={linkedin_url} target="_blank" rel="noreferrer">
-              LinkedIn
-            </a>
-          </p>
-        )}
-      </div>
+        <StarRating rating={rating || 0} />
 
-      <StarRating rating={rating || 0} />
-
-      <Button variant="outline" size="sm">
-        + Add tag
-      </Button>
-
-      <div className="text-sm space-y-1">
-        <p className="font-semibold">Owner</p>
-        <Select defaultValue={owner?.id}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder={owner?.name || "Unassigned"} />
-          </SelectTrigger>
-          <SelectContent>
-            {/* map your team members here */}
-            <SelectItem value={owner?.id}>{owner?.name}</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-1 text-sm">
-        <p className="font-semibold">Jobs</p>
         <Button variant="outline" size="sm">
-          + Add job
+          + Add tag
         </Button>
+
+        <div className="text-sm">
+          <p className="font-semibold mb-1">Owner</p>
+          <Select defaultValue={owner?.id}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={owner?.name || "Unassigned"} />
+            </SelectTrigger>
+            <SelectContent>
+              {/* Populate team members */}
+              <SelectItem value={owner?.id}>{owner?.name}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </Card>
+
+      {/* Jobs Card */}
+      <Card className=" p-4 mt-4 space-y-2">
+        <div className="flex items-center justify-between">
+          <p className="font-semibold text-sm">JOBS</p>
+          <Button variant="outline" size="sm">
+            + Add job
+          </Button>
+        </div>
         {jobs.length > 0 ? (
           jobs.map((job) => (
             <p key={job.id} className="text-sm text-slate-600">
@@ -102,22 +166,34 @@ export default function CandidateProfileCard({ candidate }) {
         ) : (
           <p className="text-xs text-gray-400">No jobs found</p>
         )}
-      </div>
+      </Card>
 
-      <div className="space-y-1 text-sm">
-        <p className="font-semibold">Custom Fields</p>
-        {Object.entries(custom_fields).map(([key, value]) => (
-          <p key={key} className="text-sm">
-            <span className="font-medium">
-              {key}: {value as React.ReactNode}
-            </span>
-          </p>
-        ))}
-
-        {Object.keys(custom_fields).length === 0 && (
-          <p className="text-xs text-gray-400">No custom fields</p>
+      <Card className=" p-4 mt-4 space-y-2">
+        <div className="flex items-center justify-between">
+          <p className="font-semibold text-sm">EDUCATION</p>
+          <Button variant="outline" size="sm">
+            + Add Education
+          </Button>
+        </div>
+        {education ? (
+          <p className="text-sm text-gray-600">{education}</p>
+        ) : (
+          <p className="text-xs text-gray-400">No education found</p>
         )}
-      </div>
-    </Card>
+      </Card>
+      <Card className=" p-4 mt-4 space-y-2">
+        <div className="flex items-center justify-between">
+          <p className="font-semibold text-sm">EXPERIENCE</p>
+          <Button variant="outline" size="sm">
+            + Add experience
+          </Button>
+        </div>
+        {experience ? (
+          <p className="text-sm text-gray-600">{experience}</p>
+        ) : (
+          <p className="text-xs text-gray-400">No experience found</p>
+        )}
+      </Card>
+    </div>
   );
 }
