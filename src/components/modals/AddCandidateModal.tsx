@@ -114,6 +114,9 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
   const [progress, setProgress] = useState<number>(0);
   const [linkedinUrl, setLinkedinUrl] = useState<string>("");
   const [importing, setImporting] = useState(false);
+  const [resumeupload, setResumeUpload] = useState(false);
+  const [resumeFiles, setResumeFiles] = useState<FileList | null>(null);
+  const [resumeError, setResumeError] = useState<string>("");
 
   const currencyOptions = useMemo(
     () => [
@@ -183,6 +186,9 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
     setProgress(0);
     setLinkedinUrl("");
     setImporting(false);
+    setResumeUpload(false);
+    setResumeFiles(null);
+    setResumeError("");
   };
 
   useEffect(() => {
@@ -314,6 +320,61 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
     });
   };
 
+  const handleResumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setResumeError("");
+    const files = e.target.files;
+    if (!files?.length) return;
+
+    const allowed = [".pdf", ".doc", ".docx"];
+    const invalid = Array.from(files).find((file) => {
+      const ext = file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
+      return !allowed.includes(ext);
+    });
+
+    if (invalid) {
+      setResumeError("Only PDF, DOC and DOCX files are allowed.");
+      e.target.value = "";
+      return;
+    }
+
+    setResumeFiles(files);
+  };
+
+  const handleResumeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resumeFiles) {
+      setResumeError("Please choose at least one file to upload.");
+      return;
+    }
+
+    const formData = new FormData();
+    Array.from(resumeFiles).forEach((file) => {
+      formData.append("resumes", file);
+    });
+
+    try {
+      setResumeUpload(true);
+      setProgress(0);
+
+      await axios.post(`${API_BASE_URL}/resumeImportBulk`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        onUploadProgress: (evt) => {
+          const pct = Math.round((evt.loaded * 100) / (evt.total || 1));
+          setProgress(pct);
+        },
+      });
+      toast.success("Files Uploaded!");
+      resetForm();
+      setProgress(100);
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Upload Failed!");
+      setResumeError(err.response?.data?.error || "Upload failed.");
+    } finally {
+      setResumeUpload(false);
+    }
+  };
+
   const headers = useMemo(() => {
     const allKeys = new Set<string>();
     parsedRows.forEach((row) => {
@@ -412,6 +473,9 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
             <TabsList className="mb-6 w-full flex justify-around">
               <TabsTrigger className="w-full" value="manual">
                 Manual Entry
+              </TabsTrigger>
+              <TabsTrigger className="w-full" value="resume">
+                Resume Upload
               </TabsTrigger>
               <TabsTrigger className="w-full" value="upload">
                 Bulk Upload
@@ -752,6 +816,53 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
                     className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
                   >
                     {loading ? "Adding..." : "Add Candidate"}
+                  </Button>
+                </div>
+              </form>
+            </TabsContent>
+
+            <TabsContent value="resume">
+              <form onSubmit={handleResumeSubmit}>
+                <Input
+                  type="file"
+                  multiple
+                  accept=".pdf,.doc,.docx"
+                  onChange={handleResumeChange}
+                  aria-label="Upload PDF or Word document"
+                />
+                {resumeError && (
+                  <p className="text-red-500 mt-2">{resumeError}</p>
+                )}
+
+                {/* Progress bar */}
+                {uploading && (
+                  <progress
+                    value={progress}
+                    max={100}
+                    className="w-full mt-4"
+                    aria-valuenow={progress}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                  />
+                )}
+
+                {/* Actions */}
+                <div className="mt-4 flex justify-end gap-2">
+                  <DialogClose asChild>
+                    <Button
+                      variant="outline"
+                      onClick={resetForm}
+                      disabled={resumeupload}
+                    >
+                      Cancel
+                    </Button>
+                  </DialogClose>
+                  <Button
+                    type="submit"
+                    disabled={resumeupload || !resumeFiles}
+                    className="bg-gradient-to-r from-blue-600 to-purple-600"
+                  >
+                    {resumeupload ? `Uploading ${progress}%` : "Upload"}
                   </Button>
                 </div>
               </form>
