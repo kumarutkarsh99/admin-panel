@@ -60,12 +60,12 @@ const LoginForm = () => {
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="bg-card rounded-lg shadow-lg p-8 border border-border">
-        <div className="text-center mb-4">
+        {/* <div className="text-center mb-4">
           <h1 className="text-2xl font-bold text-foreground mb-1">
             Welcome Back
           </h1>
-          {/* <p className="text-muted-foreground">Sign in with Work Email</p> */}
-        </div>
+          <p className="text-muted-foreground">Sign in with Work Email</p>
+        </div> */}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1">
