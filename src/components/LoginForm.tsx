@@ -133,7 +133,7 @@ const LoginForm = () => {
 
           <Button
             type="submit"
-            className="w-full h-11 bg-primary text-primary-foreground"
+            className=" w-full h-11 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
           >
             Sign In
           </Button>
