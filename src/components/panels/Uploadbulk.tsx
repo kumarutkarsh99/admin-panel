@@ -6,8 +6,63 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import axios from "axios";
+import { Download, FileSpreadsheet } from "lucide-react";
 
 const API_BASE_URL = "http://51.20.181.155:3000";
+
+export interface CandidateForm {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  linkedin: string;
+  headline: string;
+  status: string;
+  address: string;
+  experience: string;
+  photo_url: string;
+  education: string;
+  summary: string;
+  resume_url: string;
+  cover_letter: string;
+  rating: string;
+  hmapproval: string;
+  recruiter_status: string;
+  current_company: string;
+  current_ctc: string;
+  expected_ctc: string;
+  skill: string[];
+  college: string;
+  degree: string;
+  currency: string;
+}
+
+const TEMPLATE_HEADERS: (keyof CandidateForm)[] = [
+  "first_name",
+  "last_name",
+  "email",
+  "phone",
+  "linkedin",
+  "headline",
+  "status",
+  "address",
+  "experience",
+  "photo_url",
+  "education",
+  "summary",
+  "resume_url",
+  "cover_letter",
+  "rating",
+  "hmapproval",
+  "recruiter_status",
+  "current_company",
+  "current_ctc",
+  "expected_ctc",
+  "skill",
+  "college",
+  "degree",
+  "currency",
+];
 
 export default function Uploadbulk() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -21,6 +76,27 @@ export default function Uploadbulk() {
     setParsedRows([]);
     setFileError("");
     setProgress(0);
+  };
+
+  const downloadCsvTemplate = () => {
+    const headerRow = TEMPLATE_HEADERS.join(",");
+    const emptyRow = TEMPLATE_HEADERS.map(() => "").join(",");
+    const csvContent = [headerRow, emptyRow].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "candidates_template.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadExcelTemplate = () => {
+    const wb = XLSX.utils.book_new();
+    const wsData = [TEMPLATE_HEADERS, TEMPLATE_HEADERS.map(() => "")];
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    XLSX.utils.book_append_sheet(wb, ws, "Template");
+    XLSX.writeFile(wb, "candidates_template.xlsx");
   };
 
   const headers = useMemo(() => {
@@ -111,105 +187,124 @@ export default function Uploadbulk() {
   };
 
   return (
-    <form onSubmit={handleUploadSubmit}>
-      <Input
-        type="file"
-        multiple
-        accept=".csv,.xlsx,.xls"
-        onChange={handleFileChange}
-        aria-label="Upload CSV or Excel file"
-      />
-      {fileError && <p className="text-red-500 mt-2">{fileError}</p>}
-
-      {/* Preview warning */}
-      {parsedRows.length > 0 && (
-        <p className="text-sm italic text-gray-600 mt-4">
-          ⚠️ These rows are only in preview. Click “Upload” to save.
-        </p>
-      )}
-
-      {/* Data preview table */}
-      {parsedRows.length > 0 && (
-        <div className="max-h-96 overflow-auto mt-2">
-          <table className="min-w-full divide-y divide-gray-200 table-fixed">
-            <thead className="bg-gray-100 sticky top-0">
-              <tr>
-                <th className="px-4 py-2 text-xs font-semibold uppercase">
-                  Remove
-                </th>
-                {headers.map((h) => (
-                  <th
-                    key={h}
-                    className="px-4 py-2 text-xs font-semibold uppercase"
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {parsedRows.map((row, i) => (
-                <tr key={i} className="hover:bg-gray-50">
-                  <td className="px-4 py-2">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeRow(i);
-                      }}
-                    >
-                      ×
-                    </Button>
-                  </td>
-                  {headers.map((key, j) => (
-                    <td
-                      key={`${i}-${j}`}
-                      className="px-4 py-2 whitespace-nowrap text-sm"
-                    >
-                      {row[key] ?? ""}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Progress bar */}
-      {uploading && (
-        <progress
-          value={progress}
-          max={100}
-          className="w-full mt-4"
-          aria-valuenow={progress}
-          aria-valuemin={0}
-          aria-valuemax={100}
-        />
-      )}
-
-      {/* Actions */}
-      <div className="mt-4 flex justify-end gap-2">
-        <DialogClose asChild>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={resetForm}
-            disabled={uploading}
-          >
-            Cancel
-          </Button>
-        </DialogClose>
+    <div>
+      <div className="flex w-full gap-2 mb-4">
         <Button
-          type="submit"
-          disabled={uploading || !parsedRows.length}
-          className="bg-gradient-to-r from-blue-600 to-purple-600"
+          className="flex-1"
+          type="button"
+          variant="outline"
+          onClick={downloadCsvTemplate}
         >
-          {uploading ? `Uploading ${progress}%` : "Upload"}
+          <Download size={16} />
+          Download CSV Template
+        </Button>
+        <Button
+          className="flex-1"
+          type="button"
+          variant="outline"
+          onClick={downloadExcelTemplate}
+        >
+          <FileSpreadsheet size={16} />
+          Download Excel Template
         </Button>
       </div>
-    </form>
+
+      <form onSubmit={handleUploadSubmit}>
+        <Input
+          type="file"
+          multiple
+          accept=".csv,.xlsx,.xls"
+          onChange={handleFileChange}
+          aria-label="Upload CSV or Excel file"
+        />
+        {fileError && <p className="text-red-500 mt-2">{fileError}</p>}
+
+        {parsedRows.length > 0 && (
+          <p className="text-sm italic text-gray-600 mt-4">
+            ⚠️ These rows are only in preview. Click “Upload” to save.
+          </p>
+        )}
+
+        {parsedRows.length > 0 && (
+          <div className="max-h-96 overflow-auto mt-2">
+            <table className="min-w-full divide-y divide-gray-200 table-fixed">
+              <thead className="bg-gray-100 sticky top-0">
+                <tr>
+                  <th className="px-4 py-2 text-xs font-semibold uppercase">
+                    Remove
+                  </th>
+                  {headers.map((h) => (
+                    <th
+                      key={h}
+                      className="px-4 py-2 text-xs font-semibold uppercase"
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {parsedRows.map((row, i) => (
+                  <tr key={i} className="hover:bg-gray-50">
+                    <td className="px-4 py-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeRow(i);
+                        }}
+                      >
+                        ×
+                      </Button>
+                    </td>
+                    {headers.map((key, j) => (
+                      <td
+                        key={`${i}-${j}`}
+                        className="px-4 py-2 whitespace-nowrap text-sm"
+                      >
+                        {row[key] ?? ""}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {uploading && (
+          <progress
+            value={progress}
+            max={100}
+            className="w-full mt-4"
+            aria-valuenow={progress}
+            aria-valuemin={0}
+            aria-valuemax={100}
+          />
+        )}
+
+        <div className="mt-4 flex justify-end gap-2">
+          <DialogClose asChild>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={resetForm}
+              disabled={uploading}
+            >
+              Cancel
+            </Button>
+          </DialogClose>
+          <Button
+            type="submit"
+            disabled={uploading || !parsedRows.length}
+            className="bg-gradient-to-r from-blue-600 to-purple-600"
+          >
+            {uploading ? `Uploading ${progress}%` : "Upload"}
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 }
