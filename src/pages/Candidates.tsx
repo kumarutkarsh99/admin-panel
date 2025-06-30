@@ -38,6 +38,7 @@ import { saveAs } from "file-saver";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import CandidateProfileModal from "@/components/modals/CandidateProfileModal";
+import { BulkUpdateFieldsModal } from "@/components/modals/BulkUpdateFieldsModal";
 
 const API_BASE_URL = "http://51.20.181.155:3000";
 
@@ -158,7 +159,7 @@ export default function Candidates() {
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [isOpen, setOpen] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
-
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const allIds = useMemo(() => candidates.map((c) => c.id), [candidates]);
   const allSelected = useMemo(
     () => allIds.length > 0 && allIds.every((id) => selected.has(id)),
@@ -184,8 +185,17 @@ export default function Candidates() {
   const handleDelete = () => {
     console.log("delete: ", Array.from(selected));
   };
+
   const handleEdit = () => {
-    console.log("edit: ", Array.from(selected));
+    if (selected.size === 0) {
+      toast.error("Select at least one candidate first");
+      return;
+    }
+    setIsBulkModalOpen(true);
+  };
+
+  const closeBulkModal = () => {
+    setIsBulkModalOpen(false);
   };
 
   useEffect(() => {
@@ -441,6 +451,13 @@ export default function Candidates() {
               </div>
             )}
           </CardHeader>
+
+          <BulkUpdateFieldsModal
+            open={isBulkModalOpen}
+            onClose={closeBulkModal}
+            selectedIds={Array.from(selected)}
+            onSuccess={fetchCandidates}
+          />
 
           <CardContent className="p-0">
             <div className="max-h-[600px] max-w-[95vw] overflow-auto">
