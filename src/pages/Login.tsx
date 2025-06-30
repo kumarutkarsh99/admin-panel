@@ -1,19 +1,22 @@
-import React from 'react';
-import LoginForm from '@/components/LoginForm';
+import React from "react";
+import LoginForm from "@/components/LoginForm";
 const Login = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
       <div className="w-full max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          {/* Branding Section */}
-          <div className="hidden lg:block">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <div className="hidden lg:flex flex-col min-h-full p-12 justify-center space-y-4">
+            <h1 className="text-4xl font-medium text-gray-800 leading-tight">
+              Welcome to <p className="text-7xl">Xbeeshire</p>
+            </h1>
+            <p className="text-gray-600 text-xl">
+              Precision talent discovery for modern teams.
+            </p>
           </div>
-          
+
           {/* Login Form Section */}
           <div className="w-full">
-            <div className="lg:hidden mb-8">
- 
-            </div>
+            <div className="lg:hidden mb-8"></div>
             <LoginForm />
           </div>
         </div>
