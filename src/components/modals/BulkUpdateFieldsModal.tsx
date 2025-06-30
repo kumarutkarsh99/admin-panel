@@ -153,7 +153,6 @@ export function BulkUpdateFieldsModal({
                 <SelectContent>
                   <SelectItem value="change_to">Change to</SelectItem>
                   <SelectItem value="clear">Clear</SelectItem>
-                  {/* …etc */}
                 </SelectContent>
               </Select>
 
