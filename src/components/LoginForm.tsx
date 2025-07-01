@@ -20,7 +20,7 @@ const LoginForm = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) navigate("/dashboard");
+    if (user) navigate("/");
   }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,12 +60,12 @@ const LoginForm = () => {
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="bg-card rounded-lg shadow-lg p-8 border border-border">
-        <div className="text-center mb-4">
+        {/* <div className="text-center mb-4">
           <h1 className="text-2xl font-bold text-foreground mb-1">
             Welcome Back
           </h1>
-          {/* <p className="text-muted-foreground">Sign in with Work Email</p> */}
-        </div>
+          <p className="text-muted-foreground">Sign in with Work Email</p>
+        </div> */}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1">
@@ -133,7 +133,7 @@ const LoginForm = () => {
 
           <Button
             type="submit"
-            className="w-full h-11 bg-primary text-primary-foreground"
+            className="w-full h-11 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
           >
             Sign In
           </Button>
@@ -141,7 +141,12 @@ const LoginForm = () => {
 
         <p className="mt-3 text-center text-sm text-muted-foreground">
           Don’t have an account?{" "}
-          <button className="text-primary font-medium">Sign up</button>
+          <button
+            className="text-primary font-medium"
+            onClick={() => navigate("/signup")}
+          >
+            Sign up
+          </button>
         </p>
 
         <div className="my-3 flex w-full items-center">
