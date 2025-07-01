@@ -145,8 +145,10 @@ export default function EditJobModal({ open, onOpenChange, jobId }) {
 
   const handleSubmit = async () => {
     try {
+      console.log(form);
       setLoading(true);
-      await axios.put(`${API_BASE_URL}/jobs/${jobId}`, form);
+      const res = await axios.put(`${API_BASE_URL}/jobs/${jobId}`, form);
+      console.log(res);
       toast.success("Job updated successfully!");
       onOpenChange(false);
       setLoading(false);

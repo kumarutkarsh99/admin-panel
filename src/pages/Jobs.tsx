@@ -4,7 +4,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import EditJobModal from "@/components/modals/EditJobModal";
 import { toast } from "sonner";
 import {
   Plus,
@@ -22,6 +21,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import PostNewJobModal from "@/components/modals/PostNewJobModal";
+import CloneJobModal from "@/components/modals/CloneJobModal";
+import EditJobModal from "@/components/modals/EditJobModal";
 
 const API_BASE_URL = "http://51.20.181.155:3000";
 
@@ -74,6 +75,7 @@ const Jobs = () => {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
+  const [openCloneModal, setOpenCloneModal] = useState(false);
 
   const itemsPerPage = 5;
 
@@ -274,7 +276,14 @@ const Jobs = () => {
                         >
                           Edit Job
                         </DropdownMenuItem>
-                        <DropdownMenuItem>Clone Job</DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setSelectedJob(job);
+                            setOpenCloneModal(true);
+                          }}
+                        >
+                          Clone Job
+                        </DropdownMenuItem>
                         <DropdownMenuItem>Contact Client</DropdownMenuItem>
                         <DropdownMenuItem>Archive Job</DropdownMenuItem>
                         <DropdownMenuItem
@@ -297,6 +306,14 @@ const Jobs = () => {
           <EditJobModal
             open={openEditModal}
             onOpenChange={setOpenEditModal}
+            jobId={selectedJob?.id}
+          />
+        )}
+
+        {selectedJob && (
+          <CloneJobModal
+            open={openCloneModal}
+            onOpenChange={setOpenCloneModal}
             jobId={selectedJob?.id}
           />
         )}
