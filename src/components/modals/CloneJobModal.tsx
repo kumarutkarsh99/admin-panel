@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { X } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
@@ -23,8 +23,44 @@ import {
 
 const API_BASE_URL = "http://51.20.181.155:3000";
 
-export default function CloneJobModal({ open, onOpenChange, jobId }) {
-  const initialFormState = {
+type CloneJobModalProps = {
+  open: boolean;
+  onOpenChange: (val: boolean) => void;
+  jobId: string;
+  onSuccess: () => void;
+};
+
+interface JobForm {
+  job_title: string;
+  job_code: string;
+  department: string;
+  workplace: string;
+  office_primary_location: string;
+  office_on_careers_page: boolean;
+  office_location_additional: string[];
+  description_about: string;
+  description_requirements: string;
+  description_benefits: string;
+  company_industry: string;
+  company_job_function: string;
+  employment_type: string;
+  experience: string;
+  education: string;
+  keywords: string[];
+  salary_from: string;
+  salary_to: string;
+  salary_currency: string;
+  status: string;
+  priority: string;
+}
+
+export default function CloneJobModal({
+  open,
+  onOpenChange,
+  jobId,
+  onSuccess,
+}: CloneJobModalProps) {
+  const initialFormState: JobForm = {
     job_title: "",
     job_code: "",
     department: "",
@@ -48,7 +84,9 @@ export default function CloneJobModal({ open, onOpenChange, jobId }) {
     priority: "Medium",
   };
 
-  const [form, setForm] = useState({ ...initialFormState });
+  const fieldRefs = useRef<Record<string, HTMLElement | null>>({});
+
+  const [form, setForm] = useState<JobForm>({ ...initialFormState });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -58,7 +96,11 @@ export default function CloneJobModal({ open, onOpenChange, jobId }) {
       axios
         .get(`${API_BASE_URL}/jobs/${jobId}`)
         .then(({ data }) => {
-          const job = data.result[0] || {};
+          if (!data.result || !Array.isArray(data.result) || !data.result[0]) {
+            toast.error("Invalid job data received.");
+            return;
+          }
+          const job = data.result[0];
           setForm({
             ...initialFormState,
             job_title: job.job_title || "",
@@ -92,7 +134,14 @@ export default function CloneJobModal({ open, onOpenChange, jobId }) {
     }
   }, [jobId, open]);
 
-  const validateForm = () => {
+  useEffect(() => {
+    if (!open) {
+      setForm({ ...initialFormState });
+      setErrors({});
+    }
+  }, [open]);
+
+  const validateForm = (): string | null => {
     const newErrors: Record<string, string> = {};
     if (!form.job_title.trim()) newErrors.job_title = "Job title is required.";
     if (!form.job_code.trim()) newErrors.job_code = "Job code is required.";
@@ -107,18 +156,23 @@ export default function CloneJobModal({ open, onOpenChange, jobId }) {
       newErrors.company_industry = "Industry is required.";
     if (!form.company_job_function.trim())
       newErrors.company_job_function = "Job function is required.";
+
     const from = Number(form.salary_from);
     const to = Number(form.salary_to);
+
     if (isNaN(from) || from < 0)
       newErrors.salary_from = "Salary from must be a non-negative number.";
     if (isNaN(to) || to < 0)
       newErrors.salary_to = "Salary to must be a non-negative number.";
     if (!newErrors.salary_from && !newErrors.salary_to && from > to)
       newErrors.salary_range = "Salary from cannot exceed salary to.";
+
     if (!form.salary_currency.trim())
       newErrors.salary_currency = "Currency is required.";
+
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const firstErrorKey = Object.keys(newErrors)[0] ?? null;
+    return firstErrorKey;
   };
 
   const handleChange = (
@@ -180,14 +234,18 @@ export default function CloneJobModal({ open, onOpenChange, jobId }) {
     }));
   };
 
-  const handleSelectChange = (name: string, value: string) => {
+  const handleSelectChange = (name: keyof JobForm, value: string) => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!validateForm()) {
+    const firstError = validateForm();
+    if (firstError) {
       toast.error("Please enter required fields.");
+      const el = fieldRefs.current[firstError];
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+      el?.focus();
       return;
     }
     setLoading(true);
@@ -223,11 +281,12 @@ export default function CloneJobModal({ open, onOpenChange, jobId }) {
         currency: form.salary_currency,
       },
     };
-    console.log(payload);
+
     try {
       await axios.post(`${API_BASE_URL}/jobs/createJob`, payload);
       toast.success("Job cloned successfully.");
       onOpenChange(false);
+      onSuccess();
     } catch (err: any) {
       console.error("Clone job failed:", err.response || err);
       const msg =
@@ -259,6 +318,7 @@ export default function CloneJobModal({ open, onOpenChange, jobId }) {
                   placeholder="Job Title"
                   value={form.job_title}
                   onChange={handleChange}
+                  ref={(el) => (fieldRefs.current.job_title = el)}
                 />
                 {errors.job_title && (
                   <p className="text-red-500 text-xs">{errors.job_title}</p>
@@ -273,6 +333,7 @@ export default function CloneJobModal({ open, onOpenChange, jobId }) {
                   placeholder="Job Code"
                   value={form.job_code}
                   onChange={handleChange}
+                  ref={(el) => (fieldRefs.current.job_code = el)}
                 />
                 {errors.job_code && (
                   <p className="text-red-500 text-xs">{errors.job_code}</p>
@@ -287,30 +348,31 @@ export default function CloneJobModal({ open, onOpenChange, jobId }) {
                   placeholder="Department"
                   value={form.department}
                   onChange={handleChange}
+                  ref={(el) => (fieldRefs.current.department = el)}
                 />
                 {errors.department && (
                   <p className="text-red-500 text-xs">{errors.department}</p>
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">
-                  Workspace
-                </label>
+                <label>Workplace*</label>
                 <Select
                   value={form.workplace}
                   onValueChange={(val) => handleSelectChange("workplace", val)}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
+                  <SelectTrigger
+                    ref={(el) => (fieldRefs.current.workplace = el)}
+                  >
+                    <SelectValue placeholder="Select workplace" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="On-Site">On-Site</SelectItem>
-                    <SelectItem value="Hybrid">Hybrid</SelectItem>
+                    <SelectItem value="Onsite">Onsite</SelectItem>
                     <SelectItem value="Remote">Remote</SelectItem>
+                    <SelectItem value="Hybrid">Hybrid</SelectItem>
                   </SelectContent>
                 </Select>
                 {errors.workplace && (
-                  <p className="text-red-500 text-xs">{errors.workplace}</p>
+                  <p className="text-red-500 text-sm">{errors.workplace}</p>
                 )}
               </div>
 
@@ -362,6 +424,7 @@ export default function CloneJobModal({ open, onOpenChange, jobId }) {
                   placeholder="Primary Office Location"
                   value={form.office_primary_location}
                   onChange={handleChange}
+                  ref={(el) => (fieldRefs.current.office_primary_location = el)}
                 />
                 {errors.office_primary_location && (
                   <p className="text-red-500 text-xs">
@@ -393,7 +456,7 @@ export default function CloneJobModal({ open, onOpenChange, jobId }) {
                 {form.office_location_additional.map((loc, idx) => (
                   <Badge
                     key={idx}
-                    className="flex items-center gap-1 px-2 py-1 text-sm"
+                    className="flex items-center gap-1 px-2 py-1 text-sm bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
                   >
                     {loc}
                     <X
@@ -415,6 +478,7 @@ export default function CloneJobModal({ open, onOpenChange, jobId }) {
                   placeholder="About the Job"
                   value={form.description_about}
                   onChange={handleChange}
+                  ref={(el) => (fieldRefs.current.description_about = el)}
                 />
                 {errors.description_about && (
                   <p className="text-red-500 text-xs">
@@ -456,6 +520,7 @@ export default function CloneJobModal({ open, onOpenChange, jobId }) {
                   placeholder="Industry"
                   value={form.company_industry}
                   onChange={handleChange}
+                  ref={(el) => (fieldRefs.current.company_industry = el)}
                 />
                 {errors.company_industry && (
                   <p className="text-red-500 text-xs">
@@ -472,6 +537,7 @@ export default function CloneJobModal({ open, onOpenChange, jobId }) {
                   placeholder="Job Function"
                   value={form.company_job_function}
                   onChange={handleChange}
+                  ref={(el) => (fieldRefs.current.company_job_function = el)}
                 />
                 {errors.company_job_function && (
                   <p className="text-red-500 text-xs">
@@ -491,6 +557,7 @@ export default function CloneJobModal({ open, onOpenChange, jobId }) {
                   placeholder="Salary From"
                   value={form.salary_from}
                   onChange={handleChange}
+                  ref={(el) => (fieldRefs.current.salary_from = el)}
                 />
                 {errors.salary_from && (
                   <p className="text-red-500 text-xs">{errors.salary_from}</p>
@@ -505,6 +572,7 @@ export default function CloneJobModal({ open, onOpenChange, jobId }) {
                   placeholder="Salary To"
                   value={form.salary_to}
                   onChange={handleChange}
+                  ref={(el) => (fieldRefs.current.salary_to = el)}
                 />
                 {errors.salary_to && (
                   <p className="text-red-500 text-xs">{errors.salary_to}</p>
@@ -522,6 +590,7 @@ export default function CloneJobModal({ open, onOpenChange, jobId }) {
                   placeholder="Currency"
                   value={form.salary_currency}
                   onChange={handleChange}
+                  ref={(el) => (fieldRefs.current.salary_currency = el)}
                 />
                 {errors.salary_currency && (
                   <p className="text-red-500 text-xs">
@@ -543,7 +612,7 @@ export default function CloneJobModal({ open, onOpenChange, jobId }) {
                 {form.keywords.map((kw, idx) => (
                   <Badge
                     key={idx}
-                    className="flex items-center gap-1 px-2 py-1 text-sm"
+                    className="flex items-center gap-1 px-2 py-1 text-sm bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
                   >
                     {kw}
                     <X
@@ -556,7 +625,11 @@ export default function CloneJobModal({ open, onOpenChange, jobId }) {
             </div>
             {/* Submit Button */}
             <div className="pt-4 flex justify-end">
-              <Button type="submit" disabled={loading} className="px-6 py-2">
+              <Button
+                type="submit"
+                disabled={loading}
+                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
+              >
                 {loading ? "Posting..." : "Post Job"}
               </Button>
             </div>

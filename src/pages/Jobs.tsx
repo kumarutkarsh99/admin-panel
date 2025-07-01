@@ -79,26 +79,8 @@ const Jobs = () => {
 
   const itemsPerPage = 5;
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this job?")) return;
-
-    try {
-      const res = await fetch(`${API_BASE_URL}/jobs/${id}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      toast.success("Job Deleted Successfully.");
-      setJobs((prev) => prev.filter((j) => j.id !== id));
-      if ((currentPage - 1) * itemsPerPage >= jobs.length - 1) {
-        setCurrentPage((p) => Math.max(p - 1, 1));
-      }
-    } catch (err: any) {
-      console.error(err);
-      alert("Failed to delete job: " + err.message);
-    }
-  };
-
-  useEffect(() => {
+  const fetchJobList = () => {
+    setLoading(true);
     fetch(`${API_BASE_URL}/jobs/getAllJobs`)
       .then(async (res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -123,7 +105,29 @@ const Jobs = () => {
         setError(err.message);
       })
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchJobList();
   }, []);
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("Are you sure you want to delete this job?")) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/jobs/${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      toast.success("Job Deleted Successfully.");
+      fetchJobList();
+      setCurrentPage(1);
+    } catch (err) {
+      if (err instanceof Error) {
+        console.error(err);
+        alert("Failed to delete job: " + err.message);
+      }
+    }
+  };
 
   const filteredJobs = jobs.filter(
     (job) =>
@@ -140,7 +144,6 @@ const Jobs = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-slate-800">Client Jobs</h1>
@@ -152,17 +155,18 @@ const Jobs = () => {
             onClick={() => setIsModalOpen(true)}
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
           >
-            <Plus className="w-4 h-4 mr-2" />
-            Post New Job
+            <Plus className="w-4 h-4 mr-2" /> Post New Job
           </Button>
         </div>
 
         <PostNewJobModal
           open={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
+          onClose={() => {
+            setIsModalOpen(false);
+            fetchJobList();
+          }}
         />
 
-        {/* Filters */}
         <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">
           <CardContent className="p-6">
             <div className="flex flex-col sm:flex-row gap-4">
@@ -178,27 +182,15 @@ const Jobs = () => {
                   }}
                 />
               </div>
-              <div className="flex gap-2">
-                <Button variant="outline" className="bg-white/80">
-                  Client
-                </Button>
-                <Button variant="outline" className="bg-white/80">
-                  Status
-                </Button>
-                <Button variant="outline" className="bg-white/80">
-                  Priority
-                </Button>
-                <Button variant="outline" className="bg-white/80">
-                  Location
-                </Button>
-              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Job Cards */}
         {loading && <p>Loading jobs…</p>}
         {error && <p className="text-red-600">Error: {error}</p>}
+        {!loading && !error && filteredJobs.length === 0 && (
+          <p className="text-slate-500">No jobs found.</p>
+        )}
 
         <div className="space-y-4">
           {currentJobs.map((job) => (
@@ -220,14 +212,12 @@ const Jobs = () => {
                         {job.priority}
                       </Badge>
                     </div>
-
                     <div className="flex items-center gap-2 mb-3">
                       <Building2 className="w-4 h-4 text-blue-500" />
                       <span className="font-medium text-blue-600">
                         {job.client}
                       </span>
                     </div>
-
                     <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600 mb-4">
                       <div className="flex items-center gap-1">
                         <MapPin className="w-4 h-4" />
@@ -243,7 +233,6 @@ const Jobs = () => {
                       </div>
                       <span>Posted {job.posted}</span>
                     </div>
-
                     <div className="flex items-center gap-4">
                       <span className="text-sm font-medium text-slate-800">
                         {job.department}
@@ -253,7 +242,6 @@ const Jobs = () => {
                       </span>
                     </div>
                   </div>
-
                   <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" className="bg-white/80">
                       View Applications
@@ -301,12 +289,12 @@ const Jobs = () => {
           ))}
         </div>
 
-        {/* Edit Modal - OUTSIDE MAP */}
         {selectedJob && (
           <EditJobModal
             open={openEditModal}
             onOpenChange={setOpenEditModal}
-            jobId={selectedJob?.id}
+            jobId={selectedJob.id}
+            onSuccess={fetchJobList}
           />
         )}
 
@@ -314,11 +302,11 @@ const Jobs = () => {
           <CloneJobModal
             open={openCloneModal}
             onOpenChange={setOpenCloneModal}
-            jobId={selectedJob?.id}
+            jobId={String(selectedJob.id)}
+            onSuccess={fetchJobList}
           />
         )}
 
-        {/* Pagination */}
         {!loading && !error && jobs.length > itemsPerPage && (
           <div className="flex justify-center items-center space-x-2 mt-4">
             <Button
@@ -336,7 +324,7 @@ const Jobs = () => {
                   variant={page === currentPage ? "outline" : "default"}
                   onClick={() => setCurrentPage(page)}
                   className={
-                    page == currentPage
+                    page === currentPage
                       ? ""
                       : "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
                   }
