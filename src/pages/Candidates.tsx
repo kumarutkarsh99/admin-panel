@@ -39,11 +39,13 @@ import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import CandidateProfileModal from "@/components/modals/CandidateProfileModal";
 import { BulkUpdateFieldsModal } from "@/components/modals/BulkUpdateFieldsModal";
+import AssignToJobModal from "@/components/modals/AssigntoJobModal";
 
 const API_BASE_URL = "http://51.20.181.155:3000";
 
 interface CandidateForm {
   id: number;
+  job_id: string;
   first_name: string;
   last_name: string;
   email: string;
@@ -127,6 +129,7 @@ const TABS = [
 
 const ALL_COLUMNS = [
   { key: "name", label: "Name" },
+  { key: "job_id", label: "Job ID" },
   { key: "headline", label: "Headline" },
   { key: "phone", label: "Phone Number" },
   { key: "email", label: "Email Address" },
@@ -165,6 +168,7 @@ export default function Candidates() {
     () => allIds.length > 0 && allIds.every((id) => selected.has(id)),
     [allIds, selected]
   );
+  const [assignmodalOpen, setAssignModalOpen] = useState(false);
 
   const toggleOne = (id: number) => {
     setSelected((prev) => {
@@ -272,6 +276,7 @@ export default function Candidates() {
 
     const header = [
       "Name",
+      "Job ID",
       "Email",
       "Phone",
       "LinkedIn",
@@ -287,6 +292,7 @@ export default function Candidates() {
 
     const rows = filtered.map((c) => [
       `${c.first_name} ${c.last_name}`,
+      c.job_id,
       c.email,
       c.phone,
       c.linkedin,
@@ -439,7 +445,11 @@ export default function Candidates() {
                 <Button size="sm" variant="outline">
                   Pitch Candidates
                 </Button>
-                <Button size="sm" variant="outline">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setAssignModalOpen(true)}
+                >
                   Add to Job
                 </Button>
                 <Button size="sm" onClick={handleEdit} variant="outline">
@@ -451,6 +461,13 @@ export default function Candidates() {
               </div>
             )}
           </CardHeader>
+
+          <AssignToJobModal
+            open={assignmodalOpen}
+            onOpenChange={setAssignModalOpen}
+            candidateIds={Array.from(selected)}
+            onSuccess={fetchCandidates}
+          />
 
           <BulkUpdateFieldsModal
             open={isBulkModalOpen}
@@ -533,6 +550,14 @@ export default function Candidates() {
                               onOpenChange={setOpen}
                               candidate={selectedCandidate}
                             />
+                          </TableCell>
+                        )}
+
+                        {visibleColumns.includes("job_id") && (
+                          <TableCell className="min-w-[150px]">
+                            <div className="text-sm text-slate-600 flex items-center whitespace-nowrap">
+                              {candidate.job_id}
+                            </div>
                           </TableCell>
                         )}
 
