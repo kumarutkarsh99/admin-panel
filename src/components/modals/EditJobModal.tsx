@@ -23,7 +23,19 @@ import {
 
 const API_BASE_URL = "http://51.20.181.155:3000";
 
-export default function EditJobModal({ open, onOpenChange, jobId }) {
+type EditJobModalProps = {
+  open: boolean;
+  onOpenChange: (val: boolean) => void;
+  jobId: number;
+  onSuccess: () => void;
+};
+
+export default function EditJobModal({
+  open,
+  onOpenChange,
+  jobId,
+  onSuccess,
+}: EditJobModalProps) {
   const initialFormState = {
     job_title: "",
     job_code: "",
@@ -145,11 +157,14 @@ export default function EditJobModal({ open, onOpenChange, jobId }) {
 
   const handleSubmit = async () => {
     try {
+      console.log(form);
       setLoading(true);
-      await axios.put(`${API_BASE_URL}/jobs/${jobId}`, form);
+      const res = await axios.put(`${API_BASE_URL}/jobs/${jobId}`, form);
+      console.log(res);
       toast.success("Job updated successfully!");
       onOpenChange(false);
       setLoading(false);
+      onSuccess();
     } catch (err) {
       console.error("Error updating job:", err);
       toast.error("Failed to update job.");
