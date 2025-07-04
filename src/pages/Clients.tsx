@@ -109,10 +109,6 @@ const Clients = () => {
 
   const industries = Array.from(new Set(clients.map((c) => c.industry)));
 
-  if (isLoading) {
-    return <div className="flex justify-center py-20">Loading</div>;
-  }
-
   const getHostname = (url: string) => {
     try {
       // ensure protocol
