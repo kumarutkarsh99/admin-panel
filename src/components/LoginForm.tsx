@@ -5,18 +5,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import ForgotPasswordModal from "./modals/ForgotPasswordModal";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const API_BASE_URL = "http://51.20.181.155:3000";
 
-const LoginForm = () => {
+export default function LoginForm() {
   const { user, login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [forget, setForget] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,7 +28,6 @@ const LoginForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // await login(email, password, rememberMe);
       await login(email, password);
       navigate("/");
     } catch (err) {
@@ -46,7 +47,6 @@ const LoginForm = () => {
       );
       const { token: appToken } = res.data;
       await login(null, null);
-      // await login(null, null, rememberMe, appToken);
       navigate("/");
     } catch (err) {
       console.error("Google login failed", err);
@@ -60,14 +60,8 @@ const LoginForm = () => {
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="bg-card rounded-lg shadow-lg p-8 border border-border">
-        {/* <div className="text-center mb-4">
-          <h1 className="text-2xl font-bold text-foreground mb-1">
-            Welcome Back
-          </h1>
-          <p className="text-muted-foreground">Sign in with Work Email</p>
-        </div> */}
-
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Email Field */}
           <div className="space-y-1">
             <Label htmlFor="email" className="text-sm font-medium">
               Email Address
@@ -86,6 +80,7 @@ const LoginForm = () => {
             </div>
           </div>
 
+          {/* Password Field */}
           <div className="space-y-1">
             <Label htmlFor="password" className="text-sm font-medium">
               Password
@@ -115,6 +110,7 @@ const LoginForm = () => {
             </div>
           </div>
 
+          {/* Remember & Forgot */}
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Checkbox
@@ -126,10 +122,16 @@ const LoginForm = () => {
                 Remember me
               </Label>
             </div>
-            <button type="button" className="text-sm text-primary">
+            <Button
+              type="button"
+              onClick={() => setForget(true)}
+              className="text-sm text-primary bg-transparent hover:bg-transparent"
+            >
               Forgot password?
-            </button>
+            </Button>
           </div>
+
+          <ForgotPasswordModal open={forget} onOpenChange={setForget} />
 
           <Button
             type="submit"
@@ -139,6 +141,7 @@ const LoginForm = () => {
           </Button>
         </form>
 
+        {/* Signup Link */}
         <p className="mt-3 text-center text-sm text-muted-foreground">
           Don’t have an account?{" "}
           <button
@@ -149,6 +152,7 @@ const LoginForm = () => {
           </button>
         </p>
 
+        {/* OR Divider & Google Login */}
         <div className="my-3 flex w-full items-center">
           <span className="flex-grow border-t border-gray-200" />
           <span className="px-3 text-gray-400">OR</span>
@@ -163,6 +167,4 @@ const LoginForm = () => {
       </div>
     </div>
   );
-};
-
-export default LoginForm;
+}
