@@ -24,6 +24,7 @@ import PostNewJobModal from "@/components/modals/PostNewJobModal";
 import CloneJobModal from "@/components/modals/CloneJobModal";
 import EditJobModal from "@/components/modals/EditJobModal";
 import JobViewModal from "@/components/modals/JobViewModal";
+import ViewApplicationsModal from "@/components/modals/ViewApplicationModal";
 
 const API_BASE_URL = "http://51.20.181.155:3000";
 
@@ -91,6 +92,8 @@ const Jobs = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [openCloneModal, setOpenCloneModal] = useState(false);
   const [openJobView, setOpenJobView] = useState<boolean>(false);
+  const [openApplicationModal, setOpenApplicationModal] =
+    useState<boolean>(false);
 
   const itemsPerPage = 5;
 
@@ -259,7 +262,15 @@ const Jobs = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" className="bg-white/80">
+                    <Button
+                      onClick={() => {
+                        setSelectedJob(job);
+                        setOpenApplicationModal(true);
+                      }}
+                      variant="outline"
+                      size="sm"
+                      className="bg-white/80"
+                    >
                       View Applications
                     </Button>
                     <DropdownMenu>
@@ -365,6 +376,14 @@ const Jobs = () => {
           open={openJobView}
           onOpenChange={setOpenJobView}
           job={selectedJob}
+        />
+      )}
+
+      {openApplicationModal && (
+        <ViewApplicationsModal
+          open={openApplicationModal}
+          onOpenChange={setOpenApplicationModal}
+          jobId={selectedJob.id}
         />
       )}
     </Layout>

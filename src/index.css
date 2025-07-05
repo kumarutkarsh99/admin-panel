@@ -100,7 +100,7 @@
   }
 }
 
-/* .scrollbar-custom::-webkit-scrollbar {
+.scrollbar-custom::-webkit-scrollbar {
   width: 8px;
 }
 
@@ -121,13 +121,9 @@
   background-color: hsla(265, 80%, 70%, 1); 
 }
 
-.scrollbar-custom::-webkit-scrollbar-button {
+/* .scrollbar-custom::-webkit-scrollbar-button {
   background-color: hsla(265, 80%, 60%, 0.5); 
-  height: 8px;
+  height: 1px;
   width: 8px;
   border-radius: 9999px;
-}
-
-.scrollbar-custom::-webkit-scrollbar-button:hover {
-  background-color: hsla(265, 80%, 70%, 0.8); 
 } */
