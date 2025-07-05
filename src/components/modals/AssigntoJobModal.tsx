@@ -103,7 +103,7 @@ const AssignToJobModal: React.FC<AssignToJobModalProps> = ({
 
     try {
       console.log(payload);
-      await axios.post(`${API_BASE_URL}/jobs/assignCandidates`, payload);
+      await axios.post(`${API_BASE_URL}/candidate/assignCandidates`, payload);
       toast.success(
         `Assigned ${candidateIds.length} candidate(s) to ${jobIds.length} job(s)`
       );

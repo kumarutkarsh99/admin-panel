@@ -7,6 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import AddCandidateModal from "@/components/modals/AddCandidateModal";
 import { FilterColumnsModal } from "@/components/modals/FilterCoulmnModal";
+import { cn } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Search,
   Filter,
@@ -130,6 +138,9 @@ const TABS = [
 const ALL_COLUMNS = [
   { key: "name", label: "Name" },
   { key: "job_id", label: "Job ID" },
+  { key: "status", label: "Candidate Status" },
+  { key: "recruiter_status", label: "Recruiter Status" },
+  { key: "hmapproval", label: "HM Approval" },
   { key: "headline", label: "Headline" },
   { key: "phone", label: "Phone Number" },
   { key: "email", label: "Email Address" },
@@ -139,9 +150,6 @@ const ALL_COLUMNS = [
   { key: "skill", label: "Skills" },
   { key: "education", label: "Education" },
   { key: "rating", label: "Rating" },
-  { key: "status", label: "Candidate Status" },
-  { key: "recruiter_status", label: "Recruiter Status" },
-  { key: "hmapproval", label: "HM Approval" },
 ];
 
 export default function Candidates() {
@@ -178,16 +186,21 @@ export default function Candidates() {
     });
   };
 
-  const toggleAll = () => {
-    if (allSelected) {
+  const handleDelete = async () => {
+    if (selected.size === 0) return;
+    const prevCandidates = candidates;
+    const idsToDelete = Array.from(selected);
+    setCandidates(prevCandidates.filter((c) => !selected.has(c.id)));
+    try {
+      await axios.delete(`${API_BASE_URL}/candidates`, {
+        data: { ids: idsToDelete },
+      });
       setSelected(new Set());
-    } else {
-      setSelected(new Set(allIds));
+      toast.success("Deleted Successfully!");
+    } catch (error) {
+      console.error("Failed to delete candidates", error);
+      setCandidates(prevCandidates);
     }
-  };
-
-  const handleDelete = () => {
-    console.log("delete: ", Array.from(selected));
   };
 
   const handleEdit = () => {
@@ -201,6 +214,26 @@ export default function Candidates() {
   const closeBulkModal = () => {
     setIsBulkModalOpen(false);
   };
+
+  function onCandidateStatusChange(id: number, newStatus: string) {
+    setCandidates((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, status: newStatus } : c))
+    );
+  }
+
+  function onRecruiterStatusChange(id: number, newRecruiterStatus: string) {
+    setCandidates((prev) =>
+      prev.map((c) =>
+        c.id === id ? { ...c, recruiter_status: newRecruiterStatus } : c
+      )
+    );
+  }
+
+  function onHMApprovalChange(id: number, newHMApproval: string) {
+    setCandidates((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, hmapproval: newHMApproval } : c))
+    );
+  }
 
   useEffect(() => {
     fetchCandidates();
@@ -561,6 +594,160 @@ export default function Candidates() {
                           </TableCell>
                         )}
 
+                        {visibleColumns.includes("status") && (
+                          <TableCell className="px-2 min-w-[170px]">
+                            <Select
+                              value={candidate.status}
+                              onValueChange={async (newStatus) => {
+                                try {
+                                  onCandidateStatusChange(
+                                    candidate.id,
+                                    newStatus
+                                  );
+                                  await axios.put(
+                                    `${API_BASE_URL}/candidate/${candidate.id}`,
+                                    { status: newStatus }
+                                  );
+                                } catch (err) {
+                                  console.error("Failed to update status", err);
+                                  onCandidateStatusChange(
+                                    candidate.id,
+                                    candidate.status
+                                  );
+                                }
+                              }}
+                            >
+                              <SelectTrigger
+                                className={cn(
+                                  "w-full h-8 text-xs",
+                                  getStatusColor(candidate.status)
+                                )}
+                              >
+                                <SelectValue placeholder="Select status" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {[
+                                  "Application",
+                                  "Screening",
+                                  "Interview",
+                                  "Hired",
+                                  "Rejected",
+                                ].map((opt) => (
+                                  <SelectItem
+                                    key={opt}
+                                    value={opt}
+                                    className="flex items-center gap-2"
+                                  >
+                                    {opt}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                        )}
+
+                        {visibleColumns.includes("recruiter_status") && (
+                          <TableCell className="px-2 min-w-[170px]">
+                            <Select
+                              value={candidate.recruiter_status}
+                              onValueChange={async (newRecruiterStatus) => {
+                                try {
+                                  onRecruiterStatusChange(
+                                    candidate.id,
+                                    newRecruiterStatus
+                                  );
+                                  await axios.put(
+                                    `${API_BASE_URL}/candidate/${candidate.id}`,
+                                    { recruiter_status: newRecruiterStatus }
+                                  );
+                                } catch (err) {
+                                  console.error("Failed to update status", err);
+                                  onRecruiterStatusChange(
+                                    candidate.id,
+                                    candidate.recruiter_status
+                                  );
+                                }
+                              }}
+                            >
+                              <SelectTrigger
+                                className={cn(
+                                  "w-full h-8 text-xs",
+                                  getRecruiterStatusColor(
+                                    candidate.recruiter_status
+                                  )
+                                )}
+                              >
+                                <SelectValue placeholder="Select status" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {[
+                                  "New Application",
+                                  "Initial Review",
+                                  "Screening Complete",
+                                  "Recommended",
+                                  "Not Suitable",
+                                ].map((opt) => (
+                                  <SelectItem
+                                    key={opt}
+                                    value={opt}
+                                    className="flex gap-2 items-center"
+                                  >
+                                    {opt}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                        )}
+
+                        {visibleColumns.includes("hmapproval") && (
+                          <TableCell className="px-2 min-w-[170px]">
+                            <Select
+                              value={candidate.hmapproval}
+                              onValueChange={async (newHMApproval) => {
+                                try {
+                                  onHMApprovalChange(
+                                    candidate.id,
+                                    newHMApproval
+                                  );
+                                  await axios.put(
+                                    `${API_BASE_URL}/candidate/${candidate.id}`,
+                                    { hmapproval: newHMApproval }
+                                  );
+                                } catch (err) {
+                                  console.error("Failed to update status", err);
+                                  onHMApprovalChange(
+                                    candidate.id,
+                                    candidate.hmapproval
+                                  );
+                                }
+                              }}
+                            >
+                              <SelectTrigger
+                                className={cn(
+                                  "w-full h-8 text-xs",
+                                  getHMApprovalColor(candidate.hmapproval)
+                                )}
+                              >
+                                <SelectValue placeholder="Select status" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {["Pending", "Approved", "Rejected"].map(
+                                  (opt) => (
+                                    <SelectItem
+                                      key={opt}
+                                      value={opt}
+                                      className="flex gap-2 items-center"
+                                    >
+                                      {opt}
+                                    </SelectItem>
+                                  )
+                                )}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                        )}
+
                         {visibleColumns.includes("headline") && (
                           <TableCell className="min-w-[150px]">
                             <div className="text-sm text-slate-600 flex items-center whitespace-nowrap">
@@ -663,42 +850,6 @@ export default function Candidates() {
                                 {candidate.rating}
                               </span>
                             </div>
-                          </TableCell>
-                        )}
-
-                        {visibleColumns.includes("status") && (
-                          <TableCell className="p-2">
-                            <Badge
-                              className={`${getStatusColor(
-                                candidate.status
-                              )} text-xs w-full block text-center p-1`}
-                            >
-                              {candidate.status}
-                            </Badge>
-                          </TableCell>
-                        )}
-
-                        {visibleColumns.includes("recruiter_status") && (
-                          <TableCell className="p-2">
-                            <Badge
-                              className={`${getRecruiterStatusColor(
-                                candidate.recruiter_status
-                              )} text-xs w-full block text-center p-1`}
-                            >
-                              {candidate.recruiter_status}
-                            </Badge>
-                          </TableCell>
-                        )}
-
-                        {visibleColumns.includes("hmapproval") && (
-                          <TableCell className="p-2">
-                            <Badge
-                              className={`${getHMApprovalColor(
-                                candidate.hmapproval
-                              )} text-xs w-full block text-center`}
-                            >
-                              {candidate.hmapproval}
-                            </Badge>
                           </TableCell>
                         )}
                       </TableRow>

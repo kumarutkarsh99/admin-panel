@@ -23,21 +23,35 @@ import {
 import PostNewJobModal from "@/components/modals/PostNewJobModal";
 import CloneJobModal from "@/components/modals/CloneJobModal";
 import EditJobModal from "@/components/modals/EditJobModal";
+import JobViewModal from "@/components/modals/JobViewModal";
 
 const API_BASE_URL = "http://51.20.181.155:3000";
 
 type Job = {
   id: number;
-  title: string;
-  client: string;
+  job_code: string;
+  job_title: string;
+  company_industry: string;
+  company_job_function: string;
   department: string;
-  location: string;
-  type: string;
+  workplace: string;
+  office_primary_location: string;
+  office_on_careers_page: boolean;
+  office_location_additional: string[];
+  description_about: string;
+  description_requirements: string;
+  description_benefits: string;
+  employment_type: string;
+  experience: string;
+  education: string;
+  keywords: string[];
+  salary_from: string;
+  salary_to: string;
+  salary_currency: string;
   status: string;
+  priority: string;
   applicants: number;
   posted: string;
-  salary: string;
-  priority: string;
 };
 
 const getStatusColor = (status: string) => {
@@ -76,6 +90,7 @@ const Jobs = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [openCloneModal, setOpenCloneModal] = useState(false);
+  const [openJobView, setOpenJobView] = useState<boolean>(false);
 
   const itemsPerPage = 5;
 
@@ -86,17 +101,9 @@ const Jobs = () => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         const mapped: Job[] = data.result.map((item: any) => ({
-          id: item.id,
-          title: item.job_title,
-          client: item.company_industry || "—",
-          department: item.department,
-          location: item.office_primary_location,
-          type: item.employment_type,
-          status: "Active",
+          ...item,
           applicants: 0,
           posted: "Just now",
-          salary: `$${item.salary_from} - $${item.salary_to}`,
-          priority: "Medium",
         }));
         setJobs(mapped);
       })
@@ -131,10 +138,12 @@ const Jobs = () => {
 
   const filteredJobs = jobs.filter(
     (job) =>
-      job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.job_title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.company_industry.toLowerCase().includes(searchQuery.toLowerCase()) ||
       job.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.location.toLowerCase().includes(searchQuery.toLowerCase())
+      job.office_primary_location
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
   );
 
   const totalPages = Math.ceil(filteredJobs.length / itemsPerPage);
@@ -202,8 +211,14 @@ const Jobs = () => {
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-xl font-semibold text-slate-800">
-                        {job.title}
+                      <h3
+                        onClick={() => {
+                          setSelectedJob(job);
+                          setOpenJobView(true);
+                        }}
+                        className="text-xl font-semibold text-slate-800 hover:cursor-pointer"
+                      >
+                        {job.job_title}
                       </h3>
                       <Badge className={getStatusColor(job.status)}>
                         {job.status}
@@ -215,17 +230,17 @@ const Jobs = () => {
                     <div className="flex items-center gap-2 mb-3">
                       <Building2 className="w-4 h-4 text-blue-500" />
                       <span className="font-medium text-blue-600">
-                        {job.client}
+                        {job.company_industry}
                       </span>
                     </div>
                     <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600 mb-4">
                       <div className="flex items-center gap-1">
                         <MapPin className="w-4 h-4" />
-                        {job.location}
+                        {job.office_primary_location}
                       </div>
                       <div className="flex items-center gap-1">
                         <Clock className="w-4 h-4" />
-                        {job.type}
+                        {job.employment_type}
                       </div>
                       <div className="flex items-center gap-1">
                         <Users className="w-4 h-4" />
@@ -238,7 +253,8 @@ const Jobs = () => {
                         {job.department}
                       </span>
                       <span className="text-sm font-semibold text-green-600">
-                        {job.salary}
+                        {job.salary_from} - {job.salary_to}{" "}
+                        {job.salary_currency}
                       </span>
                     </div>
                   </div>
@@ -289,24 +305,6 @@ const Jobs = () => {
           ))}
         </div>
 
-        {selectedJob && (
-          <EditJobModal
-            open={openEditModal}
-            onOpenChange={setOpenEditModal}
-            jobId={selectedJob.id}
-            onSuccess={fetchJobList}
-          />
-        )}
-
-        {selectedJob && (
-          <CloneJobModal
-            open={openCloneModal}
-            onOpenChange={setOpenCloneModal}
-            jobId={String(selectedJob.id)}
-            onSuccess={fetchJobList}
-          />
-        )}
-
         {!loading && !error && jobs.length > itemsPerPage && (
           <div className="flex justify-center items-center space-x-2 mt-4">
             <Button
@@ -343,6 +341,32 @@ const Jobs = () => {
           </div>
         )}
       </div>
+
+      {selectedJob && (
+        <EditJobModal
+          open={openEditModal}
+          onOpenChange={setOpenEditModal}
+          jobId={selectedJob.id}
+          onSuccess={fetchJobList}
+        />
+      )}
+
+      {selectedJob && (
+        <CloneJobModal
+          open={openCloneModal}
+          onOpenChange={setOpenCloneModal}
+          jobId={String(selectedJob.id)}
+          onSuccess={fetchJobList}
+        />
+      )}
+
+      {openJobView && (
+        <JobViewModal
+          open={openJobView}
+          onOpenChange={setOpenJobView}
+          job={selectedJob}
+        />
+      )}
     </Layout>
   );
 };
