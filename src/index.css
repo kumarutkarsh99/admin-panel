@@ -102,6 +102,7 @@
 
 .scrollbar-custom::-webkit-scrollbar {
   width: 8px;
+  height: 8px; 
 }
 
 .scrollbar-custom::-webkit-scrollbar-track {
@@ -121,9 +122,17 @@
   background-color: hsla(265, 80%, 70%, 1); 
 }
 
-/* .scrollbar-custom::-webkit-scrollbar-button {
-  background-color: hsla(265, 80%, 60%, 0.5); 
-  height: 1px;
-  width: 8px;
+/* Specific to horizontal scrollbar */
+.scrollbar-custom::-webkit-scrollbar:horizontal {
+  height: 8px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb:horizontal {
+  background-color: hsla(265, 80%, 60%, 0.8);
   border-radius: 9999px;
-} */
+  border: 1px solid hsl(var(--primary-foreground)); 
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb:horizontal:hover {
+  background-color: hsla(265, 80%, 70%, 1); 
+}
