@@ -56,8 +56,7 @@ export default function UploadResume() {
     try {
       setResumeUpload(true);
       setProgress(0);
-
-      await axios.post(`${API_BASE_URL}/resumeImportBulk`, formData, {
+      await axios.post(`${API_BASE_URL}/candidate/uploadPdf`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
         onUploadProgress: (evt) => {
           const pct = Math.round((evt.loaded * 100) / (evt.total || 1));
