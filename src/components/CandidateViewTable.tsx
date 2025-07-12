@@ -141,7 +141,7 @@ export default function CandidateViewList({
   const handleDelete = async () => {
     if (!selected.size) return;
     try {
-      await axios.delete(`${API_BASE_URL}/candidates`, {
+      await axios.post(`${API_BASE_URL}/candidate/bulk-delete`, {
         data: { ids: [...selected] },
       });
       setLocalCandidates((prev) => prev.filter((c) => !selected.has(c.id)));
