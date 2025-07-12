@@ -23,12 +23,19 @@ import {
   LineChart,
   Line,
 } from "recharts";
-import { useState } from "react";
+import { useEffect,useState } from "react";
 import PostNewJobModal from "@/components/modals/PostNewJobModal";
 import AddClientModal from "@/components/modals/AddClientModal";
-
+import axios from "axios";
 const API_BASE_URL = "http://51.20.181.155:3000";
 
+type Metric = {
+  title: string;
+  value: string | number;
+  change: string;
+  icon: any; // you can refine this if you're using a specific icon type
+  trend: "up" | "down";
+};
 const metricsData = [
   {
     title: "Active Clients",
@@ -112,10 +119,33 @@ const recentActivities = [
   },
 ];
 
+
+
+
 const Index = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
+  const [metricsData, setMetricsData] = useState<Metric[]>([]);
+  const [isLoading, setLoading] = useState<boolean>(true);
+  useEffect(() => {
+   fetchstats();
+  }, []);
+    const fetchstats = async () => {
+    setLoading(true);
+    try {
+      const { data } = await axios.get(
+        `${API_BASE_URL}/common/getDashboardStats`
+      );
+      setMetricsData(data.result);
+      console.log(data.result)
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+ 
   return (
     <Layout>
       <div className="space-y-6">
