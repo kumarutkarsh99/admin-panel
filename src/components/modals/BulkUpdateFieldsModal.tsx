@@ -95,7 +95,8 @@ export function BulkUpdateFieldsModal({
 
     setSaving(true);
     try {
-      await axios.patch(`${API_BASE_URL}/candidate/bulk-update`, payload);
+
+      await axios.post(`${API_BASE_URL}/candidate/bulk-update`, payload);
       toast.success("Fields updated successfully!");
       onClose();
       if (onSuccess) {
