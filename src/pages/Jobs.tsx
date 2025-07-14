@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { Disclosure } from "@headlessui/react";
+import { ChevronDown } from "lucide-react";
 import {
   Plus,
   Search,
@@ -88,14 +90,10 @@ const Jobs = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [openEditModal, setOpenEditModal] = useState(false);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [openCloneModal, setOpenCloneModal] = useState(false);
-  const [openJobView, setOpenJobView] = useState<boolean>(false);
-  const [openApplicationModal, setOpenApplicationModal] =
-    useState<boolean>(false);
-
-  const itemsPerPage = 5;
+  const [openJobView, setOpenJobView] = useState(false);
+  const [openApplicationModal, setOpenApplicationModal] = useState(false);
 
   const fetchJobList = () => {
     setLoading(true);
@@ -130,7 +128,6 @@ const Jobs = () => {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       toast.success("Job Deleted Successfully.");
       fetchJobList();
-      setCurrentPage(1);
     } catch (err) {
       if (err instanceof Error) {
         console.error(err);
@@ -149,9 +146,13 @@ const Jobs = () => {
         .includes(searchQuery.toLowerCase())
   );
 
-  const totalPages = Math.ceil(filteredJobs.length / itemsPerPage);
-  const startIdx = (currentPage - 1) * itemsPerPage;
-  const currentJobs = filteredJobs.slice(startIdx, startIdx + itemsPerPage);
+  // ✅ Grouping jobs by company_industry
+  const groupedJobs = filteredJobs.reduce((acc: Record<string, Job[]>, job) => {
+    const key = job.company_industry || "Others";
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(job);
+    return acc;
+  }, {});
 
   return (
     <Layout>
@@ -188,10 +189,7 @@ const Jobs = () => {
                   placeholder="Search jobs..."
                   className="pl-10 bg-white/80"
                   value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setCurrentPage(1);
-                  }}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
             </div>
@@ -204,188 +202,139 @@ const Jobs = () => {
           <p className="text-slate-500">No jobs found.</p>
         )}
 
-        <div className="space-y-4">
-          {currentJobs.map((job) => (
-            <Card
-              key={job.id}
-              className="border-0 shadow-sm bg-white/60 backdrop-blur-sm hover:shadow-lg transition-all duration-300"
-            >
-              <CardContent className="p-6">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3
-                        onClick={() => {
-                          setSelectedJob(job);
-                          setOpenJobView(true);
-                        }}
-                        className="text-xl font-semibold text-slate-800 hover:cursor-pointer"
-                      >
-                        {job.job_title}
-                      </h3>
-                      <Badge className={getStatusColor(job.status)}>
-                        {job.status}
-                      </Badge>
-                      <Badge className={getPriorityColor(job.priority)}>
-                        {job.priority}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-2 mb-3">
-                      <Building2 className="w-4 h-4 text-blue-500" />
-                      <span className="font-medium text-blue-600">
-                        {job.company_industry}
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600 mb-4">
-                      <div className="flex items-center gap-1">
-                        <MapPin className="w-4 h-4" />
-                        {job.office_primary_location}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
-                        {job.employment_type}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Users className="w-4 h-4" />
-                        {job.applicants} applicants
-                      </div>
-                      <span>Posted {job.posted}</span>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <span className="text-sm font-medium text-slate-800">
-                        {job.department}
-                      </span>
-                      <span className="text-sm font-semibold text-green-600">
-                        {job.salary_from} - {job.salary_to}{" "}
-                        {job.salary_currency}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      onClick={() => {
-                        setSelectedJob(job);
-                        setOpenApplicationModal(true);
-                      }}
-                      variant="outline"
-                      size="sm"
-                      className="bg-white/80"
-                    >
-                      View Applications
-                    </Button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        align="end"
-                        className="bg-white/95 backdrop-blur-sm"
-                      >
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setSelectedJob(job);
-                            setOpenEditModal(true);
-                          }}
-                        >
-                          Edit Job
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setSelectedJob(job);
-                            setOpenCloneModal(true);
-                          }}
-                        >
-                          Clone Job
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>Contact Client</DropdownMenuItem>
-                        <DropdownMenuItem>Archive Job</DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-red-600"
-                          onSelect={() => handleDelete(job.id)}
-                        >
-                          Delete Job
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        {/* Grouped Display */}
+        {!loading &&
+          !error &&
+          Object.entries(groupedJobs).map(([company, companyJobs]) => (
+            <div key={company} className="space-y-4">
+              <h2 className="text-lg font-semibold text-slate-700 mt-4">
+                {company} ({companyJobs.length} Job
+                {companyJobs.length > 1 ? "s" : ""})
+              </h2>
 
-        {!loading && !error && jobs.length > itemsPerPage && (
-          <div className="flex justify-center items-center space-x-2 mt-4">
-            <Button
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
-            >
-              Previous
-            </Button>
-            {[...Array(totalPages)].map((_, idx) => {
-              const page = idx + 1;
-              return (
-                <Button
-                  key={page}
-                  variant={page === currentPage ? "outline" : "default"}
-                  onClick={() => setCurrentPage(page)}
-                  className={
-                    page === currentPage
-                      ? ""
-                      : "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
-                  }
+              {companyJobs.map((job) => (
+                <Card
+                  key={job.id}
+                  className="border-0 shadow-sm bg-white/60 backdrop-blur-sm hover:shadow-lg transition-all duration-300"
                 >
-                  {page}
-                </Button>
-              );
-            })}
-            <Button
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
-            >
-              Next
-            </Button>
-          </div>
+                    <div className="flex items-center gap-2 mb-3">
+                              <Building2 className="w-4 h-4 text-blue-500" />
+                              <span className="font-medium text-blue-600">
+                                {job.company_industry}
+                              </span>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600 mb-4">
+                              <div className="flex items-center gap-1">
+                                <MapPin className="w-4 h-4" />
+                                {job.office_primary_location}
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Clock className="w-4 h-4" />
+                                {job.employment_type}
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Users className="w-4 h-4" />
+                                {job.applicants} applicants
+                              </div>
+                              <span>Posted {job.posted}</span>
+                            </div>
+                  <CardContent className="p-6">
+                    <Disclosure>
+                      {({ open }) => (
+                        <>
+                          <Disclosure.Button className="flex justify-between w-full">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <h3
+                                  onClick={() => {
+                                    setSelectedJob(job);
+                                    setOpenJobView(true);
+                                  }}
+                                  className="text-xl font-semibold text-slate-800 hover:cursor-pointer"
+                                >
+                                  {job.job_title}
+                                </h3>
+                                <Badge className={getStatusColor(job.status)}>
+                                  {job.status}
+                                </Badge>
+                                <Badge className={getPriorityColor(job.priority)}>
+                                  {job.priority}
+                                </Badge>
+                              </div>
+                            </div>
+                            <ChevronDown
+                              className={`w-5 h-5 text-slate-600 transition-transform ${
+                                open ? "rotate-180" : ""
+                              }`}
+                            />
+                          </Disclosure.Button>
+
+                          <Disclosure.Panel className="mt-2">
+                            <div className="mb-3">
+                              <table className="w-full text-sm text-center border border-slate-200 rounded-md overflow-hidden shadow-sm">
+                                <thead className="bg-slate-100 text-slate-700">
+                                  <tr>
+                                    <th className="py-1 px-2 border-r border-slate-200">Sourced</th>
+                                    <th className="py-1 px-2 border-r border-slate-200">Applied</th>
+                                    <th className="py-1 px-2 border-r border-slate-200">Client Submission</th>
+                                    <th className="py-1 px-2">Client Interview</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr className="text-slate-800">
+                                    <td className="py-1 px-2 border-t border-slate-200">0</td>
+                                    <td className="py-1 px-2 border-t border-slate-200">0</td>
+                                    <td className="py-1 px-2 border-t border-slate-200">0</td>
+                                    <td className="py-1 px-2 border-t border-slate-200">0</td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+
+                          
+                            <div className="flex items-center gap-4">
+                              <span className="text-sm font-medium text-slate-800">{job.department}</span>
+                              <span className="text-sm font-semibold text-green-600">
+                                {job.salary_from} - {job.salary_to} {job.salary_currency}
+                              </span>
+                            </div>
+                          </Disclosure.Panel>
+                        </>
+                      )}
+                    </Disclosure>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ))}
+
+        {selectedJob && (
+          <>
+            <EditJobModal
+              open={openEditModal}
+              onOpenChange={setOpenEditModal}
+              jobId={selectedJob.id}
+              onSuccess={fetchJobList}
+            />
+            <CloneJobModal
+              open={openCloneModal}
+              onOpenChange={setOpenCloneModal}
+              jobId={String(selectedJob.id)}
+              onSuccess={fetchJobList}
+            />
+            <JobViewModal
+              open={openJobView}
+              onOpenChange={setOpenJobView}
+              job={selectedJob}
+            />
+            <ViewApplicationsModal
+              open={openApplicationModal}
+              onOpenChange={setOpenApplicationModal}
+              jobId={selectedJob.id}
+            />
+          </>
         )}
       </div>
-
-      {selectedJob && (
-        <EditJobModal
-          open={openEditModal}
-          onOpenChange={setOpenEditModal}
-          jobId={selectedJob.id}
-          onSuccess={fetchJobList}
-        />
-      )}
-
-      {selectedJob && (
-        <CloneJobModal
-          open={openCloneModal}
-          onOpenChange={setOpenCloneModal}
-          jobId={String(selectedJob.id)}
-          onSuccess={fetchJobList}
-        />
-      )}
-
-      {openJobView && (
-        <JobViewModal
-          open={openJobView}
-          onOpenChange={setOpenJobView}
-          job={selectedJob}
-        />
-      )}
-
-      {openApplicationModal && (
-        <ViewApplicationsModal
-          open={openApplicationModal}
-          onOpenChange={setOpenApplicationModal}
-          jobId={selectedJob.id}
-        />
-      )}
     </Layout>
   );
 };
