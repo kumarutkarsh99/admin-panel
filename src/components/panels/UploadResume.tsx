@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import axios from "axios";
+import { Loader2 } from "lucide-react";
 
 const API_BASE_URL = "http://51.20.181.155:3000";
 
@@ -69,7 +70,7 @@ export default function UploadResume() {
     } catch (err: any) {
       console.error(err);
       toast.error("Upload Failed!");
-      setResumeError(err.response?.data?.error || "Upload failed.");
+      setResumeError(err.response?.data?.message || "Upload failed.");
     } finally {
       setResumeUpload(false);
     }
@@ -152,7 +153,7 @@ export default function UploadResume() {
           </div>
         )}
 
-        {resumeupload && (
+        {/* {resumeupload && (
           <progress
             value={progress}
             max={100}
@@ -161,7 +162,7 @@ export default function UploadResume() {
             aria-valuemin={0}
             aria-valuemax={100}
           />
-        )}
+        )} */}
 
         <div className="mt-4 flex justify-end gap-2">
           <DialogClose asChild>
@@ -183,6 +184,11 @@ export default function UploadResume() {
           </Button>
         </div>
       </form>
+      {resumeupload && (
+        <div className="absolute inset-0 bg-white bg-opacity-60 flex items-center justify-center z-50">
+          <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
+        </div>
+      )}
     </>
   );
 }
