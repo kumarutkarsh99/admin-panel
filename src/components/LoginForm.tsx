@@ -162,7 +162,6 @@ export default function LoginForm() {
         <GoogleLogin
           onSuccess={handleGoogleSuccess}
           onError={handleGoogleError}
-          width="100%"
         />
       </div>
     </div>
