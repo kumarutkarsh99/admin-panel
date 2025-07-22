@@ -37,9 +37,10 @@ const menuItems = [
   { title: "Jobs", url: "/jobs", icon: Briefcase, roles: ["admin", "user"] },
   { title: "Candidates", url: "/candidates", icon: Users, roles: ["admin", "user"] },
   { title: "Clients", url: "/clients", icon: Building2, roles: ["admin", "user"] },
-  { title: "Interviews", url: "/interviews", icon: Calendar, roles: ["admin", "user"] },
-  { title: "Analytics", url: "/analytics", icon: BarChart3, roles: ["admin", "user"] },
-  { title: "Settings", url: "/settings", icon: Settings, roles: ["admin", "user"] },
+  { title: "Interviews", url: "/interviews", icon: Calendar, roles: ["user","admin"] },
+  { title: "Users", url: "/users", icon: BarChart3, roles: ["admin","user"] },
+  { title: "Analytics", url: "/analytics", icon: BarChart3, roles: ["user","admin"] },
+  { title: "Settings", url: "/settings", icon: Settings, roles: ["admin","user"] },
 ];
 
 function AppSidebar() {
