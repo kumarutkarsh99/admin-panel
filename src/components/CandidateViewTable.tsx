@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { FilterColumnsModal } from "@/components/modals/FilterCoulmnModal";
+import AddCandidateModal from "@/components/modals/AddCandidateModal";
 import { cn } from "@/lib/utils";
 import {
   Select,
@@ -20,6 +21,7 @@ import {
   DollarSign,
   GraduationCap,
   Star,
+  Plus,
 } from "lucide-react";
 import {
   Table,
@@ -94,6 +96,7 @@ export default function CandidateViewList({
   fetchCandidates,
 }: CandidateViewListProps) {
   const [localCandidates, setLocalCandidates] = useState<CandidateForm[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     setLocalCandidates(candidates);
@@ -299,14 +302,23 @@ export default function CandidateViewList({
               Candidates ({filtered.length}) • Page {currentPage} of{" "}
               {totalPages}
             </div>
-            <Button
-              className="text-sm font-medium"
-              onClick={() => setIsFilterOpen(true)}
-              variant="outline"
-            >
-              <Filter className="w-4 h-4 mr-2" />
-              Filter Columns
-            </Button>
+            <div className="flex gap-4">
+              <Button
+                className="text-sm font-medium"
+                onClick={() => setIsFilterOpen(true)}
+                variant="outline"
+              >
+                <Filter className="w-4 h-4 mr-2" />
+                Filter Columns
+              </Button>
+              <Button
+                onClick={() => setIsModalOpen(true)}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Candidate
+              </Button>
+            </div>
           </CardTitle>
           {/* Action bar when selections exist */}
           {selected.size > 0 && (
@@ -479,9 +491,11 @@ export default function CandidateViewList({
                             </SelectTrigger>
                             <SelectContent>
                               {[
+                                "Sourced",
                                 "Application",
                                 "Screening",
                                 "Interview",
+                                "Offer",
                                 "Hired",
                                 "Rejected",
                               ].map((opt) => (
@@ -716,6 +730,10 @@ export default function CandidateViewList({
           Next
         </Button>
       </CardContent>
+      <AddCandidateModal
+        open={isModalOpen}
+        handleClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 }
