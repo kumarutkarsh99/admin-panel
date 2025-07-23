@@ -3,7 +3,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -30,6 +29,10 @@ interface BulkUpdateFieldsModalProps {
 }
 
 const fieldOptions = [
+  { key: "status", label: "Status" },
+  { key: "recruiter_status", label: "Recruiter Status" },
+  { key: "hmapproval", label: "HM Approval" },
+  { key: "rating", label: "Rating" },
   { key: "first_name", label: "First Name" },
   { key: "last_name", label: "Last Name" },
   { key: "email", label: "Email" },
@@ -43,7 +46,6 @@ const fieldOptions = [
   { key: "summary", label: "Summary" },
   { key: "resume_url", label: "Resume URL" },
   { key: "cover_letter", label: "Cover Letter" },
-  { key: "rating", label: "Rating" },
   { key: "current_company", label: "Current Company" },
   { key: "current_ctc", label: "Current CTC" },
   { key: "expected_ctc", label: "Expected CTC" },
@@ -52,6 +54,36 @@ const fieldOptions = [
   { key: "college", label: "College" },
   { key: "degree", label: "Degree" },
 ];
+
+const dropdownOptions: Record<string, { value: string; label: string }[]> = {
+  status: [
+    { value: "Application", label: "Application" },
+    { value: "Screening", label: "Screening" },
+    { value: "Interview", label: "Interview" },
+    { value: "Offer", label: "Offer" },
+    { value: "Hired", label: "Hired" },
+    { value: "Rejected", label: "Rejected" },
+  ],
+  recruiter_status: [
+    { value: "New Application", label: "New Application" },
+    { value: "Initial Review", label: "Initial Review" },
+    { value: "Screening Complete", label: "Screening Complete" },
+    { value: "Recommended", label: "Recommended" },
+    { value: "Not Suitable", label: "Not Suitable" },
+  ],
+  hmapproval: [
+    { value: "Approved", label: "Approved" },
+    { value: "Rejected", label: "Rejected" },
+    { value: "Pending", label: "Pending" },
+  ],
+  rating: [
+    { value: "1", label: "1" },
+    { value: "2", label: "2" },
+    { value: "3", label: "3" },
+    { value: "4", label: "4" },
+    { value: "5", label: "5" },
+  ],
+};
 
 export function BulkUpdateFieldsModal({
   open,
@@ -88,20 +120,23 @@ export function BulkUpdateFieldsModal({
       }
     }
 
+    const normalizedUpdates = updates.map(({ field, action, value }) =>
+      action === "clear"
+        ? { field, action: "change_to", value: "" }
+        : { field, action, value }
+    );
+
     const payload = {
       ids: selectedIds,
-      updates,
+      updates: normalizedUpdates,
     };
 
     setSaving(true);
     try {
-
       await axios.post(`${API_BASE_URL}/candidate/bulk-update`, payload);
       toast.success("Fields updated successfully!");
       onClose();
-      if (onSuccess) {
-        onSuccess();
-      }
+      onSuccess?.();
     } catch (err) {
       console.error(err);
       toast.error("Something went wrong. Please try again.");
@@ -117,9 +152,10 @@ export function BulkUpdateFieldsModal({
           <DialogTitle>Bulk update fields</DialogTitle>
         </DialogHeader>
 
-        <div className=" mt-1 space-y-4">
+        <div className="mt-1 space-y-4">
           {updates.map((u, i) => (
             <div key={i} className="flex gap-2">
+              {/* Field selector */}
               <Select
                 value={u.field}
                 onValueChange={(field) =>
@@ -140,6 +176,7 @@ export function BulkUpdateFieldsModal({
                 </SelectContent>
               </Select>
 
+              {/* Action selector */}
               <Select
                 value={u.action}
                 onValueChange={(action) =>
@@ -157,18 +194,43 @@ export function BulkUpdateFieldsModal({
                 </SelectContent>
               </Select>
 
-              <Input
-                placeholder="Value"
-                value={u.value}
-                onChange={(e) =>
-                  setUpdates((cur) =>
-                    cur.map((x, j) =>
-                      j === i ? { ...x, value: e.target.value } : x
+              {/* Value input or dropdown based on field */}
+              {u.action === "change_to" && dropdownOptions[u.field] ? (
+                <Select
+                  value={u.value}
+                  onValueChange={(value) =>
+                    setUpdates((cur) =>
+                      cur.map((x, j) => (j === i ? { ...x, value } : x))
                     )
-                  )
-                }
-              />
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select value" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {dropdownOptions[u.field].map(({ value, label }) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  placeholder="Value"
+                  value={u.value}
+                  onChange={(e) =>
+                    setUpdates((cur) =>
+                      cur.map((x, j) =>
+                        j === i ? { ...x, value: e.target.value } : x
+                      )
+                    )
+                  }
+                  disabled={u.action !== "change_to"}
+                />
+              )}
 
+              {/* Delete row */}
               <Button
                 onClick={() => deleteRow(i)}
                 disabled={updates.length === 1}
