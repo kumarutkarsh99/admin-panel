@@ -26,7 +26,7 @@ const API_BASE_URL = "http://51.20.181.155:3000";
 type CloneJobModalProps = {
   open: boolean;
   onOpenChange: (val: boolean) => void;
-  jobId: string;
+  jobId: number;
   onSuccess: () => void;
 };
 

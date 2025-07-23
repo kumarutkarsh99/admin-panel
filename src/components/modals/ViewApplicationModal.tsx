@@ -10,7 +10,19 @@ import CandidateViewList from "../CandidateViewTable";
 
 const API_BASE_URL = "http://51.20.181.155:3000";
 
-export default function ViewApplicationsModal({ open, onOpenChange, jobId }) {
+type ViewApplicationsModalProps = {
+  open: boolean;
+  onOpenChange: (val: boolean) => void;
+  jobId: number;
+  statusFilter?: string | null;
+};
+
+export default function ViewApplicationsModal({
+  open,
+  onOpenChange,
+  jobId,
+  statusFilter,
+}: ViewApplicationsModalProps) {
   const [applicants, setApplicants] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -24,7 +36,15 @@ export default function ViewApplicationsModal({ open, onOpenChange, jobId }) {
         `${API_BASE_URL}/jobs/${jobId}/applicants`
       );
       if (data.status) {
-        setApplicants(data.result);
+        let result = data.result;
+
+        if (statusFilter) {
+          result = result.filter(
+            (applicant: any) => applicant.status === statusFilter
+          );
+        }
+
+        setApplicants(result);
       } else {
         throw new Error(data.message || "Failed to fetch applicants");
       }
@@ -46,7 +66,14 @@ export default function ViewApplicationsModal({ open, onOpenChange, jobId }) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="scrollbar-custom max-w-screen h-screen overflow-auto">
         <DialogHeader>
-          <DialogTitle>View Applications</DialogTitle>
+          <DialogTitle>
+            View Applications
+            {statusFilter && (
+              <span className="ml-2 text-blue-600 text-md font-medium">
+                — {statusFilter} Stage
+              </span>
+            )}
+          </DialogTitle>
         </DialogHeader>
 
         {loading ? (
