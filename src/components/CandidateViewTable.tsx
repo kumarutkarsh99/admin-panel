@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { FilterColumnsModal } from "@/components/modals/FilterCoulmnModal";
+import AddCandidateModal from "@/components/modals/AddCandidateModal";
 import { cn } from "@/lib/utils";
 import {
   Select,
@@ -20,6 +21,7 @@ import {
   DollarSign,
   GraduationCap,
   Star,
+  Plus,
 } from "lucide-react";
 import {
   Table,
@@ -43,6 +45,7 @@ import {
   getRecruiterStatusColor,
   getHMApprovalColor,
 } from "@/lib/candidate-config";
+import { CandidateActionsPopover } from "./CandidateActionsPopover";
 
 const API_BASE_URL = "http://51.20.181.155:3000";
 
@@ -93,6 +96,7 @@ export default function CandidateViewList({
   fetchCandidates,
 }: CandidateViewListProps) {
   const [localCandidates, setLocalCandidates] = useState<CandidateForm[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     setLocalCandidates(candidates);
@@ -298,14 +302,23 @@ export default function CandidateViewList({
               Candidates ({filtered.length}) • Page {currentPage} of{" "}
               {totalPages}
             </div>
-            <Button
-              className="text-sm font-medium"
-              onClick={() => setIsFilterOpen(true)}
-              variant="outline"
-            >
-              <Filter className="w-4 h-4 mr-2" />
-              Filter Columns
-            </Button>
+            <div className="flex gap-4">
+              <Button
+                className="text-sm font-medium"
+                onClick={() => setIsFilterOpen(true)}
+                variant="outline"
+              >
+                <Filter className="w-4 h-4 mr-2" />
+                Filter Columns
+              </Button>
+              <Button
+                onClick={() => setIsModalOpen(true)}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Candidate
+              </Button>
+            </div>
           </CardTitle>
           {/* Action bar when selections exist */}
           {selected.size > 0 && (
@@ -418,28 +431,32 @@ export default function CandidateViewList({
                       </TableCell>
                       {visibleColumns.includes("name") && (
                         <TableCell className="py-2 min-w-[150px]">
-                          <div className="flex items-center gap-2">
-                            <Avatar className="w-8 h-8">
-                              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-xs">
-                                {[
-                                  candidate.first_name[0],
-                                  candidate.last_name[0],
-                                ]
-                                  .filter(Boolean)
-                                  .join("")}
-                                {}
-                              </AvatarFallback>
-                            </Avatar>
-                            <button
-                              onClick={() => {
-                                setSelectedCandidate(candidate);
-                                setOpen(true);
-                              }}
-                              className="font-medium text-sm text-slate-600 whitespace-nowrap hover:underline focus:outline-none"
-                            >
-                              {candidate.first_name + " " + candidate.last_name}
-                            </button>
-                          </div>
+                          <CandidateActionsPopover candidateId={candidate.id}>
+                            <div className="flex items-center gap-2">
+                              <Avatar className="w-8 h-8">
+                                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-xs">
+                                  {[
+                                    candidate.first_name[0],
+                                    candidate.last_name[0],
+                                  ]
+                                    .filter(Boolean)
+                                    .join("")}
+                                  {}
+                                </AvatarFallback>
+                              </Avatar>
+                              <button
+                                onClick={() => {
+                                  setSelectedCandidate(candidate);
+                                  setOpen(true);
+                                }}
+                                className="font-medium text-sm text-slate-600 whitespace-nowrap focus:outline-none"
+                              >
+                                {candidate.first_name +
+                                  " " +
+                                  candidate.last_name}
+                              </button>
+                            </div>
+                          </CandidateActionsPopover>
                           <CandidateProfileModal
                             open={isOpen}
                             onOpenChange={setOpen}
@@ -474,9 +491,11 @@ export default function CandidateViewList({
                             </SelectTrigger>
                             <SelectContent>
                               {[
+                                "Sourced",
                                 "Application",
                                 "Screening",
                                 "Interview",
+                                "Offer",
                                 "Hired",
                                 "Rejected",
                               ].map((opt) => (
@@ -711,6 +730,10 @@ export default function CandidateViewList({
           Next
         </Button>
       </CardContent>
+      <AddCandidateModal
+        open={isModalOpen}
+        handleClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 }
