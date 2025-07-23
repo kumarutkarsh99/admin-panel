@@ -43,6 +43,22 @@ export default function CandidateProfileCard({ candidate }) {
 
   const initials = [first_name?.[0], last_name?.[0]].filter(Boolean).join("");
 
+  function tryParseJSON(data) {
+  if (typeof data !== 'string') return data;
+
+  try {
+    const parsed = JSON.parse(data);
+    return parsed;
+  } catch {
+    // Not JSON, return original string
+    return data;
+  }
+}
+
+   let parsedEducation = typeof education === 'string' ? tryParseJSON(education) : education;
+
+   let parsedExperience= typeof experience === 'string' ? tryParseJSON(experience) : experience;
+
   return (
     <div className="w-full p-3">
       {/* Profile Card */}
@@ -175,11 +191,26 @@ export default function CandidateProfileCard({ candidate }) {
             + Add Education
           </Button>
         </div>
-        {education ? (
-          <p className="text-sm text-gray-600">{education}</p>
-        ) : (
-          <p className="text-xs text-gray-400">No education found</p>
-        )}
+      {Array.isArray(parsedEducation) ? (
+  parsedEducation.length > 0 ? (
+    <div className="space-y-2">
+      {parsedEducation && parsedEducation.map((edu, index) => (
+        <div key={index}>
+          <p className="text-sm text-gray-800 font-medium">
+            {edu.degree} - {edu.institution}
+          </p>
+          <p className="text-xs text-gray-600">{edu.duration}</p>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <p className="text-xs text-gray-400">No education found</p>
+  )
+) : parsedEducation ? (
+  <p className="text-sm text-gray-600">{parsedEducation}</p>
+) : (
+  <p className="text-xs text-gray-400">No education found</p>
+)}
       </Card>
       <Card className=" p-4 mt-4 space-y-2">
         <div className="flex items-center justify-between">
@@ -188,11 +219,37 @@ export default function CandidateProfileCard({ candidate }) {
             + Add experience
           </Button>
         </div>
-        {experience ? (
+{Array.isArray(parsedExperience) ? (
+  parsedExperience.length > 0 ? (
+    <div className="space-y-4">
+      {parsedExperience && parsedExperience.map((exp, index) => (
+        <div key={index}>
+          <p className="text-sm text-gray-800 font-medium">
+            {exp.title} - {exp.company} - {exp.role}
+          </p>
+          <p className="text-xs text-gray-600">{exp.duration}</p>
+          <ul className="list-disc pl-5 text-xs text-gray-700 mt-1 space-y-1">
+            {exp.details && exp.details.map((detail, i) => (
+              <li key={i}>{detail}</li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <p className="text-xs text-gray-400">No experience found</p>
+  )
+) : parsedExperience ? (
+  <p className="text-sm text-gray-600">{parsedExperience}</p>
+) : (
+  <p className="text-xs text-gray-400">No experience found</p>
+)}
+
+        {/* {experience ? (
           <p className="text-sm text-gray-600">{experience}</p>
         ) : (
           <p className="text-xs text-gray-400">No experience found</p>
-        )}
+        )} */}
       </Card>
     </div>
   );

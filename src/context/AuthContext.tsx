@@ -39,10 +39,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email: string;
         name: string;
       };
-      // const response = await axios.post(`${API_BASE_URL}/user/login`, {
-      //   email,
-      //   password,
-      // });
       const response = await axios.post(`${API_BASE_URL}/auth/signin`, {
         email,
         password,
@@ -58,7 +54,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const userRoles = decoded["cognito:groups"] || [];
         console.log("User Roles:", userRoles);
       }
-      // const userData = response.data.message.result.user;
       setUser(response.data);
       localStorage.setItem("user", JSON.stringify(response.data));
     } catch (error) {
@@ -67,7 +62,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-    const getUserRoles = () => {
+  const getUserRoles = () => {
   const token = localStorage.getItem("idToken");
   if (!token) return [];
   try {

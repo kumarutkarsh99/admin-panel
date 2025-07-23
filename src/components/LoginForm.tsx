@@ -22,7 +22,7 @@ export default function LoginForm() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!user) navigate("/");
+    if (user) navigate("/");
   }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
