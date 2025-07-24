@@ -7,6 +7,16 @@ import { Search, Plus } from "lucide-react";
 import PostNewJobModal from "@/components/modals/PostNewJobModal";
 import JobViewModal from "@/components/modals/JobViewModal";
 import ViewApplicationsModal from "@/components/modals/ViewApplicationModal";
+import { EllipsisVerticalIcon } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import axios from "axios";
+import EditJobModal from "@/components/modals/EditJobModal";
+import CloneJobModal from "@/components/modals/CloneJobModal";
 
 const API_BASE_URL = "http://51.20.181.155:3000";
 
@@ -36,19 +46,30 @@ export default function Jobs() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isJobViewOpen, setIsJobViewOpen] = useState(false);
   const [isViewApplicantsOpen, setIsViewApplicantsOpen] = useState(false);
+  const [isJobEditOpen, setIsJobEditOpen] = useState(false);
+  const [isJobCloneOpen, setIsJobCloneOpen] = useState(false);
+  const [selectedStage, setSelectedStage] = useState<string | null>(null);
 
   const fetchJobs = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/jobs/getAllJobs`);
-      const data = await res.json();
+      const res = await axios.get(`${API_BASE_URL}/jobs/getAllJobs`);
+      const jobsData = res.data.result;
 
       const jobsWithData = await Promise.all(
-        data.result.map(async (job: any) => {
-          const applicantsRes = await fetch(
-            `${API_BASE_URL}/jobs/${job.id}/applicants`
-          );
-          const applicantsData = await applicantsRes.json();
-          const applicantsList = applicantsData.result || [];
+        jobsData.map(async (job: any) => {
+          let applicantsList: any[] = [];
+
+          try {
+            const applicantsRes = await axios.get(
+              `${API_BASE_URL}/jobs/${job.id}/applicants`
+            );
+            applicantsList = applicantsRes.data.result || [];
+          } catch (err: any) {
+            console.warn(
+              `No applicants found or error fetching for job ID ${job.id}:`,
+              err.message
+            );
+          }
 
           const stageCounts = PIPELINE_STAGES.reduce((acc, stage) => {
             acc[stage] = 0;
@@ -72,7 +93,7 @@ export default function Jobs() {
 
       setJobs(jobsWithData);
     } catch (err) {
-      console.error("Failed to fetch jobs or applicants", err);
+      console.error("Failed to fetch jobs", err);
     }
   };
 
@@ -83,6 +104,17 @@ export default function Jobs() {
   const filteredJobs = jobs.filter((job) =>
     job.job_title.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleDeleteJob = async (jobId: number) => {
+    if (!confirm("Delete this job permanently?")) return;
+    try {
+      await axios.delete(`${API_BASE_URL}/jobs/${jobId}`);
+      await fetchJobs();
+    } catch (err) {
+      console.error("Delete failed", err);
+      alert("Could not delete job.");
+    }
+  };
 
   return (
     <Layout>
@@ -142,14 +174,52 @@ export default function Jobs() {
                       {job.office_primary_location} · {job.employment_type}
                     </p>
                   </div>
-                  <div
-                    onClick={() => {
-                      setSelectedJob(job);
-                      setIsViewApplicantsOpen(true);
-                    }}
-                    className="text-sm text-blue-600 font-medium whitespace-nowrap mt-1 cursor-pointer"
-                  >
-                    {job.applicants} applicant{job.applicants !== 1 && "s"}
+                  <div className="flex items-center space-x-4">
+                    <div
+                      onClick={() => {
+                        setSelectedJob(job);
+                        setIsViewApplicantsOpen(true);
+                      }}
+                      className="text-sm text-blue-600 font-medium mt-1 cursor-pointer"
+                    >
+                      {job.applicants} applicant{job.applicants !== 1 && "s"}
+                    </div>
+
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          className="p-1 rounded-full hover:bg-slate-100 transition"
+                          aria-label="Job actions"
+                        >
+                          <EllipsisVerticalIcon className="w-5 h-5 text-slate-500" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-40">
+                        <DropdownMenuItem
+                          onSelect={() => {
+                            if (job.id) {
+                              setSelectedJob(job);
+                              setIsJobEditOpen(true);
+                            }
+                          }}
+                        >
+                          Edit Job
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onSelect={() => {
+                            setSelectedJob(job);
+                            setIsJobCloneOpen(true);
+                          }}
+                        >
+                          Clone Job
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onSelect={() => handleDeleteJob(job.id)}
+                        >
+                          Delete Job
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
 
@@ -177,6 +247,7 @@ export default function Jobs() {
                               onClick={() => {
                                 setSelectedJob({ ...job });
                                 setIsViewApplicantsOpen(true);
+                                setSelectedStage(stage);
                               }}
                             >
                               <span className="text-blue-600 font-medium">
@@ -211,8 +282,34 @@ export default function Jobs() {
       {isViewApplicantsOpen && selectedJob && (
         <ViewApplicationsModal
           open={isViewApplicantsOpen}
-          onOpenChange={() => setIsViewApplicantsOpen(false)}
+          onOpenChange={(open) => {
+            setIsViewApplicantsOpen(open);
+            setSelectedStage(null);
+            if (!open) {
+              setSelectedStage(null);
+              fetchJobs();
+            }
+          }}
           jobId={selectedJob.id}
+          statusFilter={selectedStage}
+        />
+      )}
+
+      {isJobEditOpen && selectedJob && (
+        <EditJobModal
+          open={isJobEditOpen}
+          onOpenChange={() => setIsJobEditOpen(false)}
+          jobId={selectedJob.id}
+          onSuccess={() => setIsJobEditOpen(false)}
+        />
+      )}
+
+      {isJobCloneOpen && selectedJob && (
+        <CloneJobModal
+          open={isJobCloneOpen}
+          onOpenChange={() => setIsJobCloneOpen(false)}
+          jobId={selectedJob.id}
+          onSuccess={() => setIsJobCloneOpen(false)}
         />
       )}
     </Layout>

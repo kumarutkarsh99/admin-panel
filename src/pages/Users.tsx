@@ -2,7 +2,8 @@ import Layout from "@/components/Layout";
 import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { UserCheck, FileText, Calendar, Download } from "lucide-react";
+import AddCandidateModal from "@/components/modals/AddCandidateModal";
+import { Plus, UserCheck, FileText, Calendar, Download } from "lucide-react";
 import axios from "axios";
 import { saveAs } from "file-saver";
 import { toast } from "sonner";
@@ -45,9 +46,10 @@ interface CandidateForm {
   degree: string;
 }
 
-export default function Candidates() {
+export default function Users() {
   const [candidates, setCandidates] = useState<CandidateForm[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     fetchCandidates();
@@ -122,10 +124,10 @@ export default function Candidates() {
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-800">
-              Candidates Pipeline
+              Ats Users
             </h1>
             <p className="text-slate-600 text-sm">
-              Manage candidate workflow and approvals
+              Manage Users Access and approvals
             </p>
           </div>
           <div className="flex gap-2">
@@ -137,8 +139,21 @@ export default function Candidates() {
               <Download className="w-4 h-4 mr-2" />
               Export
             </Button>
+            <Button
+              onClick={() => setIsModalOpen(true)}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Users
+            </Button>
           </div>
         </div>
+
+        <AddCandidateModal
+          open={isModalOpen}
+          handleClose={() => setIsModalOpen(false)}
+        />
+
         <CandidateViewList
           loading={loading}
           candidates={candidates}

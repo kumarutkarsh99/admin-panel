@@ -7,58 +7,127 @@ import {
 } from "@/components/ui/dialog";
 import axios from "axios";
 import CandidateViewList from "../CandidateViewTable";
+import { RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const API_BASE_URL = "http://51.20.181.155:3000";
 
-export default function ViewApplicationsModal({ open, onOpenChange, jobId }) {
-  const [applicants, setApplicants] = useState([]);
+const STATUSES = [
+  "All",
+  "Sourced",
+  "Application",
+  "Screening",
+  "Interview",
+  "Offer",
+  "Hired",
+];
+
+type ViewApplicationsModalProps = {
+  open: boolean;
+  onOpenChange: (val: boolean) => void;
+  jobId: number;
+  statusFilter?: string | null; // initial filter
+};
+
+export default function ViewApplicationsModal({
+  open,
+  onOpenChange,
+  jobId,
+  statusFilter,
+}: ViewApplicationsModalProps) {
+  // Default to "All" if statusFilter is null or undefined
+  const initialStatus = statusFilter ?? "All";
+
+  const [applicants, setApplicants] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [activeStatus, setActiveStatus] = useState<string>(initialStatus);
 
   const fetchApplicants = async () => {
     if (!jobId) return;
 
     setLoading(true);
+    setError(null);
     try {
       const { data } = await axios.get(
         `${API_BASE_URL}/jobs/${jobId}/applicants`
       );
       if (data.status) {
-        setApplicants(data.result);
+        let list = data.result as any[];
+        // Only filter if a non-default, non-falsy status is selected
+        if (activeStatus && activeStatus !== "All") {
+          list = list.filter((applicant) => applicant.status === activeStatus);
+        }
+        setApplicants(list);
       } else {
         throw new Error(data.message || "Failed to fetch applicants");
       }
     } catch (err: any) {
       console.error(err);
       setError(err.message);
+      setApplicants([]);
     } finally {
       setLoading(false);
     }
   };
 
+  // Re-fetch whenever modal opens, jobId, or activeStatus changes
   useEffect(() => {
     if (open && jobId) {
       fetchApplicants();
     }
-  }, [open, jobId]);
+  }, [open, jobId, activeStatus]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="scrollbar-custom max-w-screen h-screen overflow-auto">
-        <DialogHeader>
-          <DialogTitle>View Applications</DialogTitle>
+      <DialogContent className="scrollbar-custom max-w-screen h-screen overflow-auto bg-gray-50">
+        <DialogHeader className="flex flex-col space-y-2">
+          {/* Title + Refresh */}
+          <div className="flex items-center">
+            <DialogTitle className="flex items-center space-x-2">
+              <span>View Applications</span>
+              {activeStatus !== "All" && (
+                <span className="text-blue-600 font-medium">
+                  — {activeStatus}
+                </span>
+              )}
+            </DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={fetchApplicants}
+              aria-label="Refresh applicants"
+              className="ml-1"
+            >
+              <RefreshCw className="h-5 w-5" />
+            </Button>
+          </div>
+
+          <div className="flex space-x-2 overflow-auto">
+            {STATUSES.map((status) => (
+              <Button
+                key={status}
+                variant={status === activeStatus ? "secondary" : "outline"}
+                size="sm"
+                onClick={() => setActiveStatus(status)}
+              >
+                {status}
+              </Button>
+            ))}
+          </div>
         </DialogHeader>
 
+        {/* Body */}
         {loading ? (
           <div className="flex justify-center py-8">Loading...</div>
         ) : error ? (
-          <p className="text-red-600">No applicants found.</p>
+          <p className="text-red-600 px-4">Error: {error}</p>
         ) : applicants.length === 0 ? (
           <p className="text-center text-sm text-gray-500 py-4">
             No applications found.
           </p>
         ) : (
-          <div className="space-y-4">
+          <div>
             <CandidateViewList
               loading={loading}
               candidates={applicants}

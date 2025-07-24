@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 const API_BASE_URL = "http://51.20.181.155:3000";
 
 interface AuthContextType {
@@ -7,13 +8,15 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   loading: boolean;
+  getUserRoles: () => string[]; 
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  login: async () => {},
-  logout: () => {},
+  login: async () => { },
+  logout: () => { },
   loading: true,
+  getUserRoles: () => [],
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -29,30 +32,65 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const login = async (email: string, password: string) => {
+
     try {
-      const response = await axios.post(`${API_BASE_URL}/user/login`, {
+      type DecodedToken = {
+        "cognito:groups"?: string[];
+        email: string;
+        name: string;
+      };
+      const response = await axios.post(`${API_BASE_URL}/auth/signin`, {
         email,
         password,
       });
-      const userData = response.data.message.result.user;
-      setUser(userData);
-      localStorage.setItem("user", JSON.stringify(userData));
+      const { accessToken, idToken, refreshToken } = response.data;
+
+      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("idToken", idToken);
+      localStorage.setItem("refreshToken", refreshToken);
+      const token = localStorage.getItem("idToken");
+      if (token) {
+        const decoded: DecodedToken = jwtDecode(token);
+        const userRoles = decoded["cognito:groups"] || [];
+        console.log("User Roles:", userRoles);
+      }
+      setUser(response.data);
+      localStorage.setItem("user", JSON.stringify(response.data));
     } catch (error) {
       console.error("Login failed", error);
       alert("Invalid credentials");
     }
   };
 
+  const getUserRoles = () => {
+  const token = localStorage.getItem("idToken");
+  if (!token) return [];
+  try {
+    const decoded: any = jwtDecode(token);
+    return decoded["cognito:groups"] || [];
+  } catch (err) {
+    console.error("Token decode error", err);
+    return [];
+  }
+};
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem("user");
+    // Clear tokens and session
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("idToken");
+    localStorage.removeItem("refreshToken");
   };
 
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, loading, getUserRoles }}>
       {children}
     </AuthContext.Provider>
   );
 };
+
+
 
 export const useAuth = () => useContext(AuthContext);
