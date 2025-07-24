@@ -185,8 +185,28 @@ export default function UploadResume() {
         </div>
       </form>
       {resumeupload && (
-        <div className="absolute inset-0 bg-white bg-opacity-60 flex items-center justify-center z-50">
-          <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
+        <div className="absolute inset-0 bg-white bg-opacity-100 flex flex-col items-center justify-center z-50">
+          <img
+            src="/data-processing.svg"
+            alt="Processing document"
+            className="h-32 w-32 mb-4"
+          />
+
+          <h3 className="mb-4 text-lg font-medium text-gray-700">
+            AI is extracting your data...
+          </h3>
+
+          <div className="w-2/3">
+            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+              <div
+                className="h-full bg-green-500 transition-all duration-200"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <p className="mt-2 text-center font-medium text-gray-600">
+              {progress}%
+            </p>
+          </div>
         </div>
       )}
     </>

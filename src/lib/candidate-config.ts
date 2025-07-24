@@ -20,25 +20,24 @@ export const ALL_COLUMNS: ColumnConfig[] = [
   { key: "skill", label: "Skills" },
   { key: "education", label: "Education" },
   { key: "rating", label: "Rating" },
+  { key: "address", label: "Address"},
 ];
 
-// Tab definitions for filtering/search view
 export const TABS = [
   ["All", "all"] as const,
   ["Status", "status"] as const,
   ["Recruiter", "recruiter"] as const,
   ["HM Approval", "hm"] as const,
-  ["CTC Range", "ctc"] as const,
+  ["Date Added", "updated_at"] as const,
+  ["Address", "address"] as const
 ];
 
 type StatusColorMap = Record<string, string>;
 
-// Generic helper to fetch classes based on a map
 function getBadgeClasses(map: StatusColorMap, defaultClass: string) {
   return (key: string) => map[key] || defaultClass;
 }
 
-// Specific status-color mappings
 const statusMap: StatusColorMap = {
   Application: "bg-blue-100 text-blue-800 hover:bg-blue-200 hover:text-blue-900",
   Screening: "bg-yellow-100 text-yellow-800 hover:bg-yellow-200 hover:text-yellow-900",
@@ -62,7 +61,6 @@ const hmApprovalMap: StatusColorMap = {
   "Not Required": "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-700",
 };
 
-// Exported functions
 export const getStatusColor = getBadgeClasses(statusMap, "bg-gray-100 text-gray-800 hover:bg-gray-200 hover:text-gray-900");
 export const getRecruiterStatusColor = getBadgeClasses(recruiterStatusMap, "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:text-gray-800");
 export const getHMApprovalColor = getBadgeClasses(hmApprovalMap, "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-700");
