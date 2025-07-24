@@ -282,9 +282,13 @@ export default function Jobs() {
       {isViewApplicantsOpen && selectedJob && (
         <ViewApplicationsModal
           open={isViewApplicantsOpen}
-          onOpenChange={() => {
-            setIsViewApplicantsOpen(false);
+          onOpenChange={(open) => {
+            setIsViewApplicantsOpen(open);
             setSelectedStage(null);
+            if (!open) {
+              setSelectedStage(null);
+              fetchJobs();
+            }
           }}
           jobId={selectedJob.id}
           statusFilter={selectedStage}

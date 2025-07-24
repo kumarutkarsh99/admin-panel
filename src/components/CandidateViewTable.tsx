@@ -82,6 +82,8 @@ interface CandidateForm {
   skill: string[];
   college: string;
   degree: string;
+  created_at: string;
+  updated_at: string;
 }
 
 interface CandidateViewListProps {
@@ -105,7 +107,7 @@ export default function CandidateViewList({
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<
-    "all" | "status" | "recruiter" | "hm" | "ctc"
+    "all" | "status" | "recruiter" | "hm" | "updated_at" | "address"
   >("all");
   const term = searchQuery.toLowerCase().trim();
   const itemsPerPage = 5;
@@ -215,34 +217,40 @@ export default function CandidateViewList({
     }
   };
 
-  // Filtering and pagination
+  const lowerTerm = term.trim().toLowerCase();
+
+  const safe = (s?: string | null) => s?.toLowerCase() ?? "";
+
   const filtered = localCandidates.filter((c) => {
-    if (!term) return true;
+    if (!lowerTerm) return true;
+
     switch (activeTab) {
       case "status":
-        return c.status.toLowerCase().includes(term);
+        return safe(c.status).includes(lowerTerm);
+
       case "recruiter":
-        return c.recruiter_status.toLowerCase().includes(term);
+        return safe(c.recruiter_status).includes(lowerTerm);
+
       case "hm":
-        return c.hmapproval.toLowerCase().includes(term);
-      case "ctc": {
-        const val = parseFloat(c.current_ctc);
-        if (term.includes("-")) {
-          const [min, max] = term.split("-").map(Number);
-          return !isNaN(min) && !isNaN(max) && val >= min && val <= max;
-        }
-        return c.current_ctc.toLowerCase().includes(term);
+        return safe(c.hmapproval).includes(lowerTerm);
+
+      case "updated_at": {
+        return safe(c.updated_at).includes(lowerTerm);
       }
+
+      case "address":
+        return safe(c.address).includes(lowerTerm);
+
       case "all":
       default:
-        const name = `${c.first_name} ${c.last_name}`.toLowerCase();
+        const fullName = `${c.first_name ?? ""} ${c.last_name ?? ""}`;
         return (
-          name.includes(term) ||
-          c.skill.join(" ").toLowerCase().includes(term) ||
-          c.current_company.toLowerCase().includes(term) ||
-          c.email.toLowerCase().includes(term) ||
-          c.phone.toLowerCase().includes(term) ||
-          c.rating.includes(term)
+          fullName.toLowerCase().includes(lowerTerm) ||
+          (c.skill ?? []).join(" ").toLowerCase().includes(lowerTerm) ||
+          safe(c.current_company).includes(lowerTerm) ||
+          safe(c.email).includes(lowerTerm) ||
+          safe(c.phone).includes(lowerTerm) ||
+          (c.rating ?? "").includes(lowerTerm)
         );
     }
   });
@@ -269,9 +277,11 @@ export default function CandidateViewList({
                           ? "Status"
                           : activeTab === "recruiter"
                           ? "Recruiter Status"
+                          : activeTab === "address"
+                          ? "Address"
                           : activeTab === "hm"
                           ? "HM Approval"
-                          : "CTC Range (e.g. 3-7)"
+                          : "Date (2025-07-23 13:41:47.026Z)"
                       }…`
                 }
                 className="pl-10 bg-white/80 h-9"
@@ -689,6 +699,14 @@ export default function CandidateViewList({
                             <span className="text-xs text-slate-600">
                               {candidate.rating}
                             </span>
+                          </div>
+                        </TableCell>
+                      )}
+
+                      {visibleColumns.includes("address") && (
+                        <TableCell className="min-w-[150px]">
+                          <div className="text-sm whitespace-nowrap text-slate-500">
+                            {candidate.address}
                           </div>
                         </TableCell>
                       )}
