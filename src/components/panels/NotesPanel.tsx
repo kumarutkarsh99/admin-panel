@@ -121,7 +121,10 @@ export function NotesPanel({ candidate }) {
           </SelectContent>
         </Select>
 
-        <Button onClick={() => console.log("Post with template:", template)}>
+        <Button
+          onClick={() => console.log("Post with template:", template)}
+          className="bg-blue-500"
+        >
           Post
         </Button>
       </div>
