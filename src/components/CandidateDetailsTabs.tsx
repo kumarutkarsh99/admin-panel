@@ -22,6 +22,8 @@ export default function CandidateDetailsTabs({
 }) {
   const [primaryTab, setPrimaryTab] = useState<string>("notes");
   const [secondaryTab, setSecondaryTab] = useState<string>("activities");
+  const [refreshFlag, setRefreshFlag] = useState(false);
+  const handleTaskAdded = () => setRefreshFlag((f) => !f);
 
   return (
     <div className="p-3 w-full space-y-6">
@@ -55,7 +57,11 @@ export default function CandidateDetailsTabs({
           <NotesPanel candidate={candidate} />
         </TabsContent>
         <TabsContent value="tasks">
-          <TasksPanel candidate={candidate} />
+          <TasksPanel
+            candidateId={candidate.id}
+            authorId={1}
+            onTaskAdded={handleTaskAdded}
+          />
         </TabsContent>
         <TabsContent value="schedule">
           <SchedulePanel candidate={candidate} />
@@ -115,7 +121,11 @@ export default function CandidateDetailsTabs({
           <CallsListPanel calls={candidate.calls} />
         </TabsContent>
         <TabsContent value="tasks_list">
-          <TasksListPanel candidateId={candidate.id} authorId={1} />
+          <TasksListPanel
+            candidateId={candidate.id}
+            authorId={1}
+            refreshTrigger={refreshFlag}
+          />
         </TabsContent>
       </Tabs>
     </div>

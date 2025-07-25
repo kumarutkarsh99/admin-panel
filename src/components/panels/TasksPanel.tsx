@@ -1,4 +1,5 @@
 import { useState } from "react";
+import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,9 +10,20 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { Calendar, Clock, PhoneCall } from "lucide-react";
+import { PhoneCall } from "lucide-react";
+import { toast } from "sonner";
 
-export function TasksPanel({ candidate }) {
+interface TasksPanelProps {
+  candidateId: number;
+  authorId: number;
+  onTaskAdded?: () => void;
+}
+
+export function TasksPanel({
+  candidateId,
+  authorId,
+  onTaskAdded,
+}: TasksPanelProps) {
   const [taskName, setTaskName] = useState("");
   const [description, setDescription] = useState("");
   const [associatedWith, setAssociatedWith] = useState("Zenith Accufore");
@@ -20,16 +32,49 @@ export function TasksPanel({ candidate }) {
   const [dueDate, setDueDate] = useState("2025-07-03");
   const [reminderDate, setReminderDate] = useState("2025-07-03");
   const [reminderTime, setReminderTime] = useState("09:00");
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!taskName.trim()) {
+      toast.error("Please provide a task name.");
+      return;
+    }
+    setSaving(true);
+    try {
+      const payload = {
+        candidate_id: candidateId,
+        author_id: authorId,
+        task: taskName,
+      };
+      const res = await axios.post(
+        `http://51.20.181.155:3000/candidate/addCandidateTask`,
+        payload
+      );
+      if (res.data.status) {
+        toast.success(res.data.message || "Task created successfully.");
+        setTaskName("");
+        setDescription("");
+        onTaskAdded?.();
+      } else {
+        toast.error(res.data.message || "Failed to create task.");
+      }
+    } catch (err: any) {
+      console.error("Error creating task", err);
+      toast.error(
+        err.response?.data?.message || err.message || "Server error."
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="flex flex-col border rounded-lg bg-white shadow-sm mb-4">
-      {/* 1. Header */}
       <div className="flex items-center px-4 py-2 border-b">
         <span className="text-2xl mr-2">✨</span>
         <span className="font-semibold">AIRA</span>
       </div>
 
-      {/* 2. Task Name */}
       <div className="px-4 py-2 border-b">
         <Input
           placeholder="Name your task..."
@@ -39,7 +84,6 @@ export function TasksPanel({ candidate }) {
         />
       </div>
 
-      {/* 3. Description */}
       <div className="px-4 py-2 border-b">
         <Textarea
           rows={4}
@@ -50,8 +94,7 @@ export function TasksPanel({ candidate }) {
         />
       </div>
 
-      {/* 4. Toolbar */}
-      <div className="px-4 py-2 border-b overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400">
+      <div className="px-4 py-2 border-b overflow-x-auto scrollbar-custom">
         <div className="inline-flex items-center space-x-4 whitespace-nowrap">
           <Select onValueChange={() => {}}>
             <SelectTrigger className="w-auto text-sm">
@@ -75,13 +118,10 @@ export function TasksPanel({ candidate }) {
           </Select>
 
           <PhoneCall className="cursor-pointer" size={18} />
-          {/* add more icons here */}
         </div>
       </div>
 
-      {/* 5. Metadata grid */}
       <div className="px-4 py-4 flex flex-wrap gap-4 border-b">
-        {/* Associated with */}
         <div className="flex flex-row gap-6 w-full">
           <div>
             <label className="block text-xs font-medium mb-1">
@@ -98,7 +138,6 @@ export function TasksPanel({ candidate }) {
             </div>
           </div>
 
-          {/* Assigned to */}
           <div>
             <label className="block text-xs font-medium mb-1">
               Assigned to
@@ -115,7 +154,6 @@ export function TasksPanel({ candidate }) {
           </div>
         </div>
 
-        {/* Type */}
         <div className="flex flex-row gap-6 w-full">
           <div>
             <label className="block text-xs font-medium mb-1">Type</label>
@@ -134,55 +172,47 @@ export function TasksPanel({ candidate }) {
             </Select>
           </div>
 
-          {/* Due date */}
           <div>
             <label className="block text-xs font-medium mb-1">Due date</label>
-            <div className="flex items-center space-x-1">
-              <Input
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="text-sm"
-              />
-            </div>
+            <Input
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              className="text-sm"
+            />
           </div>
 
-          {/* Email reminder */}
-          <div className="col-span-1 sm:col-span-2 lg:col-span-2">
+          <div className="col-span-2 sm:col-span-2 lg:col-span-2">
             <label className="block text-xs font-medium mb-1">
               Email reminder
             </label>
-            <div className="flex flex-wrap gap-4 items-center">
-              <div className="flex items-center space-x-1">
-                <Input
-                  type="date"
-                  value={reminderDate}
-                  onChange={(e) => setReminderDate(e.target.value)}
-                  className="text-sm"
-                />
-              </div>
-              <div className="flex items-center space-x-1">
-                <Input
-                  type="time"
-                  value={reminderTime}
-                  onChange={(e) => setReminderTime(e.target.value)}
-                  className="text-sm"
-                />
-              </div>
+            <div className="flex gap-4 items-center">
+              <Input
+                type="date"
+                value={reminderDate}
+                onChange={(e) => setReminderDate(e.target.value)}
+                className="text-sm"
+              />
+              <Input
+                type="time"
+                value={reminderTime}
+                onChange={(e) => setReminderTime(e.target.value)}
+                className="text-sm"
+              />
             </div>
           </div>
         </div>
       </div>
 
-      {/* 6. Save */}
       <div className="px-4 py-3 flex justify-end">
-        <Button onClick={() => console.log("Save Task")} className="text-sm">
-          Save
+        <Button
+          disabled={saving}
+          onClick={handleSave}
+          className="text-sm bg-blue-500"
+        >
+          {saving ? "Saving…" : "Save Task"}
         </Button>
       </div>
-
-      {/* 7. (Optional) Re-use second-row tabs */}
-      {/* <CandidateDetailsTabs candidate={candidate} /> */}
     </div>
   );
 }
