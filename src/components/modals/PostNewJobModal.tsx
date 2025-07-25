@@ -21,7 +21,27 @@ interface PostNewJobModalProps {
   open: boolean;
   onClose: () => void;
 }
-
+const employmentTypes = [
+  "Full-time",
+  "Part-time",
+  "Contract",
+  "Internship",
+  "Temporary"
+];
+const experienceLevels = [
+  "Entry level",
+  "Mid level",
+  "Senior level",
+  "Director",
+  "Executive"
+];
+const educationLevels = [
+  "High School",
+  "Associate",
+  "Bachelor",
+  "Master",
+  "Doctorate"
+];
 const initialForm = {
   jobTitle: "",
   jobCode: "",
@@ -52,6 +72,8 @@ const initialForm = {
     to: 0,
     currency: "",
   },
+  company: "",
+  about_company:""
 };
 
 const PostNewJobModal: React.FC<PostNewJobModalProps> = ({ open, onClose }) => {
@@ -96,6 +118,11 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({ open, onClose }) => {
       newErrors.salaryRange = "Salary from cannot exceed salary to.";
     if (!formData.salary.currency.trim())
       newErrors.currency = "Currency is required.";
+      if (!formData.about_company.trim())
+      newErrors.about_company = "Company About is required.";
+    if (!formData.company.trim())
+      newErrors.company = "Company  is required.";
+      
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -379,6 +406,31 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({ open, onClose }) => {
                 <p className="text-red-500 text-xs">{errors.jobFunction}</p>
               )}
             </div>
+            <div className="mb-4">
+              <label className="text-sm">Company *</label>
+              <Input
+                placeholder="Company Name"
+                value={formData.company}
+                onChange={(e) =>
+                  handleChange("company", e.target.value)
+                }
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="text-sm">About Company</label>
+              <Textarea
+                placeholder="Describe the Company"
+                rows={4}
+                value={formData.about_company}
+                onChange={(e) =>
+                  handleChange("about_company", e.target.value)
+                }
+              />
+              {errors.about_company && (
+                <p className="text-red-500 text-xs">{errors.about_company}</p>
+              )}
+            </div>
 
             {/* Employment Details */}
             <div className="md:col-span-2 mt-4 mb-2">
@@ -386,7 +438,7 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({ open, onClose }) => {
             </div>
             <div>
               <label className="text-sm">Employment Type</label>
-              <Input
+              {/* <Input
                 placeholder="Full-time"
                 value={formData.employmentDetails.employmentType}
                 onChange={(e) =>
@@ -396,11 +448,26 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({ open, onClose }) => {
                     e.target.value
                   )
                 }
-              />
+              /> */}
+
+              <select
+                className="w-full border rounded-md p-2 mt-1 text-sm"
+                value={formData.employmentDetails.employmentType}
+                onChange={(e) =>
+                  handleNestedChange("employmentDetails", "employmentType", e.target.value)
+                }
+              >
+                <option value="">Select Employment Type</option>
+                {employmentTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="text-sm">Experience</label>
-              <Input
+              {/* <Input
                 placeholder="2 years"
                 value={formData.employmentDetails.experience}
                 onChange={(e) =>
@@ -410,22 +477,40 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({ open, onClose }) => {
                     e.target.value
                   )
                 }
-              />
+              /> */}
+              <select
+                className="w-full border rounded-md p-2 mt-1 text-sm"
+                value={formData.employmentDetails.experience}
+                onChange={(e) =>
+                  handleNestedChange("employmentDetails", "experience", e.target.value)
+                }
+              >
+                <option value="">Select Experience Level</option>
+                {experienceLevels.map((level) => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
-              <label className="text-sm">Education</label>
-              <Input
-                placeholder="Bachelor's Degree"
-                value={formData.employmentDetails.education}
-                onChange={(e) =>
-                  handleNestedChange(
-                    "employmentDetails",
-                    "education",
-                    e.target.value
-                  )
-                }
-              />
-            </div>
+  <label className="text-sm">Education</label>
+  <select
+    className="w-full border rounded-md p-2 mt-1 text-sm"
+    value={formData.employmentDetails.education}
+    onChange={(e) =>
+      handleNestedChange("employmentDetails", "education", e.target.value)
+    }
+  >
+    <option value="">Select Education Level</option>
+    {educationLevels.map((level) => (
+      <option key={level} value={level}>
+        {level}
+      </option>
+    ))}
+  </select>
+</div>
+
 
             {/* Keywords */}
             <div className="md:col-span-2">
