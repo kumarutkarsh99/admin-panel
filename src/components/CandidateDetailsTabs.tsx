@@ -50,6 +50,7 @@ export default function CandidateDetailsTabs({
             </TabsTrigger>
           ))}
         </TabsList>
+
         <TabsContent value="notes">
           <NotesPanel candidate={candidate} />
         </TabsContent>
@@ -114,7 +115,7 @@ export default function CandidateDetailsTabs({
           <CallsListPanel calls={candidate.calls} />
         </TabsContent>
         <TabsContent value="tasks_list">
-          <TasksListPanel tasks_list={candidate.tasks_list} />
+          <TasksListPanel candidateId={candidate.id} authorId={1} />
         </TabsContent>
       </Tabs>
     </div>
