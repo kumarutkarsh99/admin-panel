@@ -9,6 +9,7 @@ import axios from "axios";
 import CandidateViewList from "../CandidateViewTable";
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 const API_BASE_URL = "http://51.20.181.155:3000";
 
@@ -26,7 +27,7 @@ type ViewApplicationsModalProps = {
   open: boolean;
   onOpenChange: (val: boolean) => void;
   jobId: number;
-  statusFilter?: string | null; // initial filter
+  statusFilter?: string | null;
 };
 
 export default function ViewApplicationsModal({
@@ -35,26 +36,22 @@ export default function ViewApplicationsModal({
   jobId,
   statusFilter,
 }: ViewApplicationsModalProps) {
-  // Default to "All" if statusFilter is null or undefined
   const initialStatus = statusFilter ?? "All";
 
   const [applicants, setApplicants] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [activeStatus, setActiveStatus] = useState<string>(initialStatus);
 
   const fetchApplicants = async () => {
     if (!jobId) return;
 
     setLoading(true);
-    setError(null);
     try {
       const { data } = await axios.get(
         `${API_BASE_URL}/jobs/${jobId}/applicants`
       );
       if (data.status) {
         let list = data.result as any[];
-        // Only filter if a non-default, non-falsy status is selected
         if (activeStatus && activeStatus !== "All") {
           list = list.filter((applicant) => applicant.status === activeStatus);
         }
@@ -64,14 +61,13 @@ export default function ViewApplicationsModal({
       }
     } catch (err: any) {
       console.error(err);
-      setError(err.message);
+      toast.error(err.message);
       setApplicants([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Re-fetch whenever modal opens, jobId, or activeStatus changes
   useEffect(() => {
     if (open && jobId) {
       fetchApplicants();
@@ -120,12 +116,6 @@ export default function ViewApplicationsModal({
         {/* Body */}
         {loading ? (
           <div className="flex justify-center py-8">Loading...</div>
-        ) : error ? (
-          <p className="text-red-600 px-4">Error: {error}</p>
-        ) : applicants.length === 0 ? (
-          <p className="text-center text-sm text-gray-500 py-4">
-            No applications found.
-          </p>
         ) : (
           <div>
             <CandidateViewList
