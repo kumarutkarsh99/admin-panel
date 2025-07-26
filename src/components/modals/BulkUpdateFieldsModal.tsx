@@ -149,7 +149,7 @@ export function BulkUpdateFieldsModal({
     <Dialog open={open} onOpenChange={(val) => val || onClose()}>
       <DialogContent className="max-w-3xl max-h-[80vh] overflow-auto">
         <DialogHeader>
-          <DialogTitle>Bulk update fields</DialogTitle>
+          <DialogTitle>Update Fields</DialogTitle>
         </DialogHeader>
 
         <div className="mt-1 space-y-4">
