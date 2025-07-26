@@ -82,20 +82,6 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({ open, onClose }) => {
   const [keywordInput, setKeywordInput] = useState("");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(false);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const departments = [
-    "Engineering",
-    "Human Resources",
-    "Sales",
-    "Marketing",
-    "Finance",
-    "Customer Support",
-    "Product",
-    "Operations",
-    "Design",
-    "Legal",
-  ];
 
   // Reset form whenever modal is opened
   useEffect(() => {
@@ -143,16 +129,6 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({ open, onClose }) => {
 
   const handleChange = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-     if (value.trim() === "") {
-      setSuggestions([]);
-      setShowSuggestions(false);
-    } else {
-      const filtered = departments.filter((dept) =>
-        dept.toLowerCase().includes(value.toLowerCase())
-      );
-      setSuggestions(filtered);
-      setShowSuggestions(true);
-    }
   };
 
   const handleNestedChange = (section: string, field: string, value: any) => {
@@ -163,12 +139,6 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({ open, onClose }) => {
         [field]: value,
       },
     }));
-  };
-
-   const handleSelectSuggestion = (value: string) => {
-    setFormData({ ...formData, department: value });
-    setSuggestions([]);
-    setShowSuggestions(false);
   };
 
   const addKeyword = () => {
@@ -271,30 +241,11 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({ open, onClose }) => {
               <Input
                 placeholder="Engineering"
                 value={formData.department}
-                
                 onChange={(e) => handleChange("department", e.target.value)}
-                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                onFocus={() => {
-          if (formData.department) setShowSuggestions(true);
-        }}
               />
               {errors.department && (
                 <p className="text-red-500 text-xs">{errors.department}</p>
               )}
-
-              {showSuggestions && suggestions.length > 0 && (
-        <ul className="absolute z-10 bg-white border w-full max-h-40 overflow-y-auto shadow-md rounded mt-1">
-          {suggestions.map((dept, index) => (
-            <li
-              key={index}
-              className="p-2 hover:bg-gray-100 cursor-pointer"
-              onClick={() => handleSelectSuggestion(dept)}
-            >
-              {dept}
-            </li>
-          ))}
-        </ul>
-      )}
             </div>
             <div>
               <label className="text-sm">Office Location</label>

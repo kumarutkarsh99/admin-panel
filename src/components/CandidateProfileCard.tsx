@@ -18,13 +18,9 @@ import {
 import { MoreVertical } from "lucide-react";
 import StarRating from "./StarRating";
 import { Badge } from "@/components/ui/badge";
-import { EditCandidateModal } from "./modals/EditCandidateModal";
+import { BulkUpdateFieldsModal } from "./modals/BulkUpdateFieldsModal";
 
-export default function CandidateProfileCard({
-  candidate,
-  owners = [],
-  onCandidateUpdated,
-}) {
+export default function CandidateProfileCard({ candidate }) {
   const {
     id,
     first_name,
@@ -136,34 +132,6 @@ export default function CandidateProfileCard({
         <Button variant="outline" size="sm">
           + Add tag
         </Button>
-
-        {/* Owner Assignment */}
-        <div className="text-sm">
-          <p className="font-semibold mb-1">Owner</p>
-          <Select
-            value={owner?.id || ""}
-            onValueChange={(val) =>
-              onCandidateUpdated({
-                ...candidate,
-                owner: {
-                  id: val,
-                  name: owners.find((o) => o.id === val)?.name,
-                },
-              })
-            }
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Unassigned" />
-            </SelectTrigger>
-            <SelectContent>
-              {owners.map((o) => (
-                <SelectItem key={o.id} value={o.id}>
-                  {o.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
       </Card>
 
       {/* Jobs */}
@@ -263,13 +231,12 @@ export default function CandidateProfileCard({
 
       {/* Edit Modal */}
       {editOpen && (
-        <EditCandidateModal
-          candidateId={id}
+        <BulkUpdateFieldsModal
           open={editOpen}
-          onOpenChange={setEditOpen}
-          onSaved={(updated) => {
+          onClose={() => setEditOpen(false)}
+          selectedIds={[id]}
+          onSuccess={() => {
             setEditOpen(false);
-            onCandidateUpdated(updated);
           }}
         />
       )}
