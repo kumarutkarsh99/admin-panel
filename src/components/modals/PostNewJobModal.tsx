@@ -82,6 +82,59 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({ open, onClose }) => {
   const [keywordInput, setKeywordInput] = useState("");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
+  const [locationSuggestions, setLocationSuggestions] = useState<string[]>([]);
+  
+  const departments = [
+    "Engineering",
+    "Human Resources",
+    "Sales",
+    "Marketing",
+    "Finance",
+    "Customer Support",
+    "Product",
+    "Operations",
+    "Design",
+    "Legal",
+  ];
+  const officeLocations = [
+  "Mumbai, Maharashtra",
+  "Delhi, Delhi",
+  "Bengaluru, Karnataka",
+  "Hyderabad, Telangana",
+  "Chennai, Tamil Nadu",
+  "Kolkata, West Bengal",
+  "Pune, Maharashtra",
+  "Ahmedabad, Gujarat",
+  "Jaipur, Rajasthan",
+  "Lucknow, Uttar Pradesh",
+  "Surat, Gujarat",
+  "Bhopal, Madhya Pradesh",
+  "Nagpur, Maharashtra",
+  "Indore, Madhya Pradesh",
+  "Patna, Bihar",
+  "Chandigarh, Chandigarh",
+  "Noida, Uttar Pradesh",
+  "Gurgaon, Haryana",
+  "Coimbatore, Tamil Nadu",
+  "Visakhapatnam, Andhra Pradesh"
+];
+
+const handleOfficeLocationChange = (value: string) => {
+  handleNestedChange("officeLocation", "primary", value);
+
+  if (value.length > 0) {
+    const filtered = officeLocations.filter((loc) =>
+      loc.toLowerCase().includes(value.toLowerCase())
+    );
+    setSuggestions(filtered);
+    setShowSuggestions(true);
+  } else {
+    setShowSuggestions(false);
+  }
+};
 
   // Reset form whenever modal is opened
   useEffect(() => {
@@ -129,6 +182,16 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({ open, onClose }) => {
 
   const handleChange = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+     if (value.trim() === "") {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    } else {
+      const filtered = departments.filter((dept) =>
+        dept.toLowerCase().includes(value.toLowerCase())
+      );
+      setSuggestions(filtered);
+      setShowSuggestions(true);
+    }
   };
 
   const handleNestedChange = (section: string, field: string, value: any) => {
@@ -139,6 +202,12 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({ open, onClose }) => {
         [field]: value,
       },
     }));
+  };
+
+   const handleSelectSuggestion = (value: string) => {
+    setFormData({ ...formData, department: value });
+    setSuggestions([]);
+    setShowSuggestions(false);
   };
 
   const addKeyword = () => {
@@ -241,29 +310,77 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({ open, onClose }) => {
               <Input
                 placeholder="Engineering"
                 value={formData.department}
+                
                 onChange={(e) => handleChange("department", e.target.value)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                onFocus={() => {
+          if (formData.department) setShowSuggestions(true);
+        }}
               />
               {errors.department && (
                 <p className="text-red-500 text-xs">{errors.department}</p>
               )}
+
+              {showSuggestions && suggestions.length > 0 && (
+        <ul className="absolute z-10 bg-white border w-full max-h-40 overflow-y-auto shadow-md rounded mt-1">
+          {suggestions.map((dept, index) => (
+            <li
+              key={index}
+              className="p-2 hover:bg-gray-100 cursor-pointer"
+              onClick={() => handleSelectSuggestion(dept)}
+            >
+              {dept}
+            </li>
+          ))}
+        </ul>
+      )}
             </div>
-            <div>
-              <label className="text-sm">Office Location</label>
-              <Input
-                placeholder="New York, NY"
-                value={formData.officeLocation.primary}
-                onChange={(e) =>
-                  handleNestedChange(
-                    "officeLocation",
-                    "primary",
-                    e.target.value
-                  )
-                }
-              />
-              {errors.officeLocation && (
-                <p className="text-red-500 text-xs">{errors.officeLocation}</p>
-              )}
-            </div>
+ <div className="relative">
+  <label className="text-sm">Office Location</label>
+  <Input
+    placeholder="New York, NY"
+    value={formData.officeLocation.primary}
+    onChange={(e) => {
+      const value = e.target.value;
+      handleNestedChange("officeLocation", "primary", value);
+      if (value.trim()) {
+        const filtered = officeLocations.filter((loc) =>
+          loc.toLowerCase().includes(value.toLowerCase())
+        );
+        setLocationSuggestions(filtered);
+        setShowLocationSuggestions(true);
+      } else {
+        setLocationSuggestions([]);
+        setShowLocationSuggestions(false);
+      }
+    }}
+    onBlur={() => setTimeout(() => setShowLocationSuggestions(false), 100)} // allow click
+    onFocus={() => {
+      if (formData.officeLocation.primary)
+        setShowLocationSuggestions(true);
+    }}
+  />
+  {showLocationSuggestions && locationSuggestions.length > 0 && (
+    <ul className="absolute z-10 bg-white border w-full max-h-40 overflow-y-auto shadow-md rounded mt-1">
+      {locationSuggestions.map((suggestion, index) => (
+        <li
+          key={index}
+          className="p-2 hover:bg-gray-100 cursor-pointer"
+          onMouseDown={() => {
+            handleNestedChange("officeLocation", "primary", suggestion);
+            setShowLocationSuggestions(false);
+          }}
+        >
+          {suggestion}
+        </li>
+      ))}
+    </ul>
+  )}
+  {errors.officeLocation && (
+    <p className="text-red-500 text-xs">{errors.officeLocation}</p>
+  )}
+</div>
+
             <div className="flex items-center gap-4">
               <label className="text-sm">Workplace</label>
               <ToggleGroup
