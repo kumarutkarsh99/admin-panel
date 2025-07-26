@@ -88,6 +88,43 @@ interface ParsedAddress {
   country: string | null;
 }
 
+const formatCandidateAddress = (address: string): string => {
+  if (!address || !address.trim()) return "NA";
+
+  try {
+    const parsed = JSON.parse(address);
+
+    if (Array.isArray(parsed)) {
+      const latestAddress = [...parsed].reverse().find((addr) =>
+        addr && Object.values(addr).some((val) => val && val !== "")
+      );
+
+      if (!latestAddress) return "NA";
+
+      const fields = [
+        latestAddress.firstline,
+        latestAddress.city,
+        latestAddress.district,
+        latestAddress.state,
+        latestAddress.pincode,
+        latestAddress.country,
+      ];
+
+      const cleaned = fields
+        .map((val) => (val ?? "").trim())
+        .filter((val) => val); // removes empty strings
+
+      return cleaned.length ? cleaned.join(", ") : "NA";
+    }
+
+    return "NA"; // Not an array
+  } catch {
+    // Fallback to plain address string
+    return address.trim() || "NA";
+  }
+};
+
+
 interface CandidateViewListProps {
   loading: boolean;
   candidates: CandidateForm[];
