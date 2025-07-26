@@ -29,6 +29,27 @@ type EditJobModalProps = {
   jobId: number;
   onSuccess: () => void;
 };
+const employmentTypes = [
+  "Full-time",
+  "Part-time",
+  "Contract",
+  "Internship",
+  "Temporary"
+];
+const experienceLevels = [
+  "Entry level",
+  "Mid level",
+  "Senior level",
+  "Director",
+  "Executive"
+];
+const educationLevels = [
+  "High School",
+  "Associate",
+  "Bachelor",
+  "Master",
+  "Doctorate"
+];
 
 export default function EditJobModal({
   open,
@@ -56,6 +77,8 @@ export default function EditJobModal({
     salary_from: "",
     salary_to: "",
     salary_currency: "USD",
+    company: "",
+    about_company: ""
   };
 
   const [form, setForm] = useState({ ...initialFormState });
@@ -88,6 +111,8 @@ export default function EditJobModal({
             salary_from: job.salary_from || "",
             salary_to: job.salary_to || "",
             salary_currency: job.salary_currency || "USD",
+            company: job.company || "",
+            about_company: job.about_company || "",
           });
         })
         .catch((err) => {
@@ -283,18 +308,22 @@ export default function EditJobModal({
 
           {/* Descriptions */}
           <div className="grid gap-4">
+            
+            <label className="block text-sm font-medium mb">About</label>
             <Textarea
               name="description_about"
               placeholder="About the Job"
               value={form.description_about}
               onChange={handleChange}
             />
+             <label className="block text-sm font-medium mb">Description Requirnment</label>
             <Textarea
               name="description_requirements"
               placeholder="Requirements"
               value={form.description_requirements}
               onChange={handleChange}
             />
+             <label className="block text-sm font-medium mb">Benifits</label>
             <Textarea
               name="description_benefits"
               placeholder="Benefits"
@@ -302,10 +331,28 @@ export default function EditJobModal({
               onChange={handleChange}
             />
           </div>
+           <div className="mb-4">
+                          <label className="block text-sm font-medium mb">Company</label>
+                          <Input
+                            placeholder="Company Name"
+                            value={form.company}
+                            onChange={handleChange}
+                          />
+                        </div>
+                         <div className="block text-sm font-medium mb">
+                                      <label className="text-sm">About Company</label>
+                                      <Textarea
+                                        placeholder="Describe the Company"
+                                        rows={4}
+                                        value={form.about_company}
+                                        onChange={handleChange}
+                                      />
+                                     
+                                    </div>
 
           {/* Select Fields */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium mb-1">
                 Employment Type
               </label>
@@ -315,30 +362,73 @@ export default function EditJobModal({
                 value={form.employment_type}
                 onChange={handleChange}
               />
+            </div> */}
+             
+            <div>
+              <label className="block text-sm font-medium mb">Employment Type</label>
+              <select
+                className="w-full border rounded-md p-2 mt-1 text-sm"
+                value={form.employment_type}
+                onChange={handleChange}
+
+              >
+                <option value="">Select Employment Type</option>
+                {employmentTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium mb-1">
                 Experience
               </label>
-              <Input
+              {/* <Input
                 name="experience"
                 placeholder="Experience"
                 value={form.experience}
                 onChange={handleChange}
-              />
+              /> */}
+
+              <select
+                className="w-full border rounded-md p-2 mt-1 text-sm"
+                value={form.experience}
+                onChange={handleChange}
+              >
+                <option value="">Select Experience Level</option>
+                {experienceLevels.map((level) => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium mb-1">
                 Education
               </label>
-              <Input
+
+              <select
+                className="w-full border rounded-md p-2 mt-1 text-sm"
+                value={form.education}
+                onChange={handleChange}
+              >
+                <option value="">Select Education Level</option>
+                {educationLevels.map((level) => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
+              </select>
+              {/* <Input
                 name="education"
                 placeholder="Education"
                 value={form.education}
                 onChange={handleChange}
-              />
+              /> */}
             </div>
           </div>
 

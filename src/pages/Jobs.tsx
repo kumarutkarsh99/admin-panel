@@ -1,13 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Layout from "@/components/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, EllipsisVerticalIcon } from "lucide-react";
 import PostNewJobModal from "@/components/modals/PostNewJobModal";
 import JobViewModal from "@/components/modals/JobViewModal";
 import ViewApplicationsModal from "@/components/modals/ViewApplicationModal";
-import { EllipsisVerticalIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -35,6 +34,7 @@ type Job = {
   company_industry: string;
   employment_type: string;
   office_primary_location: string;
+  company: string | null;
   applicants: number;
   stageCounts: Record<string, number>;
 };
@@ -58,7 +58,6 @@ export default function Jobs() {
       const jobsWithData = await Promise.all(
         jobsData.map(async (job: any) => {
           let applicantsList: any[] = [];
-
           try {
             const applicantsRes = await axios.get(
               `${API_BASE_URL}/jobs/${job.id}/applicants`
@@ -66,22 +65,17 @@ export default function Jobs() {
             applicantsList = applicantsRes.data.result || [];
           } catch (err: any) {
             console.warn(
-              `No applicants found or error fetching for job ID ${job.id}:`,
+              `No applicants found for job ID ${job.id}:`,
               err.message
             );
           }
 
           const stageCounts = PIPELINE_STAGES.reduce((acc, stage) => {
-            acc[stage] = 0;
+            acc[stage] = applicantsList.filter(
+              (app) => app.status === stage
+            ).length;
             return acc;
           }, {} as Record<string, number>);
-
-          applicantsList.forEach((app: any) => {
-            const st = app.status;
-            if (PIPELINE_STAGES.includes(st)) {
-              stageCounts[st] += 1;
-            }
-          });
 
           return {
             ...job,
@@ -104,6 +98,17 @@ export default function Jobs() {
   const filteredJobs = jobs.filter((job) =>
     job.job_title.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const groupedJobs = useMemo(() => {
+    return filteredJobs.reduce((acc, job) => {
+      const companyName = job.company || "Unassigned Jobs";
+      if (!acc[companyName]) {
+        acc[companyName] = [];
+      }
+      acc[companyName].push(job);
+      return acc;
+    }, {} as Record<string, Job[]>);
+  }, [filteredJobs]);
 
   const handleDeleteJob = async (jobId: number) => {
     if (!confirm("Delete this job permanently?")) return;
@@ -130,139 +135,151 @@ export default function Jobs() {
           </div>
           <Button
             onClick={() => setIsModalOpen(true)}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
           >
             <Plus className="w-4 h-4 mr-2" />
             Post New Job
           </Button>
         </div>
 
-        <div className="flex justify-between items-center gap-4 w-full">
-          <div className="flex items-center gap-2 w-full">
-            <Card className="w-full border border-slate-200">
-              <CardContent className="flex items-center gap-2 p-4">
-                <Search className="text-slate-400" />
-                <Input
-                  placeholder="Search jobs..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full"
-                />
-              </CardContent>
-            </Card>
-          </div>
+        <div className="flex items-center gap-2 w-full">
+          <Card className="w-full border border-slate-200">
+            <CardContent className="flex items-center gap-2 py-1 px-4">
+              <Search className="text-slate-400" />
+              <Input
+                placeholder="Search jobs..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full border-none focus-visible:ring-0 shadow-none"
+              />
+            </CardContent>
+          </Card>
         </div>
 
-        <div className="flex flex-col gap-6">
-          {filteredJobs.map((job) => (
-            <Card
-              key={job.id}
-              className="w-full border border-slate-200 hover:shadow-lg transition duration-200 rounded-xl"
-            >
-              <CardContent className="p-6 space-y-5">
-                <div className="flex justify-between items-start">
-                  <div
-                    onClick={() => {
-                      setSelectedJob(job);
-                      setIsJobViewOpen(true);
-                    }}
-                  >
-                    <h3 className="text-xl font-semibold text-slate-800 cursor-pointer">
-                      {job.job_title}
-                    </h3>
-                    <p className="text-sm text-slate-600">
-                      {job.office_primary_location} · {job.employment_type}
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <div
-                      onClick={() => {
-                        setSelectedJob(job);
-                        setIsViewApplicantsOpen(true);
-                      }}
-                      className="text-sm text-blue-600 font-medium mt-1 cursor-pointer"
+        <div className="space-y-8">
+          {Object.keys(groupedJobs).length > 0 ? (
+            Object.entries(groupedJobs).map(([companyName, jobsInGroup]) => (
+              <div key={companyName}>
+                <h2 className="text-xl font-bold text-slate-700 border-b pb-2 mb-4">
+                  {companyName}
+                </h2>
+                <div className="flex flex-col gap-6">
+                  {jobsInGroup.map((job) => (
+                    <Card
+                      key={job.id}
+                      className="w-full border border-slate-200 hover:shadow-lg transition duration-200 rounded-xl"
                     >
-                      {job.applicants} applicant{job.applicants !== 1 && "s"}
-                    </div>
-
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button
-                          className="p-1 rounded-full hover:bg-slate-100 transition"
-                          aria-label="Job actions"
-                        >
-                          <EllipsisVerticalIcon className="w-5 h-5 text-slate-500" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-40">
-                        <DropdownMenuItem
-                          onSelect={() => {
-                            if (job.id) {
+                      <CardContent className="p-6 space-y-5">
+                        <div className="flex justify-between items-start">
+                          <div
+                            className="cursor-pointer"
+                            onClick={() => {
                               setSelectedJob(job);
-                              setIsJobEditOpen(true);
-                            }
-                          }}
-                        >
-                          Edit Job
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onSelect={() => {
-                            setSelectedJob(job);
-                            setIsJobCloneOpen(true);
-                          }}
-                        >
-                          Clone Job
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onSelect={() => handleDeleteJob(job.id)}
-                        >
-                          Delete Job
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="overflow-x-auto rounded-md border border-blue-200 bg-blue-50/50">
-                    <table className="min-w-full table-fixed text-sm text-slate-700">
-                      <thead>
-                        <tr className="bg-blue-100 text-blue-800">
-                          {PIPELINE_STAGES.map((stage) => (
-                            <th
-                              key={stage}
-                              className="px-4 py-2 border-b border-r last:border-r-0 font-semibold text-center"
-                            >
-                              {stage}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr className="bg-white">
-                          {PIPELINE_STAGES.map((stage) => (
-                            <td
-                              key={stage}
-                              className="px-4 py-2 border-r last:border-r-0 text-center cursor-pointer"
+                              setIsJobViewOpen(true);
+                            }}
+                          >
+                            <h3 className="text-xl font-semibold text-slate-800">
+                              {job.job_title}
+                            </h3>
+                            <p className="text-sm text-slate-600">
+                              {job.office_primary_location} ·{" "}
+                              {job.employment_type}
+                            </p>
+                          </div>
+                          <div className="flex items-center space-x-4">
+                            <div
                               onClick={() => {
-                                setSelectedJob({ ...job });
+                                setSelectedJob(job);
                                 setIsViewApplicantsOpen(true);
-                                setSelectedStage(stage);
                               }}
+                              className="text-sm text-blue-600 font-medium mt-1 cursor-pointer"
                             >
-                              <span className="text-blue-600 font-medium">
-                                {job.stageCounts[stage] ?? 0}
-                              </span>
-                            </td>
-                          ))}
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
+                              {job.applicants} applicant
+                              {job.applicants !== 1 && "s"}
+                            </div>
+
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button
+                                  className="p-1 rounded-full hover:bg-slate-100 transition"
+                                  aria-label="Job actions"
+                                >
+                                  <EllipsisVerticalIcon className="w-5 h-5 text-slate-500" />
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-40">
+                                <DropdownMenuItem
+                                  onSelect={() => {
+                                    setSelectedJob(job);
+                                    setIsJobEditOpen(true);
+                                  }}
+                                >
+                                  Edit Job
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onSelect={() => {
+                                    setSelectedJob(job);
+                                    setIsJobCloneOpen(true);
+                                  }}
+                                >
+                                  Clone Job
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onSelect={() => handleDeleteJob(job.id)}
+                                >
+                                  Delete Job
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="overflow-x-auto rounded-md border border-blue-200 bg-blue-50/50">
+                            <table className="min-w-full table-fixed text-sm text-slate-700">
+                              <thead>
+                                <tr className="bg-blue-100 text-blue-800">
+                                  {PIPELINE_STAGES.map((stage) => (
+                                    <th
+                                      key={stage}
+                                      className="px-4 py-2 border-b border-r last:border-r-0 font-semibold text-center"
+                                    >
+                                      {stage}
+                                    </th>
+                                  ))}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr className="bg-white">
+                                  {PIPELINE_STAGES.map((stage) => (
+                                    <td
+                                      key={stage}
+                                      className="px-4 py-2 border-r last:border-r-0 text-center cursor-pointer"
+                                      onClick={() => {
+                                        setSelectedJob({ ...job });
+                                        setIsViewApplicantsOpen(true);
+                                        setSelectedStage(stage);
+                                      }}
+                                    >
+                                      <span className="text-blue-600 font-medium">
+                                        {job.stageCounts[stage] ?? 0}
+                                      </span>
+                                    </td>
+                                  ))}
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+              </div>
+            ))
+          ) : (
+            <p className="text-center text-slate-500">No jobs found.</p>
+          )}
         </div>
       </div>
 
@@ -270,7 +287,6 @@ export default function Jobs() {
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />
-
       {isJobViewOpen && selectedJob && (
         <JobViewModal
           open={isJobViewOpen}
@@ -278,13 +294,11 @@ export default function Jobs() {
           job={selectedJob}
         />
       )}
-
       {isViewApplicantsOpen && selectedJob && (
         <ViewApplicationsModal
           open={isViewApplicantsOpen}
           onOpenChange={(open) => {
             setIsViewApplicantsOpen(open);
-            setSelectedStage(null);
             if (!open) {
               setSelectedStage(null);
               fetchJobs();
@@ -294,22 +308,26 @@ export default function Jobs() {
           statusFilter={selectedStage}
         />
       )}
-
       {isJobEditOpen && selectedJob && (
         <EditJobModal
           open={isJobEditOpen}
           onOpenChange={() => setIsJobEditOpen(false)}
           jobId={selectedJob.id}
-          onSuccess={() => setIsJobEditOpen(false)}
+          onSuccess={() => {
+            setIsJobEditOpen(false);
+            fetchJobs();
+          }}
         />
       )}
-
       {isJobCloneOpen && selectedJob && (
         <CloneJobModal
           open={isJobCloneOpen}
           onOpenChange={() => setIsJobCloneOpen(false)}
           jobId={selectedJob.id}
-          onSuccess={() => setIsJobCloneOpen(false)}
+          onSuccess={() => {
+            setIsJobCloneOpen(false);
+            fetchJobs();
+          }}
         />
       )}
     </Layout>
