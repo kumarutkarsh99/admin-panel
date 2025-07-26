@@ -21,7 +21,42 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export default function EditJobModal({ open, onOpenChange, jobId }) {
+const API_BASE_URL = "http://51.20.181.155:3000";
+
+type EditJobModalProps = {
+  open: boolean;
+  onOpenChange: (val: boolean) => void;
+  jobId: number;
+  onSuccess: () => void;
+};
+const employmentTypes = [
+  "Full-time",
+  "Part-time",
+  "Contract",
+  "Internship",
+  "Temporary"
+];
+const experienceLevels = [
+  "Entry level",
+  "Mid level",
+  "Senior level",
+  "Director",
+  "Executive"
+];
+const educationLevels = [
+  "High School",
+  "Associate",
+  "Bachelor",
+  "Master",
+  "Doctorate"
+];
+
+export default function EditJobModal({
+  open,
+  onOpenChange,
+  jobId,
+  onSuccess,
+}: EditJobModalProps) {
   const initialFormState = {
     job_title: "",
     job_code: "",
@@ -42,6 +77,8 @@ export default function EditJobModal({ open, onOpenChange, jobId }) {
     salary_from: "",
     salary_to: "",
     salary_currency: "USD",
+    company: "",
+    about_company: ""
   };
 
   const [form, setForm] = useState({ ...initialFormState });
@@ -51,7 +88,7 @@ export default function EditJobModal({ open, onOpenChange, jobId }) {
     if (open && jobId) {
       setLoading(true);
       axios
-        .get(`/api/jobs/${jobId}`)
+        .get(`${API_BASE_URL}/jobs/${jobId}`)
         .then((res) => {
           const job = res.data.result[0];
           setForm({
@@ -74,6 +111,8 @@ export default function EditJobModal({ open, onOpenChange, jobId }) {
             salary_from: job.salary_from || "",
             salary_to: job.salary_to || "",
             salary_currency: job.salary_currency || "USD",
+            company: job.company || "",
+            about_company: job.about_company || "",
           });
         })
         .catch((err) => {
@@ -143,11 +182,14 @@ export default function EditJobModal({ open, onOpenChange, jobId }) {
 
   const handleSubmit = async () => {
     try {
+      console.log(form);
       setLoading(true);
-      await axios.put(`/api/jobs/${jobId}`, form);
+      const res = await axios.put(`${API_BASE_URL}/jobs/${jobId}`, form);
+      console.log(res);
       toast.success("Job updated successfully!");
       onOpenChange(false);
       setLoading(false);
+      onSuccess();
     } catch (err) {
       console.error("Error updating job:", err);
       toast.error("Failed to update job.");
@@ -266,18 +308,22 @@ export default function EditJobModal({ open, onOpenChange, jobId }) {
 
           {/* Descriptions */}
           <div className="grid gap-4">
+            
+            <label className="block text-sm font-medium mb">About</label>
             <Textarea
               name="description_about"
               placeholder="About the Job"
               value={form.description_about}
               onChange={handleChange}
             />
+             <label className="block text-sm font-medium mb">Description Requirnment</label>
             <Textarea
               name="description_requirements"
               placeholder="Requirements"
               value={form.description_requirements}
               onChange={handleChange}
             />
+             <label className="block text-sm font-medium mb">Benifits</label>
             <Textarea
               name="description_benefits"
               placeholder="Benefits"
@@ -285,10 +331,28 @@ export default function EditJobModal({ open, onOpenChange, jobId }) {
               onChange={handleChange}
             />
           </div>
+           <div className="mb-4">
+                          <label className="block text-sm font-medium mb">Company</label>
+                          <Input
+                            placeholder="Company Name"
+                            value={form.company}
+                            onChange={handleChange}
+                          />
+                        </div>
+                         <div className="block text-sm font-medium mb">
+                                      <label className="text-sm">About Company</label>
+                                      <Textarea
+                                        placeholder="Describe the Company"
+                                        rows={4}
+                                        value={form.about_company}
+                                        onChange={handleChange}
+                                      />
+                                     
+                                    </div>
 
           {/* Select Fields */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium mb-1">
                 Employment Type
               </label>
@@ -298,30 +362,73 @@ export default function EditJobModal({ open, onOpenChange, jobId }) {
                 value={form.employment_type}
                 onChange={handleChange}
               />
+            </div> */}
+             
+            <div>
+              <label className="block text-sm font-medium mb">Employment Type</label>
+              <select
+                className="w-full border rounded-md p-2 mt-1 text-sm"
+                value={form.employment_type}
+                onChange={handleChange}
+
+              >
+                <option value="">Select Employment Type</option>
+                {employmentTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium mb-1">
                 Experience
               </label>
-              <Input
+              {/* <Input
                 name="experience"
                 placeholder="Experience"
                 value={form.experience}
                 onChange={handleChange}
-              />
+              /> */}
+
+              <select
+                className="w-full border rounded-md p-2 mt-1 text-sm"
+                value={form.experience}
+                onChange={handleChange}
+              >
+                <option value="">Select Experience Level</option>
+                {experienceLevels.map((level) => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium mb-1">
                 Education
               </label>
-              <Input
+
+              <select
+                className="w-full border rounded-md p-2 mt-1 text-sm"
+                value={form.education}
+                onChange={handleChange}
+              >
+                <option value="">Select Education Level</option>
+                {educationLevels.map((level) => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
+              </select>
+              {/* <Input
                 name="education"
                 placeholder="Education"
                 value={form.education}
                 onChange={handleChange}
-              />
+              /> */}
             </div>
           </div>
 

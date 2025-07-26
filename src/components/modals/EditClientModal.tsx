@@ -22,6 +22,8 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 
+const API_BASE_URL = "http://51.20.181.155:3000";
+
 interface ClientForm {
   name: string;
   website: string;
@@ -85,7 +87,7 @@ export default function EditClientModal({ open, onOpenChange, clientId }) {
     if (open && clientId != null) {
       setLoading(true);
       axios
-        .get(`/api/client/${clientId}`)
+        .get(`${API_BASE_URL}/client/${clientId}`)
         .then((res) => {
           const list = res.data.result;
           const c = Array.isArray(list) ? list[0] : list;
@@ -138,7 +140,7 @@ export default function EditClientModal({ open, onOpenChange, clientId }) {
 
   const handleSubmit = async () => {
     try {
-      await axios.put(`/api/client/${clientId}`, form);
+      await axios.put(`${API_BASE_URL}/client/${clientId}`, form);
       toast.success("Client updated successfully!");
       onOpenChange(false);
     } catch (err) {
