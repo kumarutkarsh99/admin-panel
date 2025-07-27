@@ -86,6 +86,8 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({ open, onClose }) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
   const [locationSuggestions, setLocationSuggestions] = useState<string[]>([]);
+   const [allSkills, setAllSkills] = useState<string[]>([]);
+  const [showSkillSuggestions, setShowSkillSuggestions] = useState(false);
   
   const departments = [
     "Engineering",
@@ -146,6 +148,57 @@ const handleOfficeLocationChange = (value: string) => {
       setLoading(false);
     }
   }, [open]);
+
+  useEffect(() => {
+    async function fetchSkills() {
+      try {
+        const res = await fetch('/api/skills'); // backend proxy endpoint
+        const skills = await res.json();
+        setAllSkills(skills.map((s: any) => s.skill)); // assuming array of { skill: string }
+      } catch (err) {
+        console.error('Error fetching skills:', err);
+      }
+    }
+
+    fetchSkills();
+  }, []);
+
+  // Add keyword
+  const addKeyword = async () => {
+    const trimmed = keywordInput.trim();
+    if (
+      trimmed &&
+      !formData.employmentDetails.keywords.includes(trimmed)
+    ) {
+      // Update UI
+      setFormData((prev) => ({
+        ...prev,
+        employmentDetails: {
+          ...prev.employmentDetails,
+          keywords: [...prev.employmentDetails.keywords, trimmed],
+        },
+      }));
+
+      // Save locally
+      setAllSkills((prev) =>
+        prev.includes(trimmed) ? prev : [...prev, trimmed]
+      );
+
+      // Save to backend
+      try {
+        await fetch('/common/getSkills', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ skill: trimmed }),
+        });
+      } catch (err) {
+        console.error('Error saving skill:', err);
+      }
+
+      setKeywordInput('');
+      setShowSkillSuggestions(false);
+    }
+  };
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
@@ -210,21 +263,7 @@ const handleOfficeLocationChange = (value: string) => {
     setShowSuggestions(false);
   };
 
-  const addKeyword = () => {
-    if (
-      keywordInput.trim() &&
-      !formData.employmentDetails.keywords.includes(keywordInput.trim())
-    ) {
-      setFormData((prev) => ({
-        ...prev,
-        employmentDetails: {
-          ...prev.employmentDetails,
-          keywords: [...prev.employmentDetails.keywords, keywordInput.trim()],
-        },
-      }));
-      setKeywordInput("");
-    }
-  };
+  
 
   const removeKeyword = (kw: string) => {
     setFormData((prev) => ({
@@ -485,6 +524,89 @@ const handleOfficeLocationChange = (value: string) => {
               )}
             </div> */}
 
+                  {/* Keywords */}
+            <div className="md:col-span-2">
+              <label className="text-sm">Keywords</label>
+               <div className="flex gap-2 relative">
+        <Input
+          placeholder="Add a skill"
+          value={keywordInput}
+          onChange={(e) => {
+            setKeywordInput(e.target.value);
+            setShowSkillSuggestions(true);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              addKeyword();
+            }
+          }}
+          onBlur={() => setTimeout(() => setShowSkillSuggestions(false), 100)}
+          onFocus={() => {
+            if (keywordInput) setShowSkillSuggestions(true);
+          }}
+        />
+        <Button
+          type="button"
+          onClick={addKeyword}
+          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
+        >
+          Add
+        </Button>
+
+        {showSkillSuggestions && allSkills.length > 0 && (
+          <ul className="absolute top-full left-0 w-full z-10 bg-white border mt-1 max-h-40 overflow-y-auto shadow-md">
+            {allSkills
+              .filter(
+                (s) =>
+                  s.toLowerCase().includes(keywordInput.toLowerCase()) &&
+                  !formData.employmentDetails.keywords.includes(s)
+              )
+              .map((sugg, idx) => (
+                <li
+                  key={idx}
+                  className="p-2 hover:bg-gray-100 cursor-pointer"
+                  onMouseDown={() => {
+                    setKeywordInput(sugg);
+                    setShowSkillSuggestions(false);
+                  }}
+                >
+                  {sugg}
+                </li>
+              ))}
+          </ul>
+        )}
+      </div>
+
+      {/* Show selected skills */}
+      <div className="mt-2 flex gap-2 flex-wrap">
+        {formData.employmentDetails.keywords.map((kw, idx) => (
+          <span
+            key={idx}
+            className="px-2 py-1 bg-gray-200 rounded text-sm"
+          >
+            {kw}{' '}
+            <button
+              onClick={() => {
+                setFormData((prev) => ({
+                  ...prev,
+                  employmentDetails: {
+                    ...prev.employmentDetails,
+                    keywords: prev.employmentDetails.keywords.filter(
+                      (k) => k !== kw
+                    ),
+                  },
+                }));
+              }}
+              className="ml-1 text-red-500"
+            >
+              ×
+            </button>
+          </span>
+        ))}
+      </div>
+            </div>
+
             {/* Company Details */}
             <div className="md:col-span-2 mt-4 mb-2">
               <h3 className="text-xl font-semibold">Company Details</h3>
@@ -629,43 +751,7 @@ const handleOfficeLocationChange = (value: string) => {
 </div>
 
 
-            {/* Keywords */}
-            <div className="md:col-span-2">
-              <label className="text-sm">Keywords</label>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Add a keyword"
-                  value={keywordInput}
-                  onChange={(e) => setKeywordInput(e.target.value)}
-                  onKeyDown={(e) =>
-                    e.key === "Enter" && (e.preventDefault(), addKeyword())
-                  }
-                />
-                <Button
-                  type="button"
-                  onClick={addKeyword}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
-                >
-                  Add
-                </Button>
-              </div>
-              <div className="mt-2 flex gap-2 flex-wrap">
-                {formData.employmentDetails.keywords.map((kw, idx) => (
-                  <span
-                    key={idx}
-                    className="px-2 py-1 bg-gray-200 rounded text-sm"
-                  >
-                    {kw}{" "}
-                    <button
-                      onClick={() => removeKeyword(kw)}
-                      className="ml-1 text-red-500"
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
-            </div>
+      
 
             {/* Salary */}
             <div>
