@@ -273,6 +273,54 @@ const handleOfficeLocationChange = (value: string) => {
         keywords: prev.employmentDetails.keywords.filter((k) => k !== kw),
       },
     }));
+
+  const handleParseJD = async () => {
+    if (!pastedJD.trim() && !uploadedFile) {
+      toast.warning("Please paste a job description or upload a file.");
+      return;
+    }
+    setIsParsing(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const parsedData = {
+        jobTitle: "Senior Software Engineer (React)",
+        description: {
+          about:
+            "We are seeking an experienced Frontend Developer to join our dynamic team.",
+          requirements:
+            "5+ years of React experience.\nProficient in TypeScript.",
+          benefits: "Health Insurance\nFlexible work hours",
+        },
+        companyDetails: { industry: "Technology", jobFunction: "Engineering" },
+        employmentDetails: {
+          experience: "Senior level",
+          education: "Bachelor",
+          keywords: ["React", "TypeScript", "JavaScript"],
+        },
+      };
+
+      setFormData((prev) => ({
+        ...prev,
+        ...parsedData,
+        description: { ...prev.description, ...parsedData.description },
+        companyDetails: {
+          ...prev.companyDetails,
+          ...parsedData.companyDetails,
+        },
+        employmentDetails: {
+          ...prev.employmentDetails,
+          ...parsedData.employmentDetails,
+        },
+      }));
+
+      toast.success("Job Description parsed! Please review the details.");
+      setActiveTab("manual");
+    } catch (error) {
+      toast.error("Failed to parse Job Description.");
+      console.error("JD Parsing Error:", error);
+    } finally {
+      setIsParsing(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
