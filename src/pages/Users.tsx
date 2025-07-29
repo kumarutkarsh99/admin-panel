@@ -2,7 +2,7 @@ import Layout from "@/components/Layout";
 import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import AddCandidateModal from "@/components/modals/AddCandidateModal";
+import AddCandidateModal from "@/components/modals/AddUserModal";
 import { Plus, UserCheck, FileText, Calendar, Download } from "lucide-react";
 import axios from "axios";
 import { saveAs } from "file-saver";
@@ -50,8 +50,8 @@ interface CandidateForm {
   linkedinprofile: string;
   institutiontier: string;
   companytier: string;
-  role:string ;
-  created_dt:string;
+  role: string;
+  created_dt: string;
 }
 
 const parseAddress = (addressString: string): ParsedAddress => {
@@ -150,7 +150,7 @@ export default function Users() {
         c.phone,
         c.status,
         c.role,
-   c.created_dt
+        c.created_dt
       ];
     });
 
@@ -159,8 +159,9 @@ export default function Users() {
       .join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-
-    saveAs(blob, "candidates.csv");
+    const dateStr = new Date().toISOString().split('T')[0]; // "2025-07-29"
+    const fileName = `user_${dateStr}.csv`;
+    saveAs(blob, fileName);
     toast.success("Exported CSV file successfully!");
   };
 
@@ -224,7 +225,7 @@ export default function Users() {
               </div>
             </CardContent>
           </Card> */}
-{/* 
+          {/* 
           <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">

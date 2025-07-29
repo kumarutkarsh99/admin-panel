@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { FilterColumnsModal } from "@/components/modals/FilterCoulmnModal";
-import AddCandidateModal from "@/components/modals/AddCandidateModal";
+import AddCandidateModal from "@/components/modals/AddUserModal";
 import { cn } from "@/lib/utils";
 import {
   Select,
@@ -35,7 +35,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import CandidateProfileModal from "@/components/modals/CandidateProfileModal";
-import { BulkUpdateFieldsModal } from "@/components/modals/BulkUpdateFieldsModal";
+import { BulkUpdateFieldsModal } from "@/components/modals/BulkUpdateUserFieldsModal";
 import AssignToJobModal from "@/components/modals/AssigntoJobModal";
 
 import {
@@ -315,12 +315,12 @@ export default function CandidateViewList({
               <Button onClick={() => setIsFilterOpen(true)} variant="outline">
                 <Filter className="mr-2 h-4 w-4" /> Filter Columns
               </Button>
-              <Button
+              {/* <Button
                 onClick={() => setAddModalOpen(true)}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
               >
-                <Plus className="mr-2 h-4 w-4" /> Add Candidate
-              </Button>
+                <Plus className="mr-2 h-4 w-4" /> Add User
+              </Button> */}
             </div>
           </CardTitle>
           {selected.size > 0 && (
