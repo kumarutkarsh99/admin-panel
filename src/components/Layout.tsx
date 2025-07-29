@@ -33,38 +33,38 @@ import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 const menuItems = [
-  { title: "Dashboard", url: "/", icon: Home, roles: ["admin", "user"] },
-  { title: "Jobs", url: "/jobs", icon: Briefcase, roles: ["admin", "user"] },
+  { title: "Dashboard", url: "/", icon: Home, roles: ["admin", "Interviewer","Recruiter"] },
+  { title: "Jobs", url: "/jobs", icon: Briefcase, roles: ["admin","Recruiter"] },
   {
     title: "Candidates",
     url: "/candidates",
     icon: Users,
-    roles: ["admin", "user"],
+    roles: ["admin", "Recruiter"],
   },
   {
     title: "Clients",
     url: "/clients",
     icon: Building2,
-    roles: ["admin", "user"],
+    roles: ["admin", "Recruiter"],
   },
   {
     title: "Interviews",
     url: "/interviews",
     icon: Calendar,
-    roles: ["user", "admin"],
+    roles: ["Interviewer", "admin"],
   },
-  { title: "Users", url: "/users", icon: BarChart3, roles: ["admin", "user"] },
+  { title: "Users", url: "/users", icon: BarChart3, roles: ["admin", "Recruiter"] },
   {
     title: "Analytics",
     url: "/analytics",
     icon: BarChart3,
-    roles: ["user", "admin"],
+    roles: ["Recruiter", "admin"],
   },
   {
     title: "Settings",
     url: "/settings",
     icon: Settings,
-    roles: ["admin", "user"],
+    roles: ["admin", , "Interviewer"],
   },
 ];
 
