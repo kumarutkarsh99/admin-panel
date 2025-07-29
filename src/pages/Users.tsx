@@ -7,7 +7,7 @@ import { Plus, UserCheck, FileText, Calendar, Download } from "lucide-react";
 import axios from "axios";
 import { saveAs } from "file-saver";
 import { toast } from "sonner";
-import CandidateViewList from "@/components/CandidateViewTable";
+import CandidateViewList from "@/components/UserViewTable";
 
 const API_BASE_URL = "http://51.20.181.155:3000";
 
@@ -50,6 +50,8 @@ interface CandidateForm {
   linkedinprofile: string;
   institutiontier: string;
   companytier: string;
+  role:string ;
+  created_dt:string;
 }
 
 const parseAddress = (addressString: string): ParsedAddress => {
@@ -104,7 +106,7 @@ export default function Users() {
     setLoading(true);
     try {
       const { data } = await axios.get(
-        `${API_BASE_URL}/candidate/getAllCandidates`
+        `${API_BASE_URL}/user/getAllUsers`
       );
       setCandidates(data.result);
     } catch (err) {
@@ -116,23 +118,18 @@ export default function Users() {
 
   const handleExport = () => {
     if (!candidates.length) {
-      alert("No candidates to export.");
+      alert("No User to export.");
       return;
     }
 
     const header = [
       "Name",
-      "Job ID",
       "Email",
       "Phone",
-      "LinkedIn",
       "Status",
-      "Company",
-      "Experience",
-      "CTC",
-      "Expected CTC",
-      "Location",
-      "Skills",
+      "Role",
+      "Created At",
+      "Updated At",
     ];
 
     const rows = candidates.map((c) => {
@@ -149,17 +146,11 @@ export default function Users() {
 
       return [
         `${c.first_name} ${c.last_name}`,
-        c.job_id,
         c.email,
         c.phone,
-        c.linkedinprofile,
         c.status,
-        c.current_company,
-        c.experience,
-        c.current_ctc,
-        c.expected_ctc,
-        location,
-        c.skill?.join(";") || "",
+        c.role,
+   c.created_dt
       ];
     });
 
@@ -214,7 +205,7 @@ export default function Users() {
         />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">
+          {/* <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -232,8 +223,8 @@ export default function Users() {
                 <UserCheck className="w-8 h-8 text-blue-600" />
               </div>
             </CardContent>
-          </Card>
-
+          </Card> */}
+{/* 
           <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -249,9 +240,9 @@ export default function Users() {
                 <FileText className="w-8 h-8 text-yellow-600" />
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
 
-          <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">
+          {/* <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -263,7 +254,7 @@ export default function Users() {
                 <Calendar className="w-8 h-8 text-green-600" />
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
       </div>
     </Layout>
