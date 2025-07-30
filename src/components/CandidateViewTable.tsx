@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,8 @@ import {
   GraduationCap,
   Star,
   Plus,
+  Check,
+  X,
 } from "lucide-react";
 import {
   Table,
@@ -82,6 +84,12 @@ interface ParsedEducation {
   degree: string;
 }
 
+interface CandidateViewListProps {
+  loading: boolean;
+  candidates: CandidateForm[];
+  fetchCandidates: () => void;
+}
+
 const formatCandidateAddress = (address: string): string => {
   if (!address || !address.trim()) return "NA";
   try {
@@ -112,11 +120,84 @@ const formatCandidateAddress = (address: string): string => {
   }
 };
 
-interface CandidateViewListProps {
-  loading: boolean;
-  candidates: CandidateForm[];
-  fetchCandidates: () => void;
-}
+const EditableCell = ({
+  value,
+  onSave,
+}: {
+  value: string | null;
+  onSave: (newValue: string) => void;
+}) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentValue, setCurrentValue] = useState(value || "");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
+
+  const handleSave = () => {
+    setIsEditing(false);
+    if (currentValue !== value) {
+      onSave(currentValue);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSave();
+    } else if (e.key === "Escape") {
+      setCurrentValue(value || "");
+      setIsEditing(false);
+    }
+  };
+
+  if (isEditing) {
+    return (
+      <div className="relative">
+        <Input
+          ref={inputRef}
+          type="text"
+          value={currentValue}
+          onChange={(e) => setCurrentValue(e.target.value)}
+          onBlur={handleSave}
+          onKeyDown={handleKeyDown}
+          className="h-8 text-sm pr-16"
+        />
+        <div className="absolute inset-y-0 right-0 flex items-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 w-7 p-0"
+            onClick={handleSave}
+          >
+            <Check className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 w-7 p-0"
+            onClick={() => setIsEditing(false)}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <span
+      className="inline-flex items-center gap-1 text-sm text-slate-700 cursor-pointer hover:bg-slate-100 p-1 rounded min-h-[32px]"
+      onClick={() => setIsEditing(true)}
+    >
+      <DollarSign className="h-3 w-3 text-green-600" />
+      {value || "N/A"}
+    </span>
+  );
+};
 
 export default function CandidateViewList({
   loading,
@@ -152,27 +233,18 @@ export default function CandidateViewList({
     () =>
       localCandidates.filter((c) => {
         if (!lowerTerm) return true;
-        switch (activeTab) {
-          case "status":
-            return safe(c.status).includes(lowerTerm);
-          case "recruiter":
-            return safe(c.recruiter_status).includes(lowerTerm);
-          case "hm":
-            return safe(c.hmapproval).includes(lowerTerm);
-          case "updated_at":
-            return safe(c.updated_at).includes(lowerTerm);
-          case "address":
-            return safe(c.address).includes(lowerTerm);
-          case "all":
-          default:
-            const fullName = `${c.first_name ?? ""} ${c.last_name ?? ""}`;
-            return (
-              fullName.toLowerCase().includes(lowerTerm) ||
-              (c.skill ?? []).join(" ").toLowerCase().includes(lowerTerm) ||
-              safe(c.current_company).includes(lowerTerm) ||
-              safe(c.email).includes(lowerTerm)
-            );
+        if (activeTab === "all") {
+          const fullName = `${c.first_name ?? ""} ${c.last_name ?? ""}`;
+          return (
+            fullName.toLowerCase().includes(lowerTerm) ||
+            (c.skill ?? []).join(" ").toLowerCase().includes(lowerTerm) ||
+            safe(c.current_company).includes(lowerTerm) ||
+            safe(c.email).includes(lowerTerm)
+          );
         }
+        return safe(c[activeTab as keyof CandidateForm]?.toString()).includes(
+          lowerTerm
+        );
       }),
     [localCandidates, lowerTerm, activeTab]
   );
@@ -230,42 +302,20 @@ export default function CandidateViewList({
     setIsBulkModalOpen(true);
   };
 
-  const handleStatusChange = async (id: number, status: string) => {
-    try {
-      await axios.put(`${API_BASE_URL}/candidate/${id}`, { status });
-      setLocalCandidates((prev) =>
-        prev.map((c) => (c.id === id ? { ...c, status } : c))
-      );
-    } catch (err) {
-      console.error("Failed to update status", err);
-      toast.error("Could not update status");
-    }
-  };
-
-  const handleRecruiterStatusChange = async (
+  const handleFieldUpdate = async (
     id: number,
-    recruiter_status: string
+    field: keyof CandidateForm,
+    value: any
   ) => {
     try {
-      await axios.put(`${API_BASE_URL}/candidate/${id}`, { recruiter_status });
+      await axios.put(`${API_BASE_URL}/candidate/${id}`, { [field]: value });
       setLocalCandidates((prev) =>
-        prev.map((c) => (c.id === id ? { ...c, recruiter_status } : c))
+        prev.map((c) => (c.id === id ? { ...c, [field]: value } : c))
       );
+      toast.success(`Candidate's ${field.replace(/_/g, " ")} updated.`);
     } catch (err) {
-      console.error("Failed to update recruiter status", err);
-      toast.error("Could not update recruiter status");
-    }
-  };
-
-  const handleHMApprovalChange = async (id: number, hmapproval: string) => {
-    try {
-      await axios.put(`${API_BASE_URL}/candidate/${id}`, { hmapproval });
-      setLocalCandidates((prev) =>
-        prev.map((c) => (c.id === id ? { ...c, hmapproval } : c))
-      );
-    } catch (err) {
-      console.error("Failed to update HM approval", err);
-      toast.error("Could not update HM approval");
+      console.error(`Failed to update ${field}`, err);
+      toast.error(`Could not update ${field}.`);
     }
   };
 
@@ -369,7 +419,7 @@ export default function CandidateViewList({
         <CardContent className="p-0">
           <div className="max-h-[600px] overflow-auto">
             <Table>
-              <TableHeader className="sticky top-0 bg-white/90 backdrop-blur-sm">
+              <TableHeader className="sticky top-0 bg-white/90 backdrop-blur-sm z-10">
                 <TableRow>
                   <TableHead className="w-12">
                     <Checkbox
@@ -462,7 +512,11 @@ export default function CandidateViewList({
                             <Select
                               value={candidate.status}
                               onValueChange={(newStatus) =>
-                                handleStatusChange(candidate.id, newStatus)
+                                handleFieldUpdate(
+                                  candidate.id,
+                                  "status",
+                                  newStatus
+                                )
                               }
                             >
                               <SelectTrigger
@@ -496,7 +550,11 @@ export default function CandidateViewList({
                             <Select
                               value={candidate.recruiter_status}
                               onValueChange={(val) =>
-                                handleRecruiterStatusChange(candidate.id, val)
+                                handleFieldUpdate(
+                                  candidate.id,
+                                  "recruiter_status",
+                                  val
+                                )
                               }
                             >
                               <SelectTrigger
@@ -530,7 +588,11 @@ export default function CandidateViewList({
                             <Select
                               value={candidate.hmapproval}
                               onValueChange={(val) =>
-                                handleHMApprovalChange(candidate.id, val)
+                                handleFieldUpdate(
+                                  candidate.id,
+                                  "hmapproval",
+                                  val
+                                )
                               }
                             >
                               <SelectTrigger
@@ -576,35 +638,49 @@ export default function CandidateViewList({
                             </span>
                           </TableCell>
                         )}
+
                         {visibleColumns.includes("current_ctc") && (
                           <TableCell className="min-w-[150px] whitespace-nowrap py-2">
-                            <span className="inline-flex items-center gap-1 text-sm text-slate-700">
-                              <DollarSign className="h-3 w-3 text-green-600" />
-                              {candidate.current_ctc || "N/A"}
-                            </span>
+                            <EditableCell
+                              value={candidate.current_ctc}
+                              onSave={(newValue) =>
+                                handleFieldUpdate(
+                                  candidate.id,
+                                  "current_ctc",
+                                  newValue
+                                )
+                              }
+                            />
                           </TableCell>
                         )}
                         {visibleColumns.includes("expected_ctc") && (
                           <TableCell className="min-w-[150px] whitespace-nowrap py-2">
-                            <span className="inline-flex items-center gap-1 text-sm text-slate-700">
-                              <DollarSign className="h-3 w-3 text-green-600" />
-                              {candidate.expected_ctc || "N/A"}
-                            </span>
+                            <EditableCell
+                              value={candidate.expected_ctc}
+                              onSave={(newValue) =>
+                                handleFieldUpdate(
+                                  candidate.id,
+                                  "expected_ctc",
+                                  newValue
+                                )
+                              }
+                            />
                           </TableCell>
                         )}
+
                         {visibleColumns.includes("skill") && (
                           <TableCell className="min-w-[400px] py-2">
-                            <div className="flex gap-1">
+                            <div className="flex flex-wrap gap-1">
                               {(candidate.skill || [])
-                                .slice(0, 2)
+                                .slice(0, 3)
                                 .map((skill, idx) => (
                                   <Badge key={idx} variant="secondary">
                                     {skill}
                                   </Badge>
                                 ))}
-                              {(candidate.skill || []).length > 2 && (
+                              {(candidate.skill || []).length > 3 && (
                                 <Badge variant="secondary">
-                                  +{candidate.skill.length - 2}
+                                  +{candidate.skill.length - 3}
                                 </Badge>
                               )}
                             </div>
