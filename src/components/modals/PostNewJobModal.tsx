@@ -780,17 +780,7 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                   <div>
                     <label htmlFor="jd-upload" className="text-sm font-medium">
                       Upload Jobs
-                    </label>                      <div className="flex justify-end mb-2">
-  <Button
-    className="flex items-center gap-2"
-    type="button"
-    variant="outline"
-    onClick={downloadCsvTemplate}
-  >
-    <Download size={16} />
-    Download CSV Template
-  </Button>
-</div>
+                    </label>
                       
                     <label
                       htmlFor="jd-upload"
@@ -805,14 +795,14 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                             : "Click to upload a file"}
                         </p>
                         <p className="text-xs text-gray-500">
-                          CSV up to 5MB
+                          PDF, DOC, DOCX up to 5MB
                         </p>
                       </div>
                       <Input
                         id="jd-upload"
                         type="file"
                         className="sr-only"
-                        accept=".csv"
+                        accept=".pdf,.doc,.docx"
                         onChange={(e) =>
                           setUploadedFile(e.target.files?.[0] || null)
                         }
@@ -820,7 +810,7 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                       />
                     </label>
                   </div>
-                  {/* <div className="flex justify-end">
+                  <div className="flex justify-end">
                     <Button
                       type="button"
                       onClick={handleParseJD}
@@ -834,7 +824,7 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                     </Button>
 
                     
-                  </div> */}
+                  </div>
                 </div>
               </TabsContent>
             </Tabs>
