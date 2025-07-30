@@ -7,7 +7,6 @@ import axios from "axios";
 import { saveAs } from "file-saver";
 import { toast } from "sonner";
 import CandidateViewList from "@/components/CandidateViewTable";
-
 const API_BASE_URL = "http://51.20.181.155:3000";
 
 interface CandidateForm {
@@ -71,11 +70,9 @@ const formatCandidateAddress = (address: string): string => {
 export default function Candidates() {
   const [candidates, setCandidates] = useState<CandidateForm[]>([]);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     fetchCandidates();
   }, []);
-
   const fetchCandidates = async () => {
     setLoading(true);
     try {
@@ -91,6 +88,7 @@ export default function Candidates() {
     }
   };
 
+  // --- CORRECTED EXPORT LOGIC ---
   const handleExport = () => {
     if (!candidates.length) {
       toast.warning("No candidates to export.");

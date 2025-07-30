@@ -1,11 +1,11 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { FilterColumnsModal } from "@/components/modals/FilterCoulmnModal";
-import AddCandidateModal from "@/components/modals/AddCandidateModal";
+import AddCandidateModal from "@/components/modals/AddUserModal";
 import { cn } from "@/lib/utils";
 import {
   Select,
@@ -22,8 +22,6 @@ import {
   GraduationCap,
   Star,
   Plus,
-  Check,
-  X,
 } from "lucide-react";
 import {
   Table,
@@ -37,7 +35,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import CandidateProfileModal from "@/components/modals/CandidateProfileModal";
-import { BulkUpdateFieldsModal } from "@/components/modals/BulkUpdateFieldsModal";
+import { BulkUpdateFieldsModal } from "@/components/modals/BulkUpdateUserFieldsModal";
 import AssignToJobModal from "@/components/modals/AssigntoJobModal";
 
 import {
@@ -46,7 +44,7 @@ import {
   getStatusColor,
   getRecruiterStatusColor,
   getHMApprovalColor,
-} from "@/lib/candidate-config";
+} from "@/lib/user-config";
 import { CandidateActionsPopover } from "./CandidateActionsPopover";
 
 const API_BASE_URL = "http://51.20.181.155:3000";
@@ -77,17 +75,13 @@ interface CandidateForm {
   created_at: string;
   updated_at: string;
   linkedinprofile: string;
+  role:string;
+  created_dt:string;
 }
 
 interface ParsedEducation {
   institution: string;
   degree: string;
-}
-
-interface CandidateViewListProps {
-  loading: boolean;
-  candidates: CandidateForm[];
-  fetchCandidates: () => void;
 }
 
 const formatCandidateAddress = (address: string): string => {
@@ -120,84 +114,11 @@ const formatCandidateAddress = (address: string): string => {
   }
 };
 
-const EditableCell = ({
-  value,
-  onSave,
-}: {
-  value: string | null;
-  onSave: (newValue: string) => void;
-}) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [currentValue, setCurrentValue] = useState(value || "");
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (isEditing && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
-    }
-  }, [isEditing]);
-
-  const handleSave = () => {
-    setIsEditing(false);
-    if (currentValue !== value) {
-      onSave(currentValue);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      handleSave();
-    } else if (e.key === "Escape") {
-      setCurrentValue(value || "");
-      setIsEditing(false);
-    }
-  };
-
-  if (isEditing) {
-    return (
-      <div className="relative">
-        <Input
-          ref={inputRef}
-          type="text"
-          value={currentValue}
-          onChange={(e) => setCurrentValue(e.target.value)}
-          onBlur={handleSave}
-          onKeyDown={handleKeyDown}
-          className="h-8 text-sm pr-16"
-        />
-        <div className="absolute inset-y-0 right-0 flex items-center">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 w-7 p-0"
-            onClick={handleSave}
-          >
-            <Check className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 w-7 p-0"
-            onClick={() => setIsEditing(false)}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <span
-      className="inline-flex items-center gap-1 text-sm text-slate-700 cursor-pointer hover:bg-slate-100 p-1 rounded min-h-[32px]"
-      onClick={() => setIsEditing(true)}
-    >
-      <DollarSign className="h-3 w-3 text-green-600" />
-      {value || "N/A"}
-    </span>
-  );
-};
+interface CandidateViewListProps {
+  loading: boolean;
+  candidates: CandidateForm[];
+  fetchCandidates: () => void;
+}
 
 export default function CandidateViewList({
   loading,
@@ -233,18 +154,27 @@ export default function CandidateViewList({
     () =>
       localCandidates.filter((c) => {
         if (!lowerTerm) return true;
-        if (activeTab === "all") {
-          const fullName = `${c.first_name ?? ""} ${c.last_name ?? ""}`;
-          return (
-            fullName.toLowerCase().includes(lowerTerm) ||
-            (c.skill ?? []).join(" ").toLowerCase().includes(lowerTerm) ||
-            safe(c.current_company).includes(lowerTerm) ||
-            safe(c.email).includes(lowerTerm)
-          );
+        switch (activeTab) {
+          case "status":
+            return safe(c.status).includes(lowerTerm);
+          case "recruiter":
+            return safe(c.recruiter_status).includes(lowerTerm);
+          case "hm":
+            return safe(c.hmapproval).includes(lowerTerm);
+          case "updated_at":
+            return safe(c.updated_at).includes(lowerTerm);
+          case "address":
+            return safe(c.address).includes(lowerTerm);
+          case "all":
+          default:
+            const fullName = `${c.first_name ?? ""} ${c.last_name ?? ""}`;
+            return (
+              fullName.toLowerCase().includes(lowerTerm) ||
+              (c.skill ?? []).join(" ").toLowerCase().includes(lowerTerm) ||
+              safe(c.current_company).includes(lowerTerm) ||
+              safe(c.email).includes(lowerTerm)
+            );
         }
-        return safe(c[activeTab as keyof CandidateForm]?.toString()).includes(
-          lowerTerm
-        );
       }),
     [localCandidates, lowerTerm, activeTab]
   );
@@ -282,15 +212,15 @@ export default function CandidateViewList({
   const handleDelete = async () => {
     if (!selected.size) return;
     try {
-      await axios.post(`${API_BASE_URL}/candidate/bulk-delete`, {
+      await axios.post(`${API_BASE_URL}/user/bulk-delete`, {
         data: { ids: [...selected] },
       });
       setLocalCandidates((prev) => prev.filter((c) => !selected.has(c.id)));
       setSelected(new Set());
       toast.success("Deleted!");
     } catch (err) {
-      console.error("Failed to delete candidates", err);
-      toast.error("Could not delete candidates");
+      console.error("Failed to delete users", err);
+      toast.error("Could not delete users");
     }
   };
 
@@ -302,20 +232,42 @@ export default function CandidateViewList({
     setIsBulkModalOpen(true);
   };
 
-  const handleFieldUpdate = async (
+  const handleStatusChange = async (id: number, status: string) => {
+    try {
+      await axios.put(`${API_BASE_URL}/candidate/${id}`, { status });
+      setLocalCandidates((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, status } : c))
+      );
+    } catch (err) {
+      console.error("Failed to update status", err);
+      toast.error("Could not update status");
+    }
+  };
+
+  const handleRecruiterStatusChange = async (
     id: number,
-    field: keyof CandidateForm,
-    value: any
+    recruiter_status: string
   ) => {
     try {
-      await axios.put(`${API_BASE_URL}/candidate/${id}`, { [field]: value });
+      await axios.put(`${API_BASE_URL}/candidate/${id}`, { recruiter_status });
       setLocalCandidates((prev) =>
-        prev.map((c) => (c.id === id ? { ...c, [field]: value } : c))
+        prev.map((c) => (c.id === id ? { ...c, recruiter_status } : c))
       );
-      toast.success(`Candidate's ${field.replace(/_/g, " ")} updated.`);
     } catch (err) {
-      console.error(`Failed to update ${field}`, err);
-      toast.error(`Could not update ${field}.`);
+      console.error("Failed to update recruiter status", err);
+      toast.error("Could not update recruiter status");
+    }
+  };
+
+  const handleHMApprovalChange = async (id: number, hmapproval: string) => {
+    try {
+      await axios.put(`${API_BASE_URL}/candidate/${id}`, { hmapproval });
+      setLocalCandidates((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, hmapproval } : c))
+      );
+    } catch (err) {
+      console.error("Failed to update HM approval", err);
+      toast.error("Could not update HM approval");
     }
   };
 
@@ -358,17 +310,17 @@ export default function CandidateViewList({
       <Card className="border-0 bg-white/60 shadow-sm backdrop-blur-sm max-w-[100%]">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center justify-between text-lg text-slate-800">
-            <div>Candidates ({filtered.length})</div>
+            <div>Users({filtered.length})</div>
             <div className="flex gap-4">
               <Button onClick={() => setIsFilterOpen(true)} variant="outline">
                 <Filter className="mr-2 h-4 w-4" /> Filter Columns
               </Button>
-              <Button
+              {/* <Button
                 onClick={() => setAddModalOpen(true)}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
               >
-                <Plus className="mr-2 h-4 w-4" /> Add Candidate
-              </Button>
+                <Plus className="mr-2 h-4 w-4" /> Add User
+              </Button> */}
             </div>
           </CardTitle>
           {selected.size > 0 && (
@@ -419,7 +371,7 @@ export default function CandidateViewList({
         <CardContent className="p-0">
           <div className="max-h-[600px] overflow-auto">
             <Table>
-              <TableHeader className="sticky top-0 bg-white/90 backdrop-blur-sm z-10">
+              <TableHeader className="sticky top-0 bg-white/90 backdrop-blur-sm">
                 <TableRow>
                   <TableHead className="w-12">
                     <Checkbox
@@ -504,19 +456,16 @@ export default function CandidateViewList({
                             </CandidateActionsPopover>
                           </TableCell>
                         )}
-                        {visibleColumns.includes("job_id") && (
-                          <TableCell>{candidate.job_id}</TableCell>
+                        
+                        {visibleColumns.includes("email") && (
+                          <TableCell>{candidate.email}</TableCell>
                         )}
-                        {visibleColumns.includes("status") && (
+                        {/* {visibleColumns.includes("status") && (
                           <TableCell className="min-w-[170px] px-2">
                             <Select
                               value={candidate.status}
                               onValueChange={(newStatus) =>
-                                handleFieldUpdate(
-                                  candidate.id,
-                                  "status",
-                                  newStatus
-                                )
+                                handleStatusChange(candidate.id, newStatus)
                               }
                             >
                               <SelectTrigger
@@ -544,17 +493,13 @@ export default function CandidateViewList({
                               </SelectContent>
                             </Select>
                           </TableCell>
-                        )}
-                        {visibleColumns.includes("recruiter_status") && (
+                        )} */}
+                        {/* {visibleColumns.includes("recruiter_status") && (
                           <TableCell className="min-w-[170px] px-2">
                             <Select
                               value={candidate.recruiter_status}
                               onValueChange={(val) =>
-                                handleFieldUpdate(
-                                  candidate.id,
-                                  "recruiter_status",
-                                  val
-                                )
+                                handleRecruiterStatusChange(candidate.id, val)
                               }
                             >
                               <SelectTrigger
@@ -582,17 +527,13 @@ export default function CandidateViewList({
                               </SelectContent>
                             </Select>
                           </TableCell>
-                        )}
-                        {visibleColumns.includes("hmapproval") && (
+                        )} */}
+                        {/* {visibleColumns.includes("hmapproval") && (
                           <TableCell className="min-w-[170px] px-2">
                             <Select
                               value={candidate.hmapproval}
                               onValueChange={(val) =>
-                                handleFieldUpdate(
-                                  candidate.id,
-                                  "hmapproval",
-                                  val
-                                )
+                                handleHMApprovalChange(candidate.id, val)
                               }
                             >
                               <SelectTrigger
@@ -614,20 +555,32 @@ export default function CandidateViewList({
                               </SelectContent>
                             </Select>
                           </TableCell>
-                        )}
-                        {visibleColumns.includes("headline") && (
+                        )} */}
+                        {/* {visibleColumns.includes("headline") && (
                           <TableCell className="min-w-[150px]">
                             {candidate.headline || "N/A"}
                           </TableCell>
-                        )}
+                        )} */}
                         {visibleColumns.includes("phone") && (
                           <TableCell className="min-w-[150px] whitespace-nowrap text-sm text-slate-500">
                             {candidate.phone}
                           </TableCell>
                         )}
-                        {visibleColumns.includes("email") && (
+                        {visibleColumns.includes("status") && (
                           <TableCell className="min-w-[200px] whitespace-nowrap text-sm text-slate-500">
-                            {candidate.email}
+                           {Number(candidate.status) === 1 ? "Active" : "Inactive"}
+                          </TableCell>
+                        )}
+
+                          {visibleColumns.includes("role") && (
+                          <TableCell className="min-w-[200px] whitespace-nowrap text-sm text-slate-500">
+                           {candidate.role}
+                          </TableCell>
+                        )}
+
+                          {visibleColumns.includes("created_at") && (
+                          <TableCell className="min-w-[200px] whitespace-nowrap text-sm text-slate-500">
+                           {candidate.created_dt}
                           </TableCell>
                         )}
                         {visibleColumns.includes("current_company") && (
@@ -638,49 +591,35 @@ export default function CandidateViewList({
                             </span>
                           </TableCell>
                         )}
-
                         {visibleColumns.includes("current_ctc") && (
                           <TableCell className="min-w-[150px] whitespace-nowrap py-2">
-                            <EditableCell
-                              value={candidate.current_ctc}
-                              onSave={(newValue) =>
-                                handleFieldUpdate(
-                                  candidate.id,
-                                  "current_ctc",
-                                  newValue
-                                )
-                              }
-                            />
+                            <span className="inline-flex items-center gap-1 text-sm text-slate-700">
+                              <DollarSign className="h-3 w-3 text-green-600" />
+                              {candidate.current_ctc || "N/A"}
+                            </span>
                           </TableCell>
                         )}
                         {visibleColumns.includes("expected_ctc") && (
                           <TableCell className="min-w-[150px] whitespace-nowrap py-2">
-                            <EditableCell
-                              value={candidate.expected_ctc}
-                              onSave={(newValue) =>
-                                handleFieldUpdate(
-                                  candidate.id,
-                                  "expected_ctc",
-                                  newValue
-                                )
-                              }
-                            />
+                            <span className="inline-flex items-center gap-1 text-sm text-slate-700">
+                              <DollarSign className="h-3 w-3 text-green-600" />
+                              {candidate.expected_ctc || "N/A"}
+                            </span>
                           </TableCell>
                         )}
-
                         {visibleColumns.includes("skill") && (
                           <TableCell className="min-w-[400px] py-2">
-                            <div className="flex flex-wrap gap-1">
+                            <div className="flex gap-1">
                               {(candidate.skill || [])
-                                .slice(0, 3)
+                                .slice(0, 2)
                                 .map((skill, idx) => (
                                   <Badge key={idx} variant="secondary">
                                     {skill}
                                   </Badge>
                                 ))}
-                              {(candidate.skill || []).length > 3 && (
+                              {(candidate.skill || []).length > 2 && (
                                 <Badge variant="secondary">
-                                  +{candidate.skill.length - 3}
+                                  +{candidate.skill.length - 2}
                                 </Badge>
                               )}
                             </div>

@@ -20,9 +20,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import axios from "axios";
-import { Upload, Loader2 } from "lucide-react";
-
-const API_BASE_URL = "http://51.20.181.155:3000";
+import { Upload, Loader2,Download, FileSpreadsheet } from "lucide-react";
+ const API_BASE_URL = "http://51.20.181.155:3000";
 
 interface PostNewJobModalProps {
   open: boolean;
@@ -68,6 +67,70 @@ const initialForm = {
   company: "",
   about_company: "",
 };
+
+export interface JobsForm {
+  job_title: string;
+  job_code?: string;
+  department?: string;
+  workplace: string;
+  office_primary_location: string;
+  office_on_careers_page?: boolean;
+  office_location_additional?: string[];
+  description_about: string;
+  description_requirements?: string;
+  description_benefits?: string;
+  company_industry: string;
+  company_job_function: string;
+  employment_type: string;
+  experience: string;
+  education: string;
+  keywords?: string[];
+  salary_from?: number;
+  salary_to?: number;
+  salary_currency?: string;
+  status?: string;
+  priority?: string;
+  company?: string;
+  about_company?: string;
+}
+
+const TEMPLATE_HEADERS: (keyof JobsForm)[] = [
+  "job_title",
+  "job_code",
+  "department",
+  "workplace",
+  "office_primary_location",
+  "office_on_careers_page",
+  "office_location_additional",
+  "description_about",
+  "description_requirements",
+  "description_benefits",
+  "company_industry",
+  "company_job_function",
+  "employment_type",
+  "experience",
+  "education",
+  "keywords",
+  "salary_from",
+  "salary_to",
+  "salary_currency",
+  "status",
+  "priority",
+  "company",
+  "about_company"
+];
+  const downloadCsvTemplate = () => {
+    const headerRow = TEMPLATE_HEADERS.join(",");
+    const emptyRow = TEMPLATE_HEADERS.map(() => "").join(",");
+    const csvContent = [headerRow, emptyRow].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "jobs_template.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
 const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
   open,
@@ -330,7 +393,7 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                   <div>
                     <label className="text-sm">Office Location *</label>
                     <Input
-                      placeholder="New York, NY"
+                      placeholder="Location"
                       value={formData.officeLocation.primary}
                       onChange={(e) =>
                         handleNestedChange(
@@ -381,7 +444,7 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                       Additional Locations (comma-separated)
                     </label>
                     <Input
-                      placeholder="San Francisco, London"
+                      placeholder="Additional Location"
                       value={additionalInput}
                       onChange={(e) => setAdditionalInput(e.target.value)}
                     />
@@ -694,7 +757,7 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
 
               <TabsContent value="import" className="mt-4">
                 <div className="space-y-4">
-                  <div>
+                  {/* <div>
                     <label htmlFor="jd-paste" className="text-sm font-medium">
                       Paste Job Description
                     </label>
@@ -707,7 +770,7 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                       onChange={(e) => setPastedJD(e.target.value)}
                       disabled={isParsing}
                     />
-                  </div>
+                  </div> */}
                   <div className="relative flex items-center justify-center">
                     <div className="absolute w-full border-t border-gray-300"></div>
                     <span className="relative bg-white px-4 text-sm text-gray-500">
@@ -716,12 +779,24 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                   </div>
                   <div>
                     <label htmlFor="jd-upload" className="text-sm font-medium">
-                      Upload Job Description File
-                    </label>
+                      Upload Jobs
+                    </label>                      <div className="flex justify-end mb-2">
+  <Button
+    className="flex items-center gap-2"
+    type="button"
+    variant="outline"
+    onClick={downloadCsvTemplate}
+  >
+    <Download size={16} />
+    Download CSV Template
+  </Button>
+</div>
+                      
                     <label
                       htmlFor="jd-upload"
                       className="mt-1 flex justify-center w-full px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md cursor-pointer hover:border-blue-500"
                     >
+
                       <div className="space-y-1 text-center">
                         <Upload className="mx-auto h-12 w-12 text-gray-400" />
                         <p className="text-sm text-gray-600">
@@ -730,14 +805,14 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                             : "Click to upload a file"}
                         </p>
                         <p className="text-xs text-gray-500">
-                          PDF, DOC, DOCX up to 5MB
+                          CSV up to 5MB
                         </p>
                       </div>
                       <Input
                         id="jd-upload"
                         type="file"
                         className="sr-only"
-                        accept=".pdf,.doc,.docx"
+                        accept=".csv"
                         onChange={(e) =>
                           setUploadedFile(e.target.files?.[0] || null)
                         }
@@ -745,7 +820,7 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                       />
                     </label>
                   </div>
-                  <div className="flex justify-end">
+                  {/* <div className="flex justify-end">
                     <Button
                       type="button"
                       onClick={handleParseJD}
@@ -757,7 +832,9 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                       )}
                       {isParsing ? "Parsing..." : "Parse Job Description"}
                     </Button>
-                  </div>
+
+                    
+                  </div> */}
                 </div>
               </TabsContent>
             </Tabs>
