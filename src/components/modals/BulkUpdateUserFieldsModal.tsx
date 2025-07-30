@@ -29,60 +29,29 @@ interface BulkUpdateFieldsModalProps {
 }
 
 const fieldOptions = [
-  { key: "status", label: "Status" },
-  { key: "recruiter_status", label: "Recruiter Status" },
-  { key: "hmapproval", label: "HM Approval" },
-  { key: "rating", label: "Rating" },
-  { key: "first_name", label: "First Name" },
-  { key: "last_name", label: "Last Name" },
+  { key: "first_name", label: "First name" },
+  { key: "last_name", label: "Last name" },
   { key: "email", label: "Email" },
-  { key: "phone", label: "Phone Number" },
-  { key: "linkedin", label: "LinkedIn" },
-  { key: "headline", label: "Headline" },
-  { key: "address", label: "Address" },
-  { key: "experience", label: "Experience" },
-  { key: "photo_url", label: "Photo URL" },
-  { key: "education", label: "Education" },
-  { key: "summary", label: "Summary" },
-  { key: "resume_url", label: "Resume URL" },
-  { key: "cover_letter", label: "Cover Letter" },
-  { key: "current_company", label: "Current Company" },
-  { key: "current_ctc", label: "Current CTC" },
-  { key: "expected_ctc", label: "Expected CTC" },
-  { key: "currency", label: "Currency" },
-  { key: "skill", label: "Skills" },
-  { key: "college", label: "College" },
-  { key: "degree", label: "Degree" },
+  { key: "phone", label: "Phone" },
+  { key: "role", label: "Role" },
+  { key: "status", label: "Status" },
 ];
 
 const dropdownOptions: Record<string, { value: string; label: string }[]> = {
   status: [
-    { value: "Application", label: "Application" },
-    { value: "Screening", label: "Screening" },
-    { value: "Interview", label: "Interview" },
-    { value: "Offer", label: "Offer" },
-    { value: "Hired", label: "Hired" },
-    { value: "Rejected", label: "Rejected" },
+    { value: "1", label: "Active" },
+    { value: "0", label: "In Active" },
   ],
-  recruiter_status: [
-    { value: "New Application", label: "New Application" },
-    { value: "Initial Review", label: "Initial Review" },
-    { value: "Screening Complete", label: "Screening Complete" },
-    { value: "Recommended", label: "Recommended" },
-    { value: "Not Suitable", label: "Not Suitable" },
-  ],
-  hmapproval: [
-    { value: "Approved", label: "Approved" },
-    { value: "Rejected", label: "Rejected" },
-    { value: "Pending", label: "Pending" },
-  ],
-  rating: [
-    { value: "1", label: "1" },
-    { value: "2", label: "2" },
-    { value: "3", label: "3" },
-    { value: "4", label: "4" },
-    { value: "5", label: "5" },
-  ],
+  
+  role: [
+  { value: "Admin", label: "Admin" },
+  { value: "Candidate", label: "Candidate" },
+  { value: "HiringManager", label: "Hiring Manager" },
+  { value: "Interviewer", label: "Interviewer" },
+  { value: "Recruiter", label: "Recruiter" },
+  { value: "Vendor", label: "Vendor" },
+],
+ 
 };
 
 export function BulkUpdateFieldsModal({
@@ -133,7 +102,7 @@ export function BulkUpdateFieldsModal({
 
     setSaving(true);
     try {
-      await axios.post(`${API_BASE_URL}/candidate/bulk-update`, payload);
+      await axios.post(`${API_BASE_URL}/user/bulk-update`, payload);
       toast.success("Fields updated successfully!");
       onClose();
       onSuccess?.();

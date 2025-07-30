@@ -5,29 +5,17 @@ export interface ColumnConfig {
 
 export const ALL_COLUMNS: ColumnConfig[] = [
   { key: "name", label: "Name" },
-  { key: "job_id", label: "Job ID" },
-  { key: "status", label: "Candidate Status" },
-  { key: "recruiter_status", label: "Recruiter Status" },
-  { key: "hmapproval", label: "HM Approval" },
-  { key: "headline", label: "Headline" },
-  { key: "phone", label: "Phone Number" },
-  { key: "email", label: "Email Address" },
-  { key: "current_company", label: "Current Company" },
-  { key: "current_ctc", label: "Current CTC" },
-  { key: "expected_ctc", label: "Expected CTC" },
-  { key: "skill", label: "Skills" },
-  { key: "education", label: "Education" },
-  { key: "rating", label: "Rating" },
-  { key: "address", label: "Address"},
+  { key: "email", label: "Email" },
+  { key: "phone", label: "Phone" },
+  { key: "status", label: "Status" },
+  { key: "role", label: "Role" },
+  { key: "created_at", label: "Created At" },
 ];
 
 export const TABS = [
   ["All", "all"] as const,
   ["Status", "status"] as const,
-  ["Recruiter", "recruiter"] as const,
-  ["HM Approval", "hm"] as const,
   ["Date Added", "updated_at"] as const,
-  ["Address", "address"] as const
 ];
 
 type StatusColorMap = Record<string, string>;

@@ -33,28 +33,52 @@ import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 const menuItems = [
-  { title: "Dashboard", url: "/", icon: Home, roles: ["admin", "user"] },
-  { title: "Jobs", url: "/jobs", icon: Briefcase, roles: ["admin", "user"] },
-  { title: "Candidates", url: "/candidates", icon: Users, roles: ["admin", "user"] },
-  { title: "Clients", url: "/clients", icon: Building2, roles: ["admin", "user"] },
-  { title: "Interviews", url: "/interviews", icon: Calendar, roles: ["user","admin"] },
-  { title: "Users", url: "/users", icon: BarChart3, roles: ["admin","user"] },
-  { title: "Analytics", url: "/analytics", icon: BarChart3, roles: ["user","admin"] },
-  { title: "Settings", url: "/settings", icon: Settings, roles: ["admin","user"] },
+  { title: "Dashboard", url: "/", icon: Home, roles: ["admin", "Interviewer","Recruiter"] },
+  { title: "Jobs", url: "/jobs", icon: Briefcase, roles: ["admin","Recruiter"] },
+  {
+    title: "Candidates",
+    url: "/candidates",
+    icon: Users,
+    roles: ["admin", "Recruiter"],
+  },
+  {
+    title: "Clients",
+    url: "/clients",
+    icon: Building2,
+    roles: ["admin", "Recruiter"],
+  },
+  {
+    title: "Interviews",
+    url: "/interviews",
+    icon: Calendar,
+    roles: ["Interviewer", "admin"],
+  },
+  { title: "Users", url: "/users", icon: BarChart3, roles: ["admin", "Recruiter"] },
+  {
+    title: "Analytics",
+    url: "/analytics",
+    icon: BarChart3,
+    roles: ["Recruiter", "admin"],
+  },
+  {
+    title: "Settings",
+    url: "/settings",
+    icon: Settings,
+    roles: ["admin", , "Interviewer"],
+  },
 ];
 
 function AppSidebar() {
   const location = useLocation();
-  const { getUserRoles} = useAuth();
-    const userRoles = getUserRoles();
-    console.log(userRoles,'userRoles')
+  const { getUserRoles } = useAuth();
+  const userRoles = getUserRoles();
+  console.log(userRoles, "userRoles");
 
-  // Filter menu items based on roles intersection
-const filteredMenuItems = menuItems.filter(item =>
-  item.roles.some(role =>
-    userRoles.map(r => r.toLowerCase()).includes(role.toLowerCase())
-  )
-);
+  const filteredMenuItems = menuItems.filter((item) =>
+    item.roles.some((role) =>
+      userRoles.map((r) => r.toLowerCase()).includes(role.toLowerCase())
+    )
+  );
   return (
     <Sidebar className="border-r bg-slate-50/50 backdrop-blur-sm">
       <SidebarHeader className="border-b p-6">
@@ -98,8 +122,8 @@ interface LayoutProps {
 }
 
 export default function Layout({ children }: LayoutProps) {
-const { logout } = useAuth();
-const navigate = useNavigate();
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   const [user] = useState({
     name: "John Doe",
     avatarUrl:
@@ -107,10 +131,8 @@ const navigate = useNavigate();
   });
 
   const handleLogout = () => {
-
-    // Add actual logout logic here (e.g., clearing tokens, redirecting)
-      logout();              // clear user and localStorage
-  navigate("/login");    // redirect to login page
+    logout();
+    navigate("/login");
     console.log("Logging out...");
   };
 
