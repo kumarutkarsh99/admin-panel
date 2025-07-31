@@ -66,7 +66,9 @@ const initialForm = {
   salary: { from: 0, to: 0, currency: "INR" },
   company: "",
   about_company: "",
+  notice_period:"",
 };
+const noticePeriodOptions = ['15 days', '30 days', '60 days', '90 days'];
 
 export interface JobsForm {
   job_title: string;
@@ -92,6 +94,7 @@ export interface JobsForm {
   priority?: string;
   company?: string;
   about_company?: string;
+  notice_period: string,
 }
 
 const TEMPLATE_HEADERS: (keyof JobsForm)[] = [
@@ -117,7 +120,8 @@ const TEMPLATE_HEADERS: (keyof JobsForm)[] = [
   "status",
   "priority",
   "company",
-  "about_company"
+  "about_company",
+  "notice_period"
 ];
   const downloadCsvTemplate = () => {
     const headerRow = TEMPLATE_HEADERS.join(",");
@@ -146,6 +150,30 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
   const [pastedJD, setPastedJD] = useState("");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isParsing, setIsParsing] = useState(false);
+  const [locationSuggestions, setLocationSuggestions] = useState<string[]>([]);
+  const [departments] = useState([
+  "Engineering",
+  "Human Resources",
+  "Marketing",
+  "Finance",
+  "Sales",
+  "Customer Support",
+  "Product",
+]);
+const indianCities = [
+  { city: "Mumbai", state: "Maharashtra" },
+  { city: "Delhi", state: "Delhi" },
+  { city: "Bengaluru", state: "Karnataka" },
+  { city: "Hyderabad", state: "Telangana" },
+  { city: "Chennai", state: "Tamil Nadu" },
+  { city: "Pune", state: "Maharashtra" },
+  { city: "Ahmedabad", state: "Gujarat" },
+  { city: "Kolkata", state: "West Bengal" },
+  { city: "Jaipur", state: "Rajasthan" },
+  { city: "Surat", state: "Gujarat" },
+  // Add more as needed
+];
+const [suggestions, setSuggestions] = useState<string[]>([]);
 
   useEffect(() => {
     if (open) {
@@ -161,15 +189,16 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
+ 
     if (!formData.jobTitle.trim())
       newErrors.jobTitle = "Job title is required.";
-    if (!formData.jobCode.trim()) newErrors.jobCode = "Job code is required.";
+    // if (!formData.jobCode.trim()) newErrors.jobCode = "Job code is required.";
     if (!formData.department.trim())
       newErrors.department = "Department is required.";
     if (!formData.officeLocation.primary.trim())
       newErrors.officeLocation = "Primary office location is required.";
-    if (!formData.description.about.trim())
-      newErrors.about = "Job summary is required.";
+    // if (!formData.description.about.trim())
+    //   newErrors.about = "Job summary is required.";
     if (!formData.companyDetails.industry.trim())
       newErrors.industry = "Industry is required.";
     if (!formData.companyDetails.jobFunction.trim())
@@ -186,18 +215,44 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
       newErrors.currency = "Currency is required.";
     if (!formData.company.trim())
       newErrors.company = "Company name is required.";
+      // if (!formData.notice_period.trim())
+      // newErrors.company = "Company name is required.";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleChange = (field: string, value: any) =>
+  {
     setFormData((prev) => ({ ...prev, [field]: value }));
-  const handleNestedChange = (section: string, field: string, value: any) =>
-    setFormData((prev) => ({
-      ...prev,
-      [section]: { ...prev[section], [field]: value },
-    }));
+  if (field === "department") {
+    const filtered = departments.filter((dept) =>
+      dept.toLowerCase().includes(value.toLowerCase())
+    );
+    setSuggestions(filtered);
+  }
+}
+
+
+ const handleNestedChange = (section: string, field: string, value: any) => {
+  setFormData((prev) => ({
+    ...prev,
+    [section]: {
+      ...prev[section],
+      [field]: value,
+    },
+  }));
+
+ if (section === "officeLocation" && field === "primary") {
+  const filtered = indianCities
+    .filter(({ city, state }) =>
+      `${city}, ${state}`.toLowerCase().includes(value.toLowerCase())
+    )
+    .map(({ city, state }) => `${city}, ${state}`); // convert to string[]
+
+  setLocationSuggestions(filtered); // ✅ no type error
+}
+};
   const addKeyword = () => {
     if (
       keywordInput.trim() &&
@@ -273,6 +328,13 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+      const errors = validateForm();
+
+  if (Object.keys(errors).length > 0) {
+    const firstErrorKey = Object.keys(errors)[0];
+    toast.error(errors[firstErrorKey]); // Show first error
+    return;
+  }
     if (!validateForm()) {
       toast.error("Please fill all required fields correctly.");
       return;
@@ -306,6 +368,7 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
       about_company: formData.about_company,
       status: "Draft",
       priority: "Medium",
+      notice_period: formData.notice_period,
     };
 
     try {
@@ -362,7 +425,7 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                       </p>
                     )}
                   </div>
-                  <div>
+                  {/* <div>
                     <label className="text-sm">Job Code *</label>
                     <Input
                       placeholder="JOB-001"
@@ -374,41 +437,66 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                         {errors.jobCode}
                       </p>
                     )}
-                  </div>
-                  <div>
-                    <label className="text-sm">Department *</label>
-                    <Input
-                      placeholder="Engineering"
-                      value={formData.department}
-                      onChange={(e) =>
-                        handleChange("department", e.target.value)
-                      }
-                    />
-                    {errors.department && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.department}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="text-sm">Office Location *</label>
-                    <Input
-                      placeholder="Location"
-                      value={formData.officeLocation.primary}
-                      onChange={(e) =>
-                        handleNestedChange(
-                          "officeLocation",
-                          "primary",
-                          e.target.value
-                        )
-                      }
-                    />
-                    {errors.officeLocation && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.officeLocation}
-                      </p>
-                    )}
-                  </div>
+                  </div> */}
+                 <div className="relative">
+  <label className="text-sm">Department</label>
+  <Input
+    placeholder="Engineering"
+    value={formData.department}
+    onChange={(e) => handleChange("department", e.target.value)}
+  />
+  {suggestions.length > 0 && (
+    <ul className="absolute z-10 bg-white border border-gray-300 mt-1 w-full max-h-40 overflow-auto rounded-md shadow-md">
+      {suggestions.map((suggestion, index) => (
+        <li
+          key={index}
+          onClick={() => {
+            setFormData((prev) => ({ ...prev, department: suggestion }));
+            setSuggestions([]);
+          }}
+          className="px-3 py-1 hover:bg-gray-100 cursor-pointer"
+        >
+          {suggestion}
+        </li>
+      ))}
+    </ul>
+  )}
+  {errors.department && (
+    <p className="text-red-500 text-xs">{errors.department}</p>
+  )}
+</div>
+                  <div className="relative">
+  <label className="text-sm">Office Location *</label>
+  <Input
+    placeholder="Location"
+    value={formData.officeLocation.primary}
+    onChange={(e) =>
+      handleNestedChange("officeLocation", "primary", e.target.value)
+    }
+  />
+  {locationSuggestions.length > 0 && (
+    <ul className="absolute z-10 bg-white border border-gray-300 mt-1 w-full max-h-40 overflow-auto rounded-md shadow-md">
+      {locationSuggestions.map((location, index) => (
+        <li
+          key={index}
+          onClick={() => {
+            setFormData((prev) => ({
+              ...prev,
+              officeLocation: { ...prev.officeLocation, primary: location },
+            }));
+            setLocationSuggestions([]);
+          }}
+          className="px-3 py-1 hover:bg-gray-100 cursor-pointer"
+        >
+          {location}
+        </li>
+      ))}
+    </ul>
+  )}
+  {errors.officeLocation && (
+    <p className="text-red-500 text-xs mt-1">{errors.officeLocation}</p>
+  )}
+</div>
                   <div className="flex items-center gap-4">
                     <label className="text-sm">Workplace</label>
                     <ToggleGroup
@@ -752,10 +840,40 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                       </p>
                     )}
                   </div>
+                  
                 </div>
+                 <div className="md:col-span-2 mt-4 mb-2">
+                    <label className="text-sm">Notice Period *</label>
+                    <Select
+                      value={formData.notice_period}
+                      onValueChange={(value) =>
+                        handleChange(
+                          "notice_period",
+                          value
+                        )
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Notice Period" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {noticePeriodOptions.map((level) => (
+                          <SelectItem key={level} value={level}>
+                            {level}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.experience && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.notice_period}
+                      </p>
+                    )}
+                  </div>
               </TabsContent>
 
               <TabsContent value="import" className="mt-4">
+
                 <div className="space-y-4">
                   {/* <div>
                     <label htmlFor="jd-paste" className="text-sm font-medium">
