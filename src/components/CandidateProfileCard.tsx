@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -8,9 +8,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical } from "lucide-react";
-import StarRating from "./StarRating";
+import { MoreVertical, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import StarRating from "./StarRating";
 import { BulkUpdateFieldsModal } from "./modals/BulkUpdateFieldsModal";
 import AssignToJobModal from "./modals/AssigntoJobModal";
 
@@ -26,11 +26,10 @@ interface Education {
 }
 
 interface Experience {
-  title: string;
   company: string;
   role: string;
   duration?: string;
-  details?: string[];
+  responsibilities?: string[];
 }
 
 interface CandidateProfile {
@@ -50,13 +49,20 @@ interface CandidateProfile {
   linkedinprofile: string;
   rating: number | string | null;
   jobs: Job[];
+  status: string;
+  recruiter_status: string;
+  hmapproval: string;
+  notice_period: string;
+  institutiontier: string;
+  companytier: string;
+  resume_url: string;
 }
 
 interface ProfileCardProps {
   candidate: CandidateProfile;
 }
 
-const parseJSON = (data: string | any[]): any[] => {
+const parseJSON = (data) => {
   if (typeof data === "string") {
     try {
       const parsed = JSON.parse(data);
@@ -86,83 +92,155 @@ export default function CandidateProfileCard({ candidate }: ProfileCardProps) {
     linkedinprofile: linkedIn,
     rating,
     jobs = [],
+    status,
+    notice_period,
+    institutiontier,
+    companytier,
+    resume_url,
   } = candidate;
 
   const [editOpen, setEditOpen] = useState(false);
   const [jobOpen, setJobOpen] = useState(false);
-  const initials = [first_name?.[0], last_name?.[0]].filter(Boolean).join("");
+  const initials = [first_name?.[0], last_name?.[0]]
+    .filter(Boolean)
+    .join("")
+    .toUpperCase();
 
   const parsedEducation: Education[] = parseJSON(education);
   const parsedExperience: Experience[] = parseJSON(experience);
 
+  const linkedInUrl =
+    linkedIn && !linkedIn.startsWith("http") ? `https://${linkedIn}` : linkedIn;
+
   return (
-    <div className="w-full p-3">
-      <Card className="p-4 space-y-4 shadow-md">
-        <div className="flex items-center space-x-4">
-          <Avatar className="h-16 w-16">
+    <div className="w-full p-3 font-sans">
+      <Card className="p-6 space-y-4 shadow-lg rounded-xl">
+        <div className="flex items-start space-x-6">
+          <Avatar className="h-16 w-16 text-xl">
             {photo_url ? (
-              <img src={photo_url} alt={`${first_name} ${last_name}`} />
+              <img
+                src={photo_url}
+                alt={`${first_name} ${last_name}`}
+                className="h-full w-full object-cover"
+              />
             ) : (
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-xl">
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
                 {initials}
               </AvatarFallback>
             )}
           </Avatar>
           <div className="flex-1">
-            <h2 className="font-semibold text-2xl">
-              {first_name} {last_name}
-            </h2>
-            {headline && (
-              <p className="text-sm text-gray-600 capitalize">
-                {headline}
-                {current_company && ` at ${current_company}`}
+            <div className="flex justify-between items-start">
+              <div>
+                <h2 className="font-bold text-xl text-slate-800">
+                  {first_name} {last_name}
+                </h2>
+                {headline && (
+                  <p className="text-md text-slate-800">{headline}</p>
+                )}
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="icon" variant="ghost">
+                    <MoreVertical className="h-5 w-5 text-slate-500" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setEditOpen(true)}>
+                    Edit Candidate
+                  </DropdownMenuItem>
+                  {resume_url && (
+                    <DropdownMenuItem asChild>
+                      <a
+                        href={resume_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Download Resume
+                      </a>
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        </div>
+
+        {rating && (
+          <div className="mt-2">
+            <StarRating rating={Number(rating) || 0} />
+          </div>
+        )}
+
+        <div className="space-y-4 pt-4 border-t border-slate-200">
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-x-6 gap-y-2 text-sm text-slate-700">
+            {email && (
+              <p>
+                <strong className="font-medium text-slate-500">Email:</strong>{" "}
+                <a
+                  href={`mailto:${email}`}
+                  className="text-blue-600 hover:underline"
+                >
+                  {email}
+                </a>
+              </p>
+            )}
+            {phone && (
+              <p>
+                <strong className="font-medium text-slate-500">Phone:</strong>{" "}
+                {phone}
+              </p>
+            )}
+            {linkedInUrl && (
+              <p>
+                <strong className="font-medium text-slate-500">
+                  LinkedIn:
+                </strong>{" "}
+                <a
+                  href={linkedInUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  View Profile
+                </a>
+              </p>
+            )}
+            {current_ctc && (
+              <p>
+                <strong className="font-medium text-slate-500">
+                  Current CTC:
+                </strong>{" "}
+                {`₹${parseFloat(current_ctc).toLocaleString("en-IN")}`}
               </p>
             )}
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="icon" variant="ghost">
-                <MoreVertical className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setEditOpen(true)}>
-                Edit Candidate
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex flex-wrap gap-2 items-center">
+            <Badge variant="secondary">Status: {status}</Badge>
+            {notice_period && (
+              <Badge variant="secondary">Notice: {notice_period}</Badge>
+            )}
+            {institutiontier && institutiontier !== "{}" && (
+              <Badge variant="secondary">
+                Institution Tier: {institutiontier}
+              </Badge>
+            )}
+            {companytier && companytier !== "{}" && (
+              <Badge variant="secondary">Company Tier: {companytier}</Badge>
+            )}
+          </div>
         </div>
-
-        <div className="space-y-1 text-sm text-gray-700">
-          {email && <p>Email: {email}</p>}
-          {phone && <p>Phone: {phone}</p>}
-          {linkedIn && (
-            <p>
-              LinkedIn:{" "}
-              <a
-                href={linkedIn}
-                target="_blank"
-                rel="noreferrer"
-                className="text-blue-500 underline"
-              >
-                Profile
-              </a>
-            </p>
-          )}
-          {current_ctc && <p>Current CTC: {current_ctc}</p>}
-          {expected_ctc && <p>Expected CTC: {expected_ctc}</p>}
-        </div>
-
-        <StarRating rating={Number(rating) || 0} />
-        <Button variant="outline" size="sm">
-          + Add tag
-        </Button>
       </Card>
 
       <Card className="p-4 mt-4 space-y-2">
         <div className="flex items-center justify-between">
           <p className="font-semibold text-sm">JOBS</p>
-          <Button variant="outline" size="sm" onClick={() => setJobOpen(true)}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="px-2 text-xs"
+            onClick={() => setJobOpen(true)}
+          >
             + Add job
           </Button>
         </div>
@@ -180,15 +258,15 @@ export default function CandidateProfileCard({ candidate }: ProfileCardProps) {
       <Card className="p-4 mt-4 space-y-2">
         <div className="flex items-center justify-between">
           <p className="font-semibold text-sm">EDUCATION</p>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" className="px-2 text-xs">
             + Add Education
           </Button>
         </div>
         {parsedEducation.length > 0 ? (
           parsedEducation.map((edu, idx) => (
-            <div key={idx}>
-              <p className="text-sm font-medium text-gray-800">
-                {edu.degree} - {edu.institution}
+            <div key={idx} className="py-1">
+              <p className="text-xs text-gray-800 capitalize">
+                {edu.degree || "Education details"} - {edu.institution}
               </p>
               {edu.duration && (
                 <p className="text-xs text-gray-600">{edu.duration}</p>
@@ -203,22 +281,22 @@ export default function CandidateProfileCard({ candidate }: ProfileCardProps) {
       <Card className="p-4 mt-4 space-y-2">
         <div className="flex items-center justify-between">
           <p className="font-semibold text-sm">EXPERIENCE</p>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" className="px-2 text-xs">
             + Add experience
           </Button>
         </div>
         {parsedExperience.length > 0 ? (
           parsedExperience.map((exp, idx) => (
-            <div key={idx}>
+            <div key={idx} className="py-2">
               <p className="text-sm font-medium text-gray-800">
-                {exp.title} - {exp.company} - {exp.role}
+                {exp.role} at {exp.company}
               </p>
               {exp.duration && (
                 <p className="text-xs text-gray-600">{exp.duration}</p>
               )}
-              {exp.details?.length > 0 && (
+              {exp.responsibilities?.length > 0 && (
                 <ul className="list-disc pl-5 text-xs text-gray-700 mt-1 space-y-1">
-                  {exp.details.map((d, i) => (
+                  {exp.responsibilities.map((d, i) => (
                     <li key={i}>{d}</li>
                   ))}
                 </ul>
@@ -233,11 +311,11 @@ export default function CandidateProfileCard({ candidate }: ProfileCardProps) {
       <Card className="p-4 mt-4 space-y-2">
         <div className="flex items-center justify-between">
           <p className="font-semibold text-sm">SKILLS</p>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" className="px-2 text-xs">
             + Add skill
           </Button>
         </div>
-        {skill.length > 0 ? (
+        {skill?.length > 0 ? (
           <div className="flex flex-wrap gap-2 mt-2">
             {skill.map((s) => (
               <Badge key={s} variant="secondary">

@@ -48,10 +48,11 @@ interface CandidateForm {
   state: string;
   country: string;
   zipcode: string;
+  notice_period:string;
 }
 
 type CandidateFormKey = keyof CandidateForm;
-
+const noticePeriodOptions = ['15 days', '30 days', '60 days', '90 days'];
 const initialCandidateForm: CandidateForm = {
   first_name: "",
   last_name: "",
@@ -83,6 +84,7 @@ const initialCandidateForm: CandidateForm = {
   state: "",
   country: "",
   zipcode: "",
+  notice_period:""
 };
 
 export const CandidateManual = () => {
@@ -552,6 +554,34 @@ export const CandidateManual = () => {
           />
         </div>
       </div>
+      <div className="md:col-span-2 mt-4 mb-2">
+                    <label className="text-sm">Notice Period *</label>
+                    <Select
+                      value={formData.notice_period}
+                      onValueChange={(value) =>
+                        handleChange(
+                          "notice_period",
+                          value
+                        )
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Notice Period" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {noticePeriodOptions.map((level) => (
+                          <SelectItem key={level} value={level}>
+                            {level}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.experience && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.notice_period}
+                      </p>
+                    )}
+                  </div>
       <div className="md:col-span-2 flex justify-end gap-3 mt-4">
         <DialogClose asChild>
           <Button type="button" variant="outline" disabled={loading}>
