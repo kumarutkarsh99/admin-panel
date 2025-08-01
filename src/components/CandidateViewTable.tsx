@@ -77,6 +77,7 @@ interface CandidateForm {
   created_at: string;
   updated_at: string;
   linkedinprofile: string;
+  notice_period: string;
 }
 
 interface ParsedEducation {
@@ -615,30 +616,11 @@ export default function CandidateViewList({
                             </Select>
                           </TableCell>
                         )}
-                        {visibleColumns.includes("headline") && (
+                        {visibleColumns.includes("notice_period") && (
                           <TableCell className="min-w-[150px]">
-                            {candidate.headline || "N/A"}
+                            {candidate.notice_period || "N/A"}
                           </TableCell>
                         )}
-                        {visibleColumns.includes("phone") && (
-                          <TableCell className="min-w-[150px] whitespace-nowrap text-sm text-slate-500">
-                            {candidate.phone}
-                          </TableCell>
-                        )}
-                        {visibleColumns.includes("email") && (
-                          <TableCell className="min-w-[200px] whitespace-nowrap text-sm text-slate-500">
-                            {candidate.email}
-                          </TableCell>
-                        )}
-                        {visibleColumns.includes("current_company") && (
-                          <TableCell className="min-w-[150px]">
-                            <span className="inline-flex items-center gap-1 whitespace-nowrap text-sm text-slate-500">
-                              <Building2 className="h-3 w-3 text-slate-400" />
-                              {candidate.current_company || "N/A"}
-                            </span>
-                          </TableCell>
-                        )}
-
                         {visibleColumns.includes("current_ctc") && (
                           <TableCell className="min-w-[150px] whitespace-nowrap py-2">
                             <EditableCell
@@ -665,6 +647,29 @@ export default function CandidateViewList({
                                 )
                               }
                             />
+                          </TableCell>
+                        )}
+                        {visibleColumns.includes("headline") && (
+                          <TableCell className="min-w-[150px]">
+                            {candidate.headline || "N/A"}
+                          </TableCell>
+                        )}
+                        {visibleColumns.includes("phone") && (
+                          <TableCell className="min-w-[150px] whitespace-nowrap text-sm text-slate-500">
+                            {candidate.phone}
+                          </TableCell>
+                        )}
+                        {visibleColumns.includes("email") && (
+                          <TableCell className="min-w-[200px] whitespace-nowrap text-sm text-slate-500">
+                            {candidate.email}
+                          </TableCell>
+                        )}
+                        {visibleColumns.includes("current_company") && (
+                          <TableCell className="min-w-[150px]">
+                            <span className="inline-flex items-center gap-1 whitespace-nowrap text-sm text-slate-500">
+                              <Building2 className="h-3 w-3 text-slate-400" />
+                              {candidate.current_company || "N/A"}
+                            </span>
                           </TableCell>
                         )}
 
