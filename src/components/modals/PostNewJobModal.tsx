@@ -151,6 +151,7 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isParsing, setIsParsing] = useState(false);
   const [locationSuggestions, setLocationSuggestions] = useState<string[]>([]);
+   const [progress, setProgress] = useState(0);
   const [departments] = useState([
     "Engineering",
     "Human Resources",
@@ -280,6 +281,21 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
       toast.warning("Please paste a job description or upload a file.");
       return;
     }
+
+    const formData = new FormData();
+  formData.append("file", uploadedFile);
+  formData.append("fileName", uploadedFile.name);
+
+   const response = await axios.post(`${API_BASE_URL}/jobs/extractJob`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        onUploadProgress: (evt) => {
+          const pct = Math.round((evt.loaded * 100) / (evt.total || 1));
+          setProgress(pct);
+        },
+      });
+   
+    const result = await response;
+    console.log(result,'result')
     setIsParsing(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
