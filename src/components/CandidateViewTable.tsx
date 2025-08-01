@@ -529,12 +529,12 @@ export default function CandidateViewList({
                           <TableCell>{candidate.job_id}</TableCell>
                         )}
                         {visibleColumns.includes("status") && (
-                          <TableCell className="min-w-[170px] px-2">
+                          <TableCell className="min-w-[170px]">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button
                                   variant="outline"
-                                  className="flex w-full items-center justify-start gap-2 text-xs font-medium p-2 h-auto rounded-md"
+                                  className="flex w-full items-center justify-start gap-2 text-xs font-medium py-2 px-3 h-auto rounded-md"
                                 >
                                   <span
                                     className={`h-2 w-2 rounded-full ${getStatusColor(
@@ -568,12 +568,12 @@ export default function CandidateViewList({
                           </TableCell>
                         )}
                         {visibleColumns.includes("recruiter_status") && (
-                          <TableCell className="min-w-[170px] px-2">
+                          <TableCell className="min-w-[170px]">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button
                                   variant="outline"
-                                  className="flex w-full items-center justify-start gap-2 text-xs font-medium p-2 h-auto rounded-md"
+                                  className="flex w-full items-center justify-start gap-2 text-xs font-medium py-2 px-3 h-auto rounded-md"
                                 >
                                   <span
                                     className={`h-2 w-2 rounded-full ${getRecruiterStatusColor(
@@ -611,12 +611,12 @@ export default function CandidateViewList({
                           </TableCell>
                         )}
                         {visibleColumns.includes("hmapproval") && (
-                          <TableCell className="min-w-[170px] px-2">
+                          <TableCell className="min-w-[170px]">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button
                                   variant="outline"
-                                  className="flex w-full items-center justify-start gap-2 text-xs font-medium p-2 h-auto rounded-md"
+                                  className="flex w-full items-center justify-start gap-2 text-xs font-medium py-2 px-3 h-auto rounded-md"
                                 >
                                   <span
                                     className={`h-2 w-2 rounded-full ${getHMApprovalColor(
@@ -780,8 +780,11 @@ export default function CandidateViewList({
                           </TableCell>
                         )}
                         {visibleColumns.includes("address") && (
-                          <TableCell className="min-w-[200px]">
-                            <div className="whitespace-nowrap text-sm text-slate-500">
+                          <TableCell className="min-w-[200px] max-w-[250px]">
+                            <div
+                              className="truncate text-sm text-slate-500"
+                              title={formatCandidateAddress(candidate.address)}
+                            >
                               {formatCandidateAddress(candidate.address)}
                             </div>
                           </TableCell>
