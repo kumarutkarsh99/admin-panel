@@ -68,7 +68,7 @@ const initialForm = {
   about_company: "",
   notice_period:"",
 };
-const noticePeriodOptions = ['15 days', '30 days', '60 days', '90 days'];
+
 
 export interface JobsForm {
   job_title: string;
@@ -842,34 +842,7 @@ const [suggestions, setSuggestions] = useState<string[]>([]);
                   </div>
                   
                 </div>
-                 <div className="md:col-span-2 mt-4 mb-2">
-                    <label className="text-sm">Notice Period *</label>
-                    <Select
-                      value={formData.notice_period}
-                      onValueChange={(value) =>
-                        handleChange(
-                          "notice_period",
-                          value
-                        )
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Notice Period" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {noticePeriodOptions.map((level) => (
-                          <SelectItem key={level} value={level}>
-                            {level}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {errors.experience && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.notice_period}
-                      </p>
-                    )}
-                  </div>
+                 
               </TabsContent>
 
               <TabsContent value="import" className="mt-4">
