@@ -20,8 +20,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import axios from "axios";
-import { Upload, Loader2,Download, FileSpreadsheet } from "lucide-react";
- const API_BASE_URL = "http://51.20.181.155:3000";
+import { Upload, Loader2, Download, FileSpreadsheet } from "lucide-react";
+const API_BASE_URL = "http://51.20.181.155:3000";
 
 interface PostNewJobModalProps {
   open: boolean;
@@ -66,7 +66,9 @@ const initialForm = {
   salary: { from: 0, to: 0, currency: "INR" },
   company: "",
   about_company: "",
+  notice_period: "",
 };
+const noticePeriodOptions = ["15 days", "30 days", "60 days", "90 days"];
 
 export interface JobsForm {
   job_title: string;
@@ -92,6 +94,7 @@ export interface JobsForm {
   priority?: string;
   company?: string;
   about_company?: string;
+  notice_period: string;
 }
 
 const TEMPLATE_HEADERS: (keyof JobsForm)[] = [
@@ -117,20 +120,21 @@ const TEMPLATE_HEADERS: (keyof JobsForm)[] = [
   "status",
   "priority",
   "company",
-  "about_company"
+  "about_company",
+  "notice_period",
 ];
-  const downloadCsvTemplate = () => {
-    const headerRow = TEMPLATE_HEADERS.join(",");
-    const emptyRow = TEMPLATE_HEADERS.map(() => "").join(",");
-    const csvContent = [headerRow, emptyRow].join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "jobs_template.csv";
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+const downloadCsvTemplate = () => {
+  const headerRow = TEMPLATE_HEADERS.join(",");
+  const emptyRow = TEMPLATE_HEADERS.map(() => "").join(",");
+  const csvContent = [headerRow, emptyRow].join("\n");
+  const blob = new Blob([csvContent], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "jobs_template.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+};
 
 const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
   open,
@@ -146,6 +150,30 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
   const [pastedJD, setPastedJD] = useState("");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isParsing, setIsParsing] = useState(false);
+  const [locationSuggestions, setLocationSuggestions] = useState<string[]>([]);
+  const [departments] = useState([
+    "Engineering",
+    "Human Resources",
+    "Marketing",
+    "Finance",
+    "Sales",
+    "Customer Support",
+    "Product",
+  ]);
+  const indianCities = [
+    { city: "Mumbai", state: "Maharashtra" },
+    { city: "Delhi", state: "Delhi" },
+    { city: "Bengaluru", state: "Karnataka" },
+    { city: "Hyderabad", state: "Telangana" },
+    { city: "Chennai", state: "Tamil Nadu" },
+    { city: "Pune", state: "Maharashtra" },
+    { city: "Ahmedabad", state: "Gujarat" },
+    { city: "Kolkata", state: "West Bengal" },
+    { city: "Jaipur", state: "Rajasthan" },
+    { city: "Surat", state: "Gujarat" },
+    // Add more as needed
+  ];
+  const [suggestions, setSuggestions] = useState<string[]>([]);
 
   useEffect(() => {
     if (open) {
@@ -161,15 +189,16 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
+
     if (!formData.jobTitle.trim())
       newErrors.jobTitle = "Job title is required.";
-    if (!formData.jobCode.trim()) newErrors.jobCode = "Job code is required.";
+    // if (!formData.jobCode.trim()) newErrors.jobCode = "Job code is required.";
     if (!formData.department.trim())
       newErrors.department = "Department is required.";
     if (!formData.officeLocation.primary.trim())
       newErrors.officeLocation = "Primary office location is required.";
-    if (!formData.description.about.trim())
-      newErrors.about = "Job summary is required.";
+    // if (!formData.description.about.trim())
+    //   newErrors.about = "Job summary is required.";
     if (!formData.companyDetails.industry.trim())
       newErrors.industry = "Industry is required.";
     if (!formData.companyDetails.jobFunction.trim())
@@ -186,18 +215,42 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
       newErrors.currency = "Currency is required.";
     if (!formData.company.trim())
       newErrors.company = "Company name is required.";
+    // if (!formData.notice_period.trim())
+    // newErrors.company = "Company name is required.";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleChange = (field: string, value: any) =>
+  const handleChange = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-  const handleNestedChange = (section: string, field: string, value: any) =>
+    if (field === "department") {
+      const filtered = departments.filter((dept) =>
+        dept.toLowerCase().includes(value.toLowerCase())
+      );
+      setSuggestions(filtered);
+    }
+  };
+
+  const handleNestedChange = (section: string, field: string, value: any) => {
     setFormData((prev) => ({
       ...prev,
-      [section]: { ...prev[section], [field]: value },
+      [section]: {
+        ...prev[section],
+        [field]: value,
+      },
     }));
+
+    if (section === "officeLocation" && field === "primary") {
+      const filtered = indianCities
+        .filter(({ city, state }) =>
+          `${city}, ${state}`.toLowerCase().includes(value.toLowerCase())
+        )
+        .map(({ city, state }) => `${city}, ${state}`); // convert to string[]
+
+      setLocationSuggestions(filtered); // ✅ no type error
+    }
+  };
   const addKeyword = () => {
     if (
       keywordInput.trim() &&
@@ -273,6 +326,13 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const errors = validateForm();
+
+    if (Object.keys(errors).length > 0) {
+      const firstErrorKey = Object.keys(errors)[0];
+      toast.error(errors[firstErrorKey]); // Show first error
+      return;
+    }
     if (!validateForm()) {
       toast.error("Please fill all required fields correctly.");
       return;
@@ -306,6 +366,7 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
       about_company: formData.about_company,
       status: "Draft",
       priority: "Medium",
+      notice_period: formData.notice_period,
     };
 
     try {
@@ -362,7 +423,7 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                       </p>
                     )}
                   </div>
-                  <div>
+                  {/* <div>
                     <label className="text-sm">Job Code *</label>
                     <Input
                       placeholder="JOB-001"
@@ -374,9 +435,9 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                         {errors.jobCode}
                       </p>
                     )}
-                  </div>
-                  <div>
-                    <label className="text-sm">Department *</label>
+                  </div> */}
+                  <div className="relative">
+                    <label className="text-sm">Department</label>
                     <Input
                       placeholder="Engineering"
                       value={formData.department}
@@ -384,13 +445,32 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                         handleChange("department", e.target.value)
                       }
                     />
+                    {suggestions.length > 0 && (
+                      <ul className="absolute z-10 bg-white border border-gray-300 mt-1 w-full max-h-40 overflow-auto rounded-md shadow-md">
+                        {suggestions.map((suggestion, index) => (
+                          <li
+                            key={index}
+                            onClick={() => {
+                              setFormData((prev) => ({
+                                ...prev,
+                                department: suggestion,
+                              }));
+                              setSuggestions([]);
+                            }}
+                            className="px-3 py-1 hover:bg-gray-100 cursor-pointer"
+                          >
+                            {suggestion}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                     {errors.department && (
-                      <p className="text-red-500 text-xs mt-1">
+                      <p className="text-red-500 text-xs">
                         {errors.department}
                       </p>
                     )}
                   </div>
-                  <div>
+                  <div className="relative">
                     <label className="text-sm">Office Location *</label>
                     <Input
                       placeholder="Location"
@@ -403,6 +483,28 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                         )
                       }
                     />
+                    {locationSuggestions.length > 0 && (
+                      <ul className="absolute z-10 bg-white border border-gray-300 mt-1 w-full max-h-40 overflow-auto rounded-md shadow-md">
+                        {locationSuggestions.map((location, index) => (
+                          <li
+                            key={index}
+                            onClick={() => {
+                              setFormData((prev) => ({
+                                ...prev,
+                                officeLocation: {
+                                  ...prev.officeLocation,
+                                  primary: location,
+                                },
+                              }));
+                              setLocationSuggestions([]);
+                            }}
+                            className="px-3 py-1 hover:bg-gray-100 cursor-pointer"
+                          >
+                            {location}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                     {errors.officeLocation && (
                       <p className="text-red-500 text-xs mt-1">
                         {errors.officeLocation}
@@ -753,6 +855,31 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                     )}
                   </div>
                 </div>
+                <div className="md:col-span-2 mt-4 mb-2">
+                  <label className="text-sm">Notice Period *</label>
+                  <Select
+                    value={formData.notice_period}
+                    onValueChange={(value) =>
+                      handleChange("notice_period", value)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Notice Period" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {noticePeriodOptions.map((level) => (
+                        <SelectItem key={level} value={level}>
+                          {level}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.experience && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.notice_period}
+                    </p>
+                  )}
+                </div>
               </TabsContent>
 
               <TabsContent value="import" className="mt-4">
@@ -770,23 +897,22 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                       onChange={(e) => setPastedJD(e.target.value)}
                       disabled={isParsing}
                     />
-                  </div> */}
+                  </div>
                   <div className="relative flex items-center justify-center">
                     <div className="absolute w-full border-t border-gray-300"></div>
                     <span className="relative bg-white px-4 text-sm text-gray-500">
                       OR
                     </span>
-                  </div>
+                  </div> */}
                   <div>
                     <label htmlFor="jd-upload" className="text-sm font-medium">
                       Upload Jobs
                     </label>
-                      
+
                     <label
                       htmlFor="jd-upload"
                       className="mt-1 flex justify-center w-full px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md cursor-pointer hover:border-blue-500"
                     >
-
                       <div className="space-y-1 text-center">
                         <Upload className="mx-auto h-12 w-12 text-gray-400" />
                         <p className="text-sm text-gray-600">
@@ -822,8 +948,6 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                       )}
                       {isParsing ? "Parsing..." : "Parse Job Description"}
                     </Button>
-
-                    
                   </div>
                 </div>
               </TabsContent>

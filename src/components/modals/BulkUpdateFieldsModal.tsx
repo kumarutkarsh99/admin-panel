@@ -33,6 +33,9 @@ const fieldOptions = [
   { key: "recruiter_status", label: "Recruiter Status" },
   { key: "hmapproval", label: "HM Approval" },
   { key: "rating", label: "Rating" },
+  { key: "current_ctc", label: "Current CTC" },
+  { key: "expected_ctc", label: "Expected CTC" },
+  { key: "notice_period", label: "Notice Period" },
   { key: "first_name", label: "First Name" },
   { key: "last_name", label: "Last Name" },
   { key: "email", label: "Email" },
@@ -47,8 +50,6 @@ const fieldOptions = [
   { key: "resume_url", label: "Resume URL" },
   { key: "cover_letter", label: "Cover Letter" },
   { key: "current_company", label: "Current Company" },
-  { key: "current_ctc", label: "Current CTC" },
-  { key: "expected_ctc", label: "Expected CTC" },
   { key: "currency", label: "Currency" },
   { key: "skill", label: "Skills" },
   { key: "college", label: "College" },
@@ -82,6 +83,12 @@ const dropdownOptions: Record<string, { value: string; label: string }[]> = {
     { value: "3", label: "3" },
     { value: "4", label: "4" },
     { value: "5", label: "5" },
+  ],
+  notice_period: [
+    { value: "15 days", label: "15 days" },
+    { value: "30 days", label: "30 days" },
+    { value: "60 days", label: "60 days" },
+    { value: "90 days", label: "90 days" },
   ],
 };
 
