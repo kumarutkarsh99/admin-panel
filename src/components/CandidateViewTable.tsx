@@ -6,14 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { FilterColumnsModal } from "@/components/modals/FilterCoulmnModal";
 import AddCandidateModal from "@/components/modals/AddCandidateModal";
-import { cn } from "@/lib/utils";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Search,
   Filter,
@@ -33,6 +25,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import axios from "axios";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -50,6 +48,28 @@ import {
 import { CandidateActionsPopover } from "./CandidateActionsPopover";
 
 const API_BASE_URL = "http://51.20.181.155:3000";
+
+const CANDIDATE_STATUSES = [
+  "Sourced",
+  "Application",
+  "Screening",
+  "Interview",
+  "Offer",
+  "Hired",
+  "Rejected",
+];
+
+const RECRUITER_STATUSES = [
+  "New Application",
+  "Initial Review",
+  "Screening Complete",
+  "Recommended",
+  "Not Suitable",
+];
+
+const HM_APPROVAL_STATUSES = ["Pending", "Approved", "Rejected"];
+
+const noticePeriodOptions = ["15 days", "30 days", "60 days", "90 days"];
 
 interface CandidateForm {
   id: number;
@@ -510,115 +530,160 @@ export default function CandidateViewList({
                         )}
                         {visibleColumns.includes("status") && (
                           <TableCell className="min-w-[170px] px-2">
-                            <Select
-                              value={candidate.status}
-                              onValueChange={(newStatus) =>
-                                handleFieldUpdate(
-                                  candidate.id,
-                                  "status",
-                                  newStatus
-                                )
-                              }
-                            >
-                              <SelectTrigger
-                                className={cn(
-                                  "h-8 w-full text-xs",
-                                  getStatusColor(candidate.status)
-                                )}
-                              >
-                                <SelectValue placeholder="Select status" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {[
-                                  "Sourced",
-                                  "Application",
-                                  "Screening",
-                                  "Interview",
-                                  "Offer",
-                                  "Hired",
-                                  "Rejected",
-                                ].map((opt) => (
-                                  <SelectItem key={opt} value={opt}>
-                                    {opt}
-                                  </SelectItem>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  className="flex w-full items-center justify-start gap-2 text-xs font-medium p-2 h-auto rounded-md"
+                                >
+                                  <span
+                                    className={`h-2 w-2 rounded-full ${getStatusColor(
+                                      candidate.status
+                                    )}`}
+                                    aria-hidden="true"
+                                  />
+                                  <span>
+                                    {candidate.status || "Select status"}
+                                  </span>
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-40">
+                                {CANDIDATE_STATUSES.map((statusOption) => (
+                                  <DropdownMenuItem
+                                    key={statusOption}
+                                    onSelect={() =>
+                                      handleFieldUpdate(
+                                        candidate.id,
+                                        "status",
+                                        statusOption
+                                      )
+                                    }
+                                    disabled={candidate.status === statusOption}
+                                  >
+                                    {statusOption}
+                                  </DropdownMenuItem>
                                 ))}
-                              </SelectContent>
-                            </Select>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </TableCell>
                         )}
                         {visibleColumns.includes("recruiter_status") && (
                           <TableCell className="min-w-[170px] px-2">
-                            <Select
-                              value={candidate.recruiter_status}
-                              onValueChange={(val) =>
-                                handleFieldUpdate(
-                                  candidate.id,
-                                  "recruiter_status",
-                                  val
-                                )
-                              }
-                            >
-                              <SelectTrigger
-                                className={cn(
-                                  "h-8 w-full text-xs",
-                                  getRecruiterStatusColor(
-                                    candidate.recruiter_status
-                                  )
-                                )}
-                              >
-                                <SelectValue placeholder="Select status" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {[
-                                  "New Application",
-                                  "Initial Review",
-                                  "Screening Complete",
-                                  "Recommended",
-                                  "Not Suitable",
-                                ].map((opt) => (
-                                  <SelectItem key={opt} value={opt}>
-                                    {opt}
-                                  </SelectItem>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  className="flex w-full items-center justify-start gap-2 text-xs font-medium p-2 h-auto rounded-md"
+                                >
+                                  <span
+                                    className={`h-2 w-2 rounded-full ${getRecruiterStatusColor(
+                                      candidate.recruiter_status
+                                    )}`}
+                                    aria-hidden="true"
+                                  />
+                                  <span>
+                                    {candidate.recruiter_status ||
+                                      "Select status"}
+                                  </span>
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-40">
+                                {RECRUITER_STATUSES.map((statusOption) => (
+                                  <DropdownMenuItem
+                                    key={statusOption}
+                                    onSelect={() =>
+                                      handleFieldUpdate(
+                                        candidate.id,
+                                        "recruiter_status",
+                                        statusOption
+                                      )
+                                    }
+                                    disabled={
+                                      candidate.recruiter_status ===
+                                      statusOption
+                                    }
+                                  >
+                                    {statusOption}
+                                  </DropdownMenuItem>
                                 ))}
-                              </SelectContent>
-                            </Select>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </TableCell>
                         )}
                         {visibleColumns.includes("hmapproval") && (
                           <TableCell className="min-w-[170px] px-2">
-                            <Select
-                              value={candidate.hmapproval}
-                              onValueChange={(val) =>
-                                handleFieldUpdate(
-                                  candidate.id,
-                                  "hmapproval",
-                                  val
-                                )
-                              }
-                            >
-                              <SelectTrigger
-                                className={cn(
-                                  "h-8 w-full text-xs",
-                                  getHMApprovalColor(candidate.hmapproval)
-                                )}
-                              >
-                                <SelectValue placeholder="Select status" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {["Pending", "Approved", "Rejected"].map(
-                                  (opt) => (
-                                    <SelectItem key={opt} value={opt}>
-                                      {opt}
-                                    </SelectItem>
-                                  )
-                                )}
-                              </SelectContent>
-                            </Select>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  className="flex w-full items-center justify-start gap-2 text-xs font-medium p-2 h-auto rounded-md"
+                                >
+                                  <span
+                                    className={`h-2 w-2 rounded-full ${getHMApprovalColor(
+                                      candidate.hmapproval
+                                    )}`}
+                                    aria-hidden="true"
+                                  />
+                                  <span>
+                                    {candidate.hmapproval || "Select status"}
+                                  </span>
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-40">
+                                {HM_APPROVAL_STATUSES.map((statusOption) => (
+                                  <DropdownMenuItem
+                                    key={statusOption}
+                                    onSelect={() =>
+                                      handleFieldUpdate(
+                                        candidate.id,
+                                        "hmapproval",
+                                        statusOption
+                                      )
+                                    }
+                                    disabled={
+                                      candidate.hmapproval === statusOption
+                                    }
+                                  >
+                                    {statusOption}
+                                  </DropdownMenuItem>
+                                ))}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </TableCell>
                         )}
                         {visibleColumns.includes("notice_period") && (
                           <TableCell className="min-w-[150px]">
-                            {candidate.notice_period || "N/A"}
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  className="flex w-full items-center justify-start gap-2 text-xs font-medium py-2 px-3 h-auto rounded-md"
+                                >
+                                  <span>
+                                    {candidate.notice_period || "Select status"}
+                                  </span>
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-40">
+                                {noticePeriodOptions.map((periodOption) => (
+                                  <DropdownMenuItem
+                                    key={periodOption}
+                                    onSelect={() =>
+                                      handleFieldUpdate(
+                                        candidate.id,
+                                        "notice_period",
+                                        periodOption
+                                      )
+                                    }
+                                    disabled={
+                                      candidate.hmapproval === periodOption
+                                    }
+                                  >
+                                    {periodOption}
+                                  </DropdownMenuItem>
+                                ))}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </TableCell>
                         )}
                         {visibleColumns.includes("current_ctc") && (
@@ -677,15 +742,15 @@ export default function CandidateViewList({
                           <TableCell className="min-w-[400px] py-2">
                             <div className="flex flex-wrap gap-1">
                               {(candidate.skill || [])
-                                .slice(0, 3)
+                                .slice(0, 2)
                                 .map((skill, idx) => (
                                   <Badge key={idx} variant="secondary">
                                     {skill}
                                   </Badge>
                                 ))}
-                              {(candidate.skill || []).length > 3 && (
+                              {(candidate.skill || []).length > 2 && (
                                 <Badge variant="secondary">
-                                  +{candidate.skill.length - 3}
+                                  +{candidate.skill.length - 2}
                                 </Badge>
                               )}
                             </div>
