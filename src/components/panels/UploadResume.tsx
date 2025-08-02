@@ -14,7 +14,11 @@ import axios from "axios";
 
 const API_BASE_URL = "http://51.20.181.155:3000";
 
-export default function UploadResume() {
+interface UploadResumeProps {
+  jobId: number;
+}
+
+export default function UploadResume({ jobId }: UploadResumeProps) {
   const [progress, setProgress] = useState(0);
   const [resumeupload, setResumeUpload] = useState(false);
   const [resumeFiles, setResumeFiles] = useState<FileList | null>(null);
@@ -52,6 +56,8 @@ export default function UploadResume() {
     Array.from(resumeFiles).forEach((file) => {
       formData.append("resumes", file);
     });
+
+    formData.append("job_id", jobId.toString());
 
     try {
       setResumeUpload(true);
@@ -91,6 +97,7 @@ export default function UploadResume() {
           accept=".pdf,.doc,.docx"
           onChange={handleResumeChange}
           aria-label="Upload PDF or Word document"
+          disabled={resumeupload}
         />
         {resumeError && <p className="text-red-500 mt-2">{resumeError}</p>}
 

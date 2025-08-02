@@ -35,6 +35,7 @@ interface CandidateForm {
   created_at: string;
   updated_at: string;
   linkedinprofile: string;
+  notice_period: string;
 }
 
 const formatCandidateAddress = (address: string): string => {
@@ -88,7 +89,6 @@ export default function Candidates() {
     }
   };
 
-  // --- CORRECTED EXPORT LOGIC ---
   const handleExport = () => {
     if (!candidates.length) {
       toast.warning("No candidates to export.");
@@ -166,6 +166,7 @@ export default function Candidates() {
 
         <CandidateViewList
           loading={loading}
+          jobId={null}
           candidates={candidates}
           fetchCandidates={fetchCandidates}
         />

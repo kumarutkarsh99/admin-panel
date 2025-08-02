@@ -12,10 +12,15 @@ import { CandidateManual } from "../panels/CandidateManual";
 
 interface AddCandidateModalProps {
   open: boolean;
+  jobId: number;
   handleClose: () => void;
 }
 
-const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
+const AddCandidateModal = ({
+  open,
+  jobId,
+  handleClose,
+}: AddCandidateModalProps) => {
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
       <DialogContent className="sm:max-w-5xl rounded-xl overflow-hidden p-0">
@@ -42,16 +47,16 @@ const AddCandidateModal = ({ open, handleClose }: AddCandidateModalProps) => {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="manual">
-              <CandidateManual />
+              <CandidateManual jobId={jobId} />
             </TabsContent>
             <TabsContent value="resume">
-              <UploadResume />
+              <UploadResume jobId={jobId} />
             </TabsContent>
             <TabsContent value="upload">
-              <Uploadbulk />
+              <Uploadbulk jobId={jobId} />
             </TabsContent>
             <TabsContent value="linkedin">
-              <LinkedinImPort />
+              <LinkedinImPort jobId={jobId} />
             </TabsContent>
           </Tabs>
         </div>
