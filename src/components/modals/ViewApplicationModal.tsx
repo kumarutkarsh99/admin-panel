@@ -119,6 +119,7 @@ export default function ViewApplicationsModal({
           <div>
             <CandidateViewList
               loading={loading}
+              jobId={jobId}
               candidates={applicants}
               fetchCandidates={fetchApplicants}
             />

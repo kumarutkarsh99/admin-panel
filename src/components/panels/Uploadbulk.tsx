@@ -64,7 +64,11 @@ const TEMPLATE_HEADERS: (keyof CandidateForm)[] = [
   "currency",
 ];
 
-export default function Uploadbulk() {
+interface UploadbulkProps {
+  jobId: number;
+}
+
+export default function Uploadbulk({ jobId }: UploadbulkProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [parsedRows, setParsedRows] = useState<any[]>([]);
   const [fileError, setFileError] = useState<string>("");
@@ -120,13 +124,14 @@ export default function Uploadbulk() {
     let filesProcessed = 0;
 
     files.forEach((file) => {
-      const valid = [
+      const validTypes = [
         "text/csv",
         "application/vnd.ms-excel",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       ];
-      if (!valid.includes(file.type)) {
-        return setFileError(`Unsupported type: ${file.name}`);
+      if (!validTypes.includes(file.type)) {
+        setFileError(`Unsupported file type: ${file.name}`);
+        return;
       }
 
       if (file.type === "text/csv") {
@@ -161,26 +166,34 @@ export default function Uploadbulk() {
   const handleUploadSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!parsedRows.length) {
-      setFileError("No data to upload");
+      setFileError("No data to upload.");
       return;
     }
     setUploading(true);
+    setProgress(0);
+
+    const payload = parsedRows.map((row) => ({
+      ...row,
+      job_id: jobId,
+    }));
+
     try {
-      console.log(parsedRows);
       await axios.post(
         `${API_BASE_URL}/candidate/createCandidatesBulk`,
-        parsedRows,
+        payload,
         {
           headers: { "Content-Type": "application/json" },
           onUploadProgress: (evt) => {
-            setProgress(Math.round((evt.loaded / evt.total!) * 100));
+            if (evt.total) {
+              setProgress(Math.round((evt.loaded / evt.total) * 100));
+            }
           },
         }
       );
-      toast.success("Upload successful");
+      toast.success("Candidates uploaded successfully!");
       resetForm();
     } catch (err) {
-      toast.error("Upload failed");
+      toast.error("An error occurred during upload.");
     } finally {
       setUploading(false);
     }
@@ -190,7 +203,7 @@ export default function Uploadbulk() {
     <div>
       <div className="flex w-full gap-2 mb-4">
         <Button
-          className="flex-1"
+          className="flex-1 gap-2"
           type="button"
           variant="outline"
           onClick={downloadCsvTemplate}
@@ -199,7 +212,7 @@ export default function Uploadbulk() {
           Download CSV Template
         </Button>
         <Button
-          className="flex-1"
+          className="flex-1 gap-2"
           type="button"
           variant="outline"
           onClick={downloadExcelTemplate}
@@ -216,6 +229,7 @@ export default function Uploadbulk() {
           accept=".csv,.xlsx,.xls"
           onChange={handleFileChange}
           aria-label="Upload CSV or Excel file"
+          disabled={uploading}
         />
         {fileError && <p className="text-red-500 mt-2">{fileError}</p>}
 
@@ -226,17 +240,17 @@ export default function Uploadbulk() {
         )}
 
         {parsedRows.length > 0 && (
-          <div className="max-h-96 overflow-auto mt-2">
+          <div className="max-h-96 overflow-auto mt-2 border rounded-md">
             <table className="min-w-full divide-y divide-gray-200 table-fixed">
               <thead className="bg-gray-100 sticky top-0">
                 <tr>
-                  <th className="px-4 py-2 text-xs font-semibold uppercase">
+                  <th className="px-4 py-2 text-xs font-semibold uppercase text-center w-20">
                     Remove
                   </th>
                   {headers.map((h) => (
                     <th
                       key={h}
-                      className="px-4 py-2 text-xs font-semibold uppercase"
+                      className="px-4 py-2 text-left text-xs font-semibold uppercase"
                     >
                       {h}
                     </th>
@@ -246,15 +260,13 @@ export default function Uploadbulk() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {parsedRows.map((row, i) => (
                   <tr key={i} className="hover:bg-gray-50">
-                    <td className="px-4 py-2">
+                    <td className="px-4 py-2 text-center">
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeRow(i);
-                        }}
+                        onClick={() => removeRow(i)}
+                        aria-label={`Remove row ${i + 1}`}
                       >
                         ×
                       </Button>
@@ -275,14 +287,17 @@ export default function Uploadbulk() {
         )}
 
         {uploading && (
-          <progress
-            value={progress}
-            max={100}
-            className="w-full mt-4"
-            aria-valuenow={progress}
-            aria-valuemin={0}
-            aria-valuemax={100}
-          />
+          <div className="w-full mt-4">
+            <progress
+              value={progress}
+              max={100}
+              className="w-full"
+              aria-valuenow={progress}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            />
+            <p className="text-center text-sm">{progress}%</p>
+          </div>
         )}
 
         <div className="mt-4 flex justify-end gap-2">
@@ -301,7 +316,7 @@ export default function Uploadbulk() {
             disabled={uploading || !parsedRows.length}
             className="bg-gradient-to-r from-blue-600 to-purple-600"
           >
-            {uploading ? `Uploading ${progress}%` : "Upload"}
+            {uploading ? `Uploading...` : "Upload"}
           </Button>
         </div>
       </form>

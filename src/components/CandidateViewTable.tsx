@@ -107,6 +107,7 @@ interface ParsedEducation {
 
 interface CandidateViewListProps {
   loading: boolean;
+  jobId: number;
   candidates: CandidateForm[];
   fetchCandidates: () => void;
 }
@@ -222,6 +223,7 @@ const EditableCell = ({
 
 export default function CandidateViewList({
   loading,
+  jobId,
   candidates,
   fetchCandidates,
 }: CandidateViewListProps) {
@@ -832,6 +834,7 @@ export default function CandidateViewList({
       )}
       <AddCandidateModal
         open={isAddModalOpen}
+        jobId={jobId}
         handleClose={() => setAddModalOpen(false)}
       />
       <CandidateProfileModal

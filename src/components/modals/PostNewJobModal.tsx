@@ -69,6 +69,87 @@ const initialForm = {
   notice_period: "",
 };
 const noticePeriodOptions = ["15 days", "30 days", "60 days", "90 days"];
+const industries = [
+  "IT Services",
+  "Information Technology",
+  "Software Development",
+  "Healthcare",
+  "Pharmaceuticals",
+  "Biotechnology",
+  "Finance",
+  "Banking",
+  "Insurance",
+  "Retail",
+  "E-commerce",
+  "Telecommunications",
+  "Manufacturing",
+  "Automotive",
+  "Aerospace",
+  "Construction",
+  "Real Estate",
+  "Education",
+  "Government",
+  "Defense",
+  "Media",
+  "Entertainment",
+  "Hospitality",
+  "Travel & Tourism",
+  "Logistics & Supply Chain",
+  "Transportation",
+  "Energy",
+  "Utilities",
+  "Mining",
+  "Agriculture",
+  "Food & Beverage",
+  "Legal Services",
+  "Non-Profit",
+  "Consulting",
+  "Marketing & Advertising",
+  "Consumer Goods",
+  "Cybersecurity",
+  "Electronics",
+  "Public Sector",
+  "Textile",
+  "Publishing",
+  "Human Resources",
+  "Research & Development",
+  "Environmental Services",
+  "Sports & Recreation"
+];
+
+const jobFunctions = [
+  "Frontend Developer",
+  "Backend Developer",
+  "Full Stack Developer",
+  "DevOps Engineer",
+  "Software Engineer",
+  "QA Engineer",
+  "Test Automation Engineer",
+  "Mobile App Developer",
+  "iOS Developer",
+  "Android Developer",
+  "Web Developer",
+  "UI/UX Designer",
+  "Product Manager",
+  "Scrum Master",
+  "Tech Lead",
+  "Solution Architect",
+  "Cloud Engineer",
+  "Database Administrator",
+  "Data Engineer",
+  "Data Scientist",
+  "Machine Learning Engineer",
+  "AI Engineer",
+  "Game Developer",
+  "Embedded Software Engineer",
+  "Security Engineer",
+  "Site Reliability Engineer",
+  "Blockchain Developer",
+  "AR/VR Developer",
+  "System Analyst",
+  "Software Support Engineer",
+];
+
 
 export interface JobsForm {
   job_title: string;
@@ -151,6 +232,14 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isParsing, setIsParsing] = useState(false);
   const [locationSuggestions, setLocationSuggestions] = useState<string[]>([]);
+  const [industrySuggestions, setIndustrySuggestions] = useState<string[]>([]);
+  const [showIndustrySuggestions, setShowIndustrySuggestions] = useState(false);
+  const [jobFunctionSuggestions, setJobFunctionSuggestions] = useState<string[]>([]);
+  const [showJobFunctionSuggestions, setShowJobFunctionSuggestions] = useState(false);
+
+
+  const [progress, setProgress] = useState(0);
+
   const [departments] = useState([
     "Engineering",
     "Human Resources",
@@ -186,6 +275,7 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
       setUploadedFile(null);
     }
   }, [open]);
+
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
@@ -250,6 +340,22 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
 
       setLocationSuggestions(filtered); // ✅ no type error
     }
+
+    // Industry suggestion logic
+    if (section === "companyDetails" && field === "industry") {
+      const filtered = industries.filter((item) =>
+        item.toLowerCase().includes(value.toLowerCase())
+      );
+      setIndustrySuggestions(filtered); // <-- Define this in useState
+    }
+
+    // For Job Function suggestions
+    if (section === "companyDetails" && field === "jobFunction") {
+      const filtered = jobFunctions.filter((item) =>
+        item.toLowerCase().includes(value.toLowerCase())
+      );
+      setJobFunctionSuggestions(filtered);
+    }
   };
   const addKeyword = () => {
     if (
@@ -280,24 +386,60 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
       toast.warning("Please paste a job description or upload a file.");
       return;
     }
+
+    const formData = new FormData();
+    formData.append("file", uploadedFile);
+    formData.append("fileName", uploadedFile.name);
+
+    const response = await axios.post(`${API_BASE_URL}/jobs/extractJob`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+      onUploadProgress: (evt) => {
+        const pct = Math.round((evt.loaded * 100) / (evt.total || 1));
+        setProgress(pct);
+      },
+    });
+
+    const result = await response;
+    let rawExtracted = result.data.results[0].extractedData;
+    console.log(rawExtracted, 'rawextracted')
+    rawExtracted = rawExtracted.replace(/```json\n?|```/g, '');
+    let extractedObj = JSON.parse(rawExtracted);
     setIsParsing(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
+      // const parsedData = {
+      //   jobTitle: "Senior Software Engineer (React)",
+      //   description: {
+      //     about:
+      //       "We are seeking an experienced Frontend Developer to join our dynamic team.",
+      //     requirements:
+      //       "5+ years of React experience.\nProficient in TypeScript.",
+      //     benefits: "Health Insurance\nFlexible work hours",
+      //   },
+      //   companyDetails: { industry: "Technology", jobFunction: "Engineering" },
+      //   employmentDetails: {
+      //     experience: "Senior level",
+      //     education: "Bachelor",
+      //     keywords: ["React", "TypeScript", "JavaScript"],
+      //   },
+      // };
+
       const parsedData = {
-        jobTitle: "Senior Software Engineer (React)",
+        jobTitle: extractedObj.jobTitle,
         description: {
-          about:
-            "We are seeking an experienced Frontend Developer to join our dynamic team.",
-          requirements:
-            "5+ years of React experience.\nProficient in TypeScript.",
-          benefits: "Health Insurance\nFlexible work hours",
+          about: extractedObj.about,
+          requirements: extractedObj.requirements
         },
-        companyDetails: { industry: "Technology", jobFunction: "Engineering" },
+        companyDetails: { industry: extractedObj.industry, jobFunction: extractedObj.jobFunction },
         employmentDetails: {
-          experience: "Senior level",
-          education: "Bachelor",
-          keywords: ["React", "TypeScript", "JavaScript"],
+          // experience: "Senior level",
+          // education: "Bachelor",
+          // keywords: ["React", "TypeScript", "JavaScript"],
+          experience: "",
+          education: "",
+          keywords: [],
         },
+
       };
 
       setFormData((prev) => ({
@@ -609,42 +751,80 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                   <div className="md:col-span-2 mt-4 mb-2">
                     <h3 className="text-xl font-semibold">Company Details</h3>
                   </div>
-                  <div>
+                  <div className="relative w-full">
                     <label className="text-sm">Industry *</label>
                     <Input
                       placeholder="IT Services"
                       value={formData.companyDetails.industry}
-                      onChange={(e) =>
-                        handleNestedChange(
-                          "companyDetails",
-                          "industry",
-                          e.target.value
-                        )
-                      }
+                      onChange={(e) => {
+                        handleNestedChange("companyDetails", "industry", e.target.value);
+                        setShowIndustrySuggestions(true);
+                      }}
+                      onBlur={() => setTimeout(() => setShowIndustrySuggestions(false), 150)}
+                      onFocus={() => {
+                        if (formData.companyDetails.industry)
+                          setShowIndustrySuggestions(true);
+                      }}
                     />
+
+                    {/* Suggestions dropdown */}
+                    {showIndustrySuggestions && industrySuggestions.length > 0 && (
+                      <ul className="absolute z-10 bg-white border border-gray-300 rounded-md w-full mt-1 max-h-48 overflow-y-auto shadow-md">
+                        {industrySuggestions.map((item, index) => (
+                          <li
+                            key={index}
+                            onClick={() => {
+                              handleNestedChange("companyDetails", "industry", item);
+                              setShowIndustrySuggestions(false);
+                            }}
+                            className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                          >
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+
                     {errors.industry && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.industry}
-                      </p>
+                      <p className="text-red-500 text-xs mt-1">{errors.industry}</p>
                     )}
                   </div>
-                  <div>
+                  <div className="relative w-full">
                     <label className="text-sm">Job Function *</label>
                     <Input
                       placeholder="Software Development"
                       value={formData.companyDetails.jobFunction}
-                      onChange={(e) =>
-                        handleNestedChange(
-                          "companyDetails",
-                          "jobFunction",
-                          e.target.value
-                        )
-                      }
+                      onChange={(e) => {
+                        handleNestedChange("companyDetails", "jobFunction", e.target.value);
+                        setShowJobFunctionSuggestions(true);
+                      }}
+                      onBlur={() => setTimeout(() => setShowJobFunctionSuggestions(false), 150)}
+                      onFocus={() => {
+                        if (formData.companyDetails.jobFunction)
+                          setShowJobFunctionSuggestions(true);
+                      }}
                     />
+
+                    {/* Autosuggestion Dropdown */}
+                    {showJobFunctionSuggestions && jobFunctionSuggestions.length > 0 && (
+                      <ul className="absolute z-10 bg-white border border-gray-300 rounded-md w-full mt-1 max-h-48 overflow-y-auto shadow-md">
+                        {jobFunctionSuggestions.map((item, index) => (
+                          <li
+                            key={index}
+                            onClick={() => {
+                              handleNestedChange("companyDetails", "jobFunction", item);
+                              setShowJobFunctionSuggestions(false);
+                            }}
+                            className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                          >
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+
                     {errors.jobFunction && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.jobFunction}
-                      </p>
+                      <p className="text-red-500 text-xs mt-1">{errors.jobFunction}</p>
                     )}
                   </div>
                   <div>
