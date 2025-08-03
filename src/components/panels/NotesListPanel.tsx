@@ -5,12 +5,12 @@ import { FileText, Download } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-
+import { Badge } from "@/components/ui/badge";
 export interface FileItem {
   id: string;
   candidate_id: string;
-  resume_url: string;
-  uploadedAt: string;
+  note: string;
+  created_at: string;
   uploadedBy: string;
   is_current?: boolean;
   uploaderAvatarUrl?: string; // if needed
@@ -59,12 +59,15 @@ export function NotesListPanel({ files, candidateId }: FilesPanelProps) {
 
   return (
     <ScrollArea className="h-[400px] p-2">
-      {tasks.map((f) => (
+         {loading ? (
+          <div>Loading tasks...</div>
+        ) : tasks.length > 0 ? (
+      tasks.map((f) => (
         <div
           key={f.id}
           className="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm mb-4"
         >
-          <div className="flex items-center space-x-4">
+          {/* <div className="flex items-center space-x-4">
             <FileText className="w-6 h-6 text-gray-600" />
             <a
               href={f.resume_url}
@@ -74,6 +77,14 @@ export function NotesListPanel({ files, candidateId }: FilesPanelProps) {
             >
               {f.resume_url}
             </a>
+          </div> */}
+
+           <div className="space-y-1">
+            <p className="font-medium text-gray-800">{f.note}</p>
+            {/* <div className="flex items-center space-x-2 text-sm text-gray-500">
+              <span>Reviewer:</span>
+              <Badge variant="outline">{f.note}</Badge>
+            </div> */}
           </div>
           <div className="flex items-center space-x-4">
             {/* Uncomment and modify if you have avatar data */}
@@ -88,19 +99,21 @@ export function NotesListPanel({ files, candidateId }: FilesPanelProps) {
               <span>{f.uploadedBy}</span>
             </div> */}
             <span className="text-sm text-gray-500">
-        {f.uploadedAt ? format(parseISO(f.uploadedAt), "dd MMM, yyyy") : "N/A"}
+        {f.created_at ? format(parseISO(f.created_at), "dd MMM, yyyy") : "N/A"}
             </span>
-            <a
+            {/* <a
               href={`http://51.20.181.155/ats-api/uploads/f.resume_url`}
               download
               className="text-gray-600 hover:text-gray-800"
               target="blank"
             >
               <Download className="w-5 h-5" />
-            </a>
+            </a> */}
           </div>
         </div>
-      ))}
+      ))  ) : (
+          <div className="text-center text-gray-500">No tasks available.</div>
+        )}
     </ScrollArea>
 
 
