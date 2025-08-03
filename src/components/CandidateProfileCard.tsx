@@ -56,6 +56,7 @@ interface CandidateProfile {
   institutiontier: string;
   companytier: string;
   resume_url: string;
+  job_titles:Job[]
 }
 
 interface ProfileCardProps {
@@ -97,6 +98,7 @@ export default function CandidateProfileCard({ candidate }: ProfileCardProps) {
     institutiontier,
     companytier,
     resume_url,
+    job_titles
   } = candidate;
 
   const [editOpen, setEditOpen] = useState(false);
@@ -244,13 +246,17 @@ export default function CandidateProfileCard({ candidate }: ProfileCardProps) {
             + Add job
           </Button>
         </div>
-        {jobs.length > 0 ? (
-          jobs.map((job) => (
-            <p key={job.id} className="text-sm text-slate-600">
-              {job.title}
-            </p>
-          ))
-        ) : (
+       {(() => {
+  console.log(job_titles);
+  return null;
+})()}
+{Array.isArray(job_titles) && job_titles.length > 0 ? (
+  job_titles.map((title, index) => (
+    <p key={index} className="text-sm text-slate-600">
+      {title}
+    </p>
+  ))
+)  : (
           <p className="text-xs text-gray-400">No jobs found</p>
         )}
       </Card>
