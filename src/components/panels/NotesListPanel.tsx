@@ -25,7 +25,7 @@ interface FilesPanelProps {
 
 const API_BASE = "http://51.20.181.155:3000";
 
-export function FilesPanel({ files, candidateId }: FilesPanelProps) {
+export function NotesListPanel({ files, candidateId }: FilesPanelProps) {
   const sampleFiles: FileItem[] = []; // optional fallback if needed
   const fileList = files && files.length ? files : sampleFiles;
 
@@ -35,7 +35,7 @@ export function FilesPanel({ files, candidateId }: FilesPanelProps) {
   const fetchTasks = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_BASE}/candidate/candidateResumes/${candidateId}`);
+      const res = await axios.get(`${API_BASE}/candidate/notes/${candidateId}`);
       if (res.data.status) {
         setTasks(res.data.result);
       } else {
@@ -102,5 +102,8 @@ export function FilesPanel({ files, candidateId }: FilesPanelProps) {
         </div>
       ))}
     </ScrollArea>
+
+
+
   );
 }

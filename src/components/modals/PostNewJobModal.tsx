@@ -1035,7 +1035,7 @@ const [showJobFunctionSuggestions, setShowJobFunctionSuggestions] = useState(fal
                     )}
                   </div>
                 </div>
-                <div className="md:col-span-2 mt-4 mb-2">
+                {/* <div className="md:col-span-2 mt-4 mb-2">
                   <label className="text-sm">Notice Period *</label>
                   <Select
                     value={formData.notice_period}
@@ -1059,7 +1059,7 @@ const [showJobFunctionSuggestions, setShowJobFunctionSuggestions] = useState(fal
                       {errors.notice_period}
                     </p>
                   )}
-                </div>
+                </div> */}
               </TabsContent>
 
               <TabsContent value="import" className="mt-4">
