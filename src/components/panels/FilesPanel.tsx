@@ -67,7 +67,7 @@ export function FilesPanel({ files, candidateId }: FilesPanelProps) {
           <div className="flex items-center space-x-4">
             <FileText className="w-6 h-6 text-gray-600" />
             <a
-              href={f.resume_url}
+              href= {`http://51.20.181.155/ats-api/uploads/${f.resume_url}`}
               target="_blank"
               rel="noreferrer"
               className="font-medium text-blue-600 hover:underline break-all"
@@ -91,7 +91,7 @@ export function FilesPanel({ files, candidateId }: FilesPanelProps) {
         {f.uploadedAt ? format(parseISO(f.uploadedAt), "dd MMM, yyyy") : "N/A"}
             </span>
             <a
-              href={`http://51.20.181.155/ats-api/uploads/f.resume_url`}
+              href={`http://51.20.181.155/ats-api/uploads/${f.resume_url}`}
               download
               className="text-gray-600 hover:text-gray-800"
               target="blank"
