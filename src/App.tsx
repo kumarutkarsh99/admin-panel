@@ -4,18 +4,19 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
-
+import React, { lazy, Suspense } from "react";
 import Index from "./pages/Index";
-import Jobs from "./pages/Jobs";
-import Candidates from "./pages/Candidates";
-import Clients from "./pages/Clients";
-import Interviews from "./pages/Interviews";
-import Analytics from "./pages/Analytics";
-import Settings from "./pages/Settings";
-import NotFound from "./pages/NotFound";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-import Users from "./pages/Users";
+const Jobs = lazy(() => import("./pages/Jobs"));
+const Candidates = lazy(() => import("./pages/Candidates"));
+const Clients = lazy(() => import("./pages/Clients"));
+const Interviews = lazy(() => import("./pages/Interviews"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const Settings = lazy(() => import("./pages/Settings"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Login = lazy(() => import("./pages/Login"));
+const Signup = lazy(() => import("./pages/Signup"));
+const Users = lazy(() => import("./pages/Users"));
+
 
 import { AuthProvider } from "@/context/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -32,6 +33,7 @@ const App = () => (
       <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
         <AuthProvider>
           <BrowserRouter>
+          <Suspense fallback={<div className="text-center p-10">Loading...</div>}>
             <Routes>
               <Route
                 path="/login"
@@ -116,6 +118,7 @@ const App = () => (
               />
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </Suspense>
           </BrowserRouter>
         </AuthProvider>
       </GoogleOAuthProvider>
