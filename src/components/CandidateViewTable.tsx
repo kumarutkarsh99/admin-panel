@@ -73,7 +73,8 @@ const noticePeriodOptions = ["15 days", "30 days", "60 days", "90 days"];
 
 interface CandidateForm {
   id: number;
-  job_id: number;
+  job_ids: number[];
+  job_titles: string[];
   first_name: string;
   last_name: string;
   email: string;
@@ -527,9 +528,41 @@ export default function CandidateViewList({
                             </CandidateActionsPopover>
                           </TableCell>
                         )}
-                        {visibleColumns.includes("job_id") && (
-                          <TableCell>{candidate.job_id}</TableCell>
-                        )}
+                        {visibleColumns.includes("job_titles") &&
+                          (candidate.job_titles &&
+                          candidate.job_titles.length > 0 &&
+                          candidate.job_titles[0] != null ? (
+                            <TableCell className="py-2">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="w-full text-xs"
+                                  >
+                                    View {candidate.job_titles.length} Jobs
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                  {candidate.job_titles.map((title) => (
+                                    <DropdownMenuItem key={title}>
+                                      {title}
+                                    </DropdownMenuItem>
+                                  ))}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          ) : (
+                            <TableCell>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full text-xs"
+                              >
+                                Not Assigned
+                              </Button>
+                            </TableCell>
+                          ))}
                         {visibleColumns.includes("status") && (
                           <TableCell className="min-w-[170px]">
                             <DropdownMenu>
