@@ -11,7 +11,8 @@ const API_BASE_URL = "http://51.20.181.155:3000";
 
 interface CandidateForm {
   id: number;
-  job_id: number;
+  job_ids: number[];
+  job_titles: string[];
   first_name: string;
   last_name: string;
   email: string;
@@ -35,6 +36,7 @@ interface CandidateForm {
   created_at: string;
   updated_at: string;
   linkedinprofile: string;
+  notice_period: string;
 }
 
 const formatCandidateAddress = (address: string): string => {
@@ -88,7 +90,6 @@ export default function Candidates() {
     }
   };
 
-  // --- CORRECTED EXPORT LOGIC ---
   const handleExport = () => {
     if (!candidates.length) {
       toast.warning("No candidates to export.");
@@ -109,7 +110,7 @@ export default function Candidates() {
 
     const rows = candidates.map((c) => [
       `${c.first_name} ${c.last_name}`,
-      c.job_id,
+      c.job_ids,
       c.email,
       c.phone,
       c.linkedinprofile,
@@ -166,6 +167,7 @@ export default function Candidates() {
 
         <CandidateViewList
           loading={loading}
+          jobId={null}
           candidates={candidates}
           fetchCandidates={fetchCandidates}
         />

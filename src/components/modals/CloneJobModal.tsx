@@ -144,7 +144,7 @@ export default function CloneJobModal({
   const validateForm = (): string | null => {
     const newErrors: Record<string, string> = {};
     if (!form.job_title.trim()) newErrors.job_title = "Job title is required.";
-    if (!form.job_code.trim()) newErrors.job_code = "Job code is required.";
+    // if (!form.job_code.trim()) newErrors.job_code = "Job code is required.";
     if (!form.department.trim())
       newErrors.department = "Department is required.";
     if (!form.workplace.trim()) newErrors.workplace = "Workplace is required.";
@@ -323,7 +323,7 @@ export default function CloneJobModal({
                   <p className="text-red-500 text-xs">{errors.job_title}</p>
                 )}
               </div>
-              <div>
+              {/* <div>
                 <label className="block text-sm font-medium mb-1">
                   Job Code
                 </label>
@@ -337,7 +337,7 @@ export default function CloneJobModal({
                 {errors.job_code && (
                   <p className="text-red-500 text-xs">{errors.job_code}</p>
                 )}
-              </div>
+              </div> */}
               <div>
                 <label className="block text-sm font-medium mb-1">
                   Department

@@ -13,11 +13,14 @@ import { ScorecardsPanel } from "./panels/ScorecardsPanel";
 import { ConversationsPanel } from "./panels/ConversationsPanel";
 import { CallsListPanel } from "./panels/CallsListPanel";
 import { TasksListPanel } from "./panels/TasksListPanel";
+import { NotesListPanel } from "./panels/NotesListPanel";
 
 export default function CandidateDetailsTabs({
   candidate,
+  fetchCandidates,
 }: {
   candidate: any;
+  fetchCandidates: () => void;
 }) {
   const [primaryTab, setPrimaryTab] = useState<string>("notes");
   const [secondaryTab, setSecondaryTab] = useState<string>("activities");
@@ -52,7 +55,7 @@ export default function CandidateDetailsTabs({
         </TabsList>
 
         <TabsContent value="notes">
-          <NotesPanel candidate={candidate} />
+          <NotesPanel candidateId={candidate.id} authorId={1} />
         </TabsContent>
         <TabsContent value="tasks">
           <TasksPanel
@@ -91,6 +94,7 @@ export default function CandidateDetailsTabs({
             { value: "conversations", label: "Conversations" },
             { value: "calls_list", label: "Calls" },
             { value: "tasks_list", label: "Tasks" },
+            { value: "Notes_list", label: "Notes" },
           ].map((tab) => (
             <TabsTrigger
               key={tab.value}
@@ -106,7 +110,7 @@ export default function CandidateDetailsTabs({
           <ActivitiesPanel activities={candidate.activities || []} />
         </TabsContent>
         <TabsContent value="files">
-          <FilesPanel files={candidate.files} />
+          <FilesPanel candidateId={candidate.id} authorId={1} />
         </TabsContent>
         <TabsContent value="scorecards">
           <ScorecardsPanel scorecards={candidate.scorecards} />
@@ -117,6 +121,10 @@ export default function CandidateDetailsTabs({
         <TabsContent value="calls_list">
           <CallsListPanel calls={candidate.calls} />
         </TabsContent>
+        <TabsContent value="Notes_list">
+          <NotesListPanel candidateId={candidate.id} authorId={1} />
+        </TabsContent>
+
         <TabsContent value="tasks_list">
           <TasksListPanel
             candidateId={candidate.id}

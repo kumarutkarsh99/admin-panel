@@ -16,8 +16,12 @@ import {
   List,
   Mic,
 } from "lucide-react";
-
-export function NotesPanel({ candidate }) {
+interface NotesPanelProps {
+  candidateId: number;
+  authorId: number;
+  refreshTrigger?: boolean;
+}
+export function NotesPanel({ candidateId }: NotesPanelProps) {
   const [template, setTemplate] = useState("default");
 
   return (

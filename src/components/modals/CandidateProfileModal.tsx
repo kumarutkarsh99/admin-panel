@@ -10,6 +10,7 @@ export default function CandidateProfileModal({
   open,
   onOpenChange,
   candidate,
+  fetchCandidates,
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -39,7 +40,10 @@ export default function CandidateProfileModal({
             scrollbar-custom
           "
         >
-          <CandidateProfilePage candidate={candidate} />
+          <CandidateProfilePage
+            candidate={candidate}
+            fetchCandidates={fetchCandidates}
+          />
         </div>
       </DialogContent>
     </Dialog>
