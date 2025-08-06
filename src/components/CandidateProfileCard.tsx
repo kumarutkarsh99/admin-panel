@@ -11,8 +11,8 @@ import {
 import { MoreVertical, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import StarRating from "./StarRating";
-import { BulkUpdateFieldsModal } from "./modals/BulkUpdateFieldsModal";
 import AssignToJobModal from "./modals/AssigntoJobModal";
+import EditCandidateModal from "./modals/EditCandidateModal";
 
 interface Job {
   id: number;
@@ -48,7 +48,6 @@ interface CandidateProfile {
   current_company: string | null;
   linkedinprofile: string;
   rating: number | string | null;
-  jobs: Job[];
   status: string;
   recruiter_status: string;
   hmapproval: string;
@@ -56,11 +55,12 @@ interface CandidateProfile {
   institutiontier: string;
   companytier: string;
   resume_url: string;
-  job_titles:Job[]
+  job_titles: string[];
 }
 
 interface ProfileCardProps {
   candidate: CandidateProfile;
+  fetchCandidates: () => void;
 }
 
 const parseJSON = (data) => {
@@ -75,7 +75,10 @@ const parseJSON = (data) => {
   return Array.isArray(data) ? data : [];
 };
 
-export default function CandidateProfileCard({ candidate }: ProfileCardProps) {
+export default function CandidateProfileCard({
+  candidate,
+  fetchCandidates,
+}: ProfileCardProps) {
   const {
     id,
     first_name,
@@ -92,13 +95,12 @@ export default function CandidateProfileCard({ candidate }: ProfileCardProps) {
     current_company,
     linkedinprofile: linkedIn,
     rating,
-    jobs = [],
     status,
     notice_period,
     institutiontier,
     companytier,
     resume_url,
-    job_titles
+    job_titles,
   } = candidate;
 
   const [editOpen, setEditOpen] = useState(false);
@@ -115,8 +117,8 @@ export default function CandidateProfileCard({ candidate }: ProfileCardProps) {
     linkedIn && !linkedIn.startsWith("http") ? `https://${linkedIn}` : linkedIn;
 
   return (
-    <div className="w-full p-3 font-sans">
-      <Card className="p-6 space-y-4 shadow-lg rounded-xl">
+    <div className="min-w-full h-full p-3 font-sans">
+      <Card className="p-6 space-y-4 shadow-sm rounded-xl">
         <div className="flex items-start space-x-6">
           <Avatar className="h-16 w-16 text-xl">
             {photo_url ? (
@@ -246,17 +248,13 @@ export default function CandidateProfileCard({ candidate }: ProfileCardProps) {
             + Add job
           </Button>
         </div>
-       {(() => {
-  console.log(job_titles);
-  return null;
-})()}
-{Array.isArray(job_titles) && job_titles.length > 0 ? (
-  job_titles.map((title, index) => (
-    <p key={index} className="text-sm text-slate-600">
-      {title}
-    </p>
-  ))
-)  : (
+        {job_titles.length > 0 ? (
+          job_titles.map((title) => (
+            <Badge key={title} variant="secondary" className="mx-1">
+              {title}
+            </Badge>
+          ))
+        ) : (
           <p className="text-xs text-gray-400">No jobs found</p>
         )}
       </Card>
@@ -335,13 +333,11 @@ export default function CandidateProfileCard({ candidate }: ProfileCardProps) {
       </Card>
 
       {editOpen && (
-        <BulkUpdateFieldsModal
-          open={editOpen}
-          onClose={() => setEditOpen(false)}
-          selectedIds={[id]}
-          onSuccess={() => {
-            setEditOpen(false);
-          }}
+        <EditCandidateModal
+          isOpen={editOpen}
+          onOpenChange={() => setEditOpen(false)}
+          candidate={candidate}
+          onSaveSuccess={() => setEditOpen(false)}
         />
       )}
 

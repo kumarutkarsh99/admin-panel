@@ -874,6 +874,7 @@ export default function CandidateViewList({
         open={isProfileModalOpen}
         onOpenChange={setProfileModalOpen}
         candidate={selectedCandidate}
+        fetchCandidates = {fetchCandidates}
       />
     </div>
   );
