@@ -7,8 +7,6 @@ import {
   Select,
   SelectContent,
   SelectItem,
-  SelectScrollDownButton,
-  SelectScrollUpButton,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -48,11 +46,12 @@ interface CandidateForm {
   state: string;
   country: string;
   zipcode: string;
-  notice_period:string;
+  notice_period: string;
+  job_id: number | null;
 }
 
 type CandidateFormKey = keyof CandidateForm;
-const noticePeriodOptions = ['15 days', '30 days', '60 days', '90 days'];
+const noticePeriodOptions = ["15 days", "30 days", "60 days", "90 days"];
 const initialCandidateForm: CandidateForm = {
   first_name: "",
   last_name: "",
@@ -84,10 +83,15 @@ const initialCandidateForm: CandidateForm = {
   state: "",
   country: "",
   zipcode: "",
-  notice_period:""
+  notice_period: "",
+  job_id: null,
 };
 
-export const CandidateManual = () => {
+interface CandidateManualProps {
+  jobId: number;
+}
+
+export const CandidateManual = ({ jobId }: CandidateManualProps) => {
   const fieldRefs = useRef<
     Record<string, HTMLInputElement | HTMLTextAreaElement | null>
   >({});
@@ -167,10 +171,11 @@ export const CandidateManual = () => {
   };
 
   const addTag = () => {
-    if (tagInput && !formData.skill.includes(tagInput)) {
+    const trimmedTag = tagInput.trim();
+    if (trimmedTag && !formData.skill.includes(trimmedTag)) {
       setFormData((prev) => ({
         ...prev,
-        skill: [...prev.skill, tagInput],
+        skill: [...prev.skill, trimmedTag],
       }));
       setTagInput("");
     }
@@ -184,7 +189,7 @@ export const CandidateManual = () => {
   };
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {};
+    const newErrors: Partial<Record<CandidateFormKey, string>> = {};
     if (!formData.first_name) newErrors.first_name = "First Name is Required";
     if (!formData.email) newErrors.email = "Email is Required";
     if (!formData.phone) newErrors.phone = "Phone Number is Required";
@@ -192,18 +197,19 @@ export const CandidateManual = () => {
     if (!formData.education)
       newErrors.education = "Education details are Required";
     setErrors(newErrors);
-    const firstErrorKey = Object.keys(newErrors)[0] ?? null;
-    return firstErrorKey;
+    return Object.keys(newErrors)[0] as CandidateFormKey | null;
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const firstError = validateForm();
-    if (firstError) {
-      toast.error("Please enter required fields.");
-      const el = fieldRefs.current[firstError];
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
-      el?.focus();
+    const firstErrorKey = validateForm();
+    if (firstErrorKey) {
+      toast.error("Please fill out all required fields.");
+      const el = fieldRefs.current[firstErrorKey];
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.focus({ preventScroll: true });
+      }
       return;
     }
     setLoading(true);
@@ -225,18 +231,22 @@ export const CandidateManual = () => {
     const payload = {
       ...rest,
       address: fullAddress,
+      job_id: jobId,
     };
 
     try {
-      console.log(payload);
+      console.log("Submitting payload:", payload);
       await axios.post(`${API_BASE_URL}/candidate/createCandidate`, payload);
       toast.success("Candidate added successfully");
       resetForm();
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
-        toast.error(err.response?.data?.message ?? "Error adding candidate");
+        toast.error(
+          err.response?.data?.message ??
+            "An error occurred while adding the candidate."
+        );
       } else {
-        toast.error("Unexpected error");
+        toast.error("An unexpected error occurred.");
       }
     } finally {
       setLoading(false);
@@ -247,23 +257,12 @@ export const CandidateManual = () => {
     <form
       onSubmit={handleSubmit}
       className="grid grid-cols-1 md:grid-cols-2 gap-4"
+      noValidate
     >
       {[
-        {
-          key: "first_name",
-          label: "First Name",
-          placeholder: "e.g. John",
-        },
-        {
-          key: "last_name",
-          label: "Last Name",
-          placeholder: "e.g. Doe",
-        },
-        {
-          key: "email",
-          label: "Email",
-          placeholder: "you@example.com",
-        },
+        { key: "first_name", label: "First Name", placeholder: "e.g. John" },
+        { key: "last_name", label: "Last Name", placeholder: "e.g. Doe" },
+        { key: "email", label: "Email", placeholder: "you@example.com" },
         {
           key: "phone",
           label: "Phone Number",
@@ -272,7 +271,7 @@ export const CandidateManual = () => {
         {
           key: "headline",
           label: "Headline",
-          placeholder: "Paste text or link",
+          placeholder: "e.g. Senior Software Engineer",
         },
         {
           key: "linkedin",
@@ -284,11 +283,31 @@ export const CandidateManual = () => {
           label: "Profile Photo",
           placeholder: "Image URL (jpg/png/etc.)",
         },
-        {
-          key: "resume_url",
-          label: "Resume",
-          placeholder: "PDF or DOC link",
-        },
+        { key: "resume_url", label: "Resume", placeholder: "PDF or DOC link" },
+      ].map(({ key, label, placeholder }) => (
+        <div key={key}>
+          <label className="text-sm" htmlFor={key}>
+            {label}
+          </label>
+          <Input
+            id={key}
+            value={formData[key as keyof CandidateForm] as string}
+            placeholder={placeholder}
+            aria-invalid={!!errors[key as keyof CandidateForm]}
+            onChange={(e) =>
+              handleChange(key as keyof CandidateForm, e.target.value)
+            }
+            ref={(el) => (fieldRefs.current[key] = el)}
+          />
+          {errors[key as keyof CandidateForm] && (
+            <p className="text-sm text-red-500 mt-1">
+              {errors[key as keyof CandidateForm]}
+            </p>
+          )}
+        </div>
+      ))}
+
+      {[
         {
           key: "street1",
           label: "Street Address 1",
@@ -300,21 +319,27 @@ export const CandidateManual = () => {
           placeholder: "Suite, Apt, etc. (opt.)",
         },
         { key: "city", label: "City", placeholder: "City name" },
-        {
-          key: "state",
-          label: "State",
-          placeholder: "State/Province",
-        },
-        {
-          key: "country",
-          label: "Country",
-          placeholder: "Country name",
-        },
-        {
-          key: "zipcode",
-          label: "Zipcode",
-          placeholder: "Postal code",
-        },
+        { key: "state", label: "State", placeholder: "State/Province" },
+        { key: "country", label: "Country", placeholder: "Country name" },
+        { key: "zipcode", label: "Zipcode", placeholder: "Postal code" },
+      ].map(({ key, label, placeholder }) => (
+        <div key={key}>
+          <label className="text-sm" htmlFor={key}>
+            {label}
+          </label>
+          <Input
+            id={key}
+            value={formData[key as keyof CandidateForm] as string}
+            placeholder={placeholder}
+            onChange={(e) =>
+              handleChange(key as keyof CandidateForm, e.target.value)
+            }
+            ref={(el) => (fieldRefs.current[key] = el)}
+          />
+        </div>
+      ))}
+
+      {[
         {
           key: "current_company",
           label: "Current Company",
@@ -325,11 +350,7 @@ export const CandidateManual = () => {
           label: "College",
           placeholder: "Your last attended college",
         },
-        {
-          key: "degree",
-          label: "Highest Degree",
-          placeholder: "Btech/BA/...",
-        },
+        { key: "degree", label: "Highest Degree", placeholder: "Btech/BA/..." },
       ].map(({ key, label, placeholder }) => (
         <div key={key}>
           <label className="text-sm" htmlFor={key}>
@@ -337,31 +358,29 @@ export const CandidateManual = () => {
           </label>
           <Input
             id={key}
-            value={formData[key] as string}
+            value={formData[key as keyof CandidateForm] as string}
             placeholder={placeholder}
-            aria-invalid={!!errors[key]}
             onChange={(e) =>
               handleChange(key as keyof CandidateForm, e.target.value)
             }
             ref={(el) => (fieldRefs.current[key] = el)}
           />
-          {errors[key as keyof CandidateForm] && (
-            <p className="text-sm text-red-500">
-              {errors[key as keyof CandidateForm]}
-            </p>
-          )}
         </div>
       ))}
+
       <div className="md:col-span-2">
         <label className="text-sm">Skills</label>
         <div className="flex gap-2">
           <Input
-            placeholder="Add a skill"
+            placeholder="Add a skill and press Enter"
             value={tagInput}
             onChange={(e) => setTagInput(e.target.value)}
-            onKeyDown={(e) =>
-              e.key === "Enter" && (e.preventDefault(), addTag())
-            }
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addTag();
+              }
+            }}
           />
           <Button
             type="button"
@@ -374,14 +393,14 @@ export const CandidateManual = () => {
         </div>
         <div className="mt-2 flex gap-2 flex-wrap">
           {formData.skill.map((tag, idx) => (
-            <span key={idx} className="px-2 py-1 bg-gray-200 rounded text-sm">
+            <span
+              key={idx}
+              className="px-2 py-1 bg-gray-200 rounded text-sm flex items-center"
+            >
               {tag}
               <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  removeTag(tag);
-                }}
-                className="ml-1 text-red-500"
+                onClick={() => removeTag(tag)}
+                className="ml-2 text-red-500 hover:text-red-700"
                 aria-label={`Remove skill ${tag}`}
               >
                 ×
@@ -390,6 +409,7 @@ export const CandidateManual = () => {
           ))}
         </div>
       </div>
+
       {[
         {
           key: "experience",
@@ -415,103 +435,91 @@ export const CandidateManual = () => {
         <div key={key} className="md:col-span-2">
           <label className="text-sm mb-1 capitalize">{label}</label>
           <Textarea
-            value={formData[key]}
+            value={formData[key as keyof CandidateForm] as string}
             placeholder={placeholder}
             onChange={(e) =>
               handleChange(key as keyof CandidateForm, e.target.value)
             }
             className="resize-y"
-            aria-invalid={!!errors[key]}
+            aria-invalid={!!errors[key as keyof CandidateForm]}
             ref={(el) => (fieldRefs.current[key] = el)}
           />
         </div>
       ))}
-      <div className="md:col-span-1 flex-wrap gap-4">
+
+      <div className="md:col-span-1">
         <label className="text-sm">Recruiter Status</label>
         <Select
           value={formData.recruiter_status}
           onValueChange={(val) => handleChange("recruiter_status", val)}
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger>
             <SelectValue placeholder="Select" />
           </SelectTrigger>
-          <SelectContent className="max-h-60 overflow-y-auto">
-            <SelectScrollUpButton />
-            {recruiterStatus.map((curr) => (
-              <SelectItem key={curr} value={curr}>
-                {curr}
+          <SelectContent>
+            {recruiterStatus.map((s) => (
+              <SelectItem key={s} value={s}>
+                {s}
               </SelectItem>
             ))}
-            <SelectScrollDownButton />
           </SelectContent>
         </Select>
       </div>
-      <div className="md:col-span-1 flex-wrap gap-4">
+      <div className="md:col-span-1">
         <label className="text-sm">Candidate Status</label>
         <Select
           value={formData.status}
           onValueChange={(val) => handleChange("status", val)}
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger>
             <SelectValue placeholder="Select" />
           </SelectTrigger>
-          <SelectContent className="max-h-60 overflow-y-auto">
-            <SelectScrollUpButton />
-            {candidateStatus.map((curr) => (
-              <SelectItem key={curr} value={curr}>
-                {curr}
+          <SelectContent>
+            {candidateStatus.map((s) => (
+              <SelectItem key={s} value={s}>
+                {s}
               </SelectItem>
             ))}
-            <SelectScrollDownButton />
           </SelectContent>
         </Select>
       </div>
-
-      <div className="md:col-span-1 flex-wrap gap-4">
+      <div className="md:col-span-1">
         <label className="text-sm">HM Approval</label>
         <Select
           value={formData.hmapproval}
           onValueChange={(val) => handleChange("hmapproval", val)}
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger>
             <SelectValue placeholder="Select" />
           </SelectTrigger>
-          <SelectContent className="max-h-60 overflow-y-auto">
-            <SelectScrollUpButton />
-            {hmApproval.map((curr) => (
-              <SelectItem key={curr} value={curr}>
-                {curr}
+          <SelectContent>
+            {hmApproval.map((s) => (
+              <SelectItem key={s} value={s}>
+                {s}
               </SelectItem>
             ))}
-            <SelectScrollDownButton />
           </SelectContent>
         </Select>
       </div>
-
-      <div className="flex items-center border rounded-lg w-full h-10 mt-6 overflow-hidden">
+      <div className="flex items-center border rounded-lg h-10 mt-6 overflow-hidden">
         <label className="text-sm whitespace-nowrap w-[30%] flex justify-center items-center">
           Rating
         </label>
         <div className="grid grid-cols-5 flex-1 h-full">
-          {[1, 2, 3, 4, 5].map((n) => {
-            const { selectedBg, hoverBg } = ratingStyles[n];
-            const isSelected = formData.rating === n.toString();
-
-            return (
-              <button
-                key={n}
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleChange("rating", n.toString());
-                }}
-                className={`w-full h-full flex items-center justify-center text-sm font-medium transition-colors duration-150 ${
-                  isSelected ? selectedBg : `bg-gray-100 ${hoverBg}`
-                }`}
-              >
-                {n}
-              </button>
-            );
-          })}
+          {[1, 2, 3, 4, 5].map((n) => (
+            <button
+              key={n}
+              type="button"
+              onClick={() => handleChange("rating", n.toString())}
+              className={`w-full h-full flex items-center justify-center text-sm font-medium transition-colors duration-150 ${
+                formData.rating === n.toString()
+                  ? ratingStyles[n].selectedBg
+                  : `bg-gray-100 ${ratingStyles[n].hoverBg}`
+              }`}
+            >
+              {n}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -522,21 +530,18 @@ export const CandidateManual = () => {
             value={formData.currency}
             onValueChange={(val) => handleChange("currency", val)}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger>
               <SelectValue placeholder="Select" />
             </SelectTrigger>
-            <SelectContent className="max-h-60 overflow-y-auto">
-              <SelectScrollUpButton />
-              {currencyOptions.map((curr) => (
-                <SelectItem key={curr} value={curr}>
-                  {curr}
+            <SelectContent>
+              {currencyOptions.map((c) => (
+                <SelectItem key={c} value={c}>
+                  {c}
                 </SelectItem>
               ))}
-              <SelectScrollDownButton />
             </SelectContent>
           </Select>
         </div>
-
         <div className="w-2/5">
           <label className="text-sm">Current CTC</label>
           <Input
@@ -554,34 +559,29 @@ export const CandidateManual = () => {
           />
         </div>
       </div>
+
       <div className="md:col-span-2 mt-4 mb-2">
-                    <label className="text-sm">Notice Period *</label>
-                    <Select
-                      value={formData.notice_period}
-                      onValueChange={(value) =>
-                        handleChange(
-                          "notice_period",
-                          value
-                        )
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Notice Period" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {noticePeriodOptions.map((level) => (
-                          <SelectItem key={level} value={level}>
-                            {level}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {errors.experience && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.notice_period}
-                      </p>
-                    )}
-                  </div>
+        <label className="text-sm">Notice Period</label>
+        <Select
+          value={formData.notice_period}
+          onValueChange={(value) => handleChange("notice_period", value)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select Notice Period" />
+          </SelectTrigger>
+          <SelectContent>
+            {noticePeriodOptions.map((p) => (
+              <SelectItem key={p} value={p}>
+                {p}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {errors.notice_period && (
+          <p className="text-red-500 text-xs mt-1">{errors.notice_period}</p>
+        )}
+      </div>
+
       <div className="md:col-span-2 flex justify-end gap-3 mt-4">
         <DialogClose asChild>
           <Button type="button" variant="outline" disabled={loading}>

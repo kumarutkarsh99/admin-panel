@@ -7,7 +7,11 @@ import axios from "axios";
 
 const API_BASE_URL = "http://51.20.181.155:3000";
 
-export default function LinkedinImPort() {
+interface LinkedinImPortProps {
+  jobId: number;
+}
+
+export default function LinkedinImPort({ jobId }: LinkedinImPortProps) {
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [importing, setImporting] = useState(false);
 
@@ -37,7 +41,10 @@ export default function LinkedinImPort() {
 
     setImporting(true);
     try {
-      await axios.post(`${API_BASE_URL}/linkedinImportBulk`, { urls });
+      await axios.post(`${API_BASE_URL}/linkedinImportBulk`, {
+        urls,
+        job_id: jobId,
+      });
       toast.success("LinkedIn profiles imported successfully.");
       resetForm();
     } catch {
@@ -61,6 +68,7 @@ export default function LinkedinImPort() {
         rows={5}
         value={linkedinUrl}
         onChange={(e) => setLinkedinUrl(e.target.value)}
+        disabled={importing}
       />
       {linkedinUrl.trim() && (
         <p className="text-sm text-gray-600">
@@ -90,7 +98,7 @@ export default function LinkedinImPort() {
         </DialogClose>
         <Button
           type="submit"
-          disabled={importing}
+          disabled={importing || !linkedinUrl.trim()}
           className="ml-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
         >
           {importing ? "Importing..." : "Import All"}
