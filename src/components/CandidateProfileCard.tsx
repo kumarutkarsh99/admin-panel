@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -8,16 +8,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical, Star } from "lucide-react";
+import { MoreVertical, Trash2, MinusCircle, Minus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import StarRating from "./StarRating";
 import AssignToJobModal from "./modals/AssigntoJobModal";
 import EditCandidateModal from "./modals/EditCandidateModal";
-
-interface Job {
-  id: number;
-  title: string;
-}
 
 interface Education {
   degree: string;
@@ -63,7 +58,7 @@ interface ProfileCardProps {
   fetchCandidates: () => void;
 }
 
-const parseJSON = (data) => {
+const parseJSON = (data: string | any[]): any[] => {
   if (typeof data === "string") {
     try {
       const parsed = JSON.parse(data);
@@ -100,25 +95,151 @@ export default function CandidateProfileCard({
     institutiontier,
     companytier,
     resume_url,
-    job_titles,
+    job_titles = [],
   } = candidate;
 
   const [editOpen, setEditOpen] = useState(false);
   const [jobOpen, setJobOpen] = useState(false);
+
   const initials = [first_name?.[0], last_name?.[0]]
     .filter(Boolean)
     .join("")
     .toUpperCase();
-
-  const parsedEducation: Education[] = parseJSON(education);
-  const parsedExperience: Experience[] = parseJSON(experience);
-
   const linkedInUrl =
     linkedIn && !linkedIn.startsWith("http") ? `https://${linkedIn}` : linkedIn;
 
+  const parsedEducation: Education[] = useMemo(
+    () => parseJSON(education),
+    [education]
+  );
+  const parsedExperience: Experience[] = useMemo(
+    () => parseJSON(experience),
+    [experience]
+  );
+
+  const [isEditingExperience, setIsEditingExperience] = useState(false);
+  const [editableExperience, setEditableExperience] = useState<Experience[]>(
+    []
+  );
+
+  const [isEditingEducation, setIsEditingEducation] = useState(false);
+  const [editableEducation, setEditableEducation] = useState<Education[]>([]);
+
+  const [isEditingSkills, setIsEditingSkills] = useState(false);
+  const [editableSkills, setEditableSkills] = useState<string[]>([]);
+
+  useEffect(() => {
+    setEditableExperience(parsedExperience);
+    setEditableEducation(parsedEducation);
+    setEditableSkills(skill);
+  }, [parsedExperience, parsedEducation, skill]);
+
+  const handleExperienceChange = (
+    index: number,
+    field: keyof Experience,
+    value: string
+  ) => {
+    const updated = [...editableExperience];
+    updated[index] = { ...updated[index], [field]: value };
+    setEditableExperience(updated);
+  };
+  const handleResponsibilityChange = (
+    expIndex: number,
+    respIndex: number,
+    value: string
+  ) => {
+    const updated = [...editableExperience];
+    const newResponsibilities = [...(updated[expIndex].responsibilities || [])];
+    newResponsibilities[respIndex] = value;
+    updated[expIndex] = {
+      ...updated[expIndex],
+      responsibilities: newResponsibilities,
+    };
+    setEditableExperience(updated);
+  };
+  const handleAddResponsibility = (expIndex: number) => {
+    const updated = [...editableExperience];
+    const newResponsibilities = [
+      ...(updated[expIndex].responsibilities || []),
+      "",
+    ];
+    updated[expIndex] = {
+      ...updated[expIndex],
+      responsibilities: newResponsibilities,
+    };
+    setEditableExperience(updated);
+  };
+  const handleRemoveResponsibility = (expIndex: number, respIndex: number) => {
+    const updated = [...editableExperience];
+    const newResponsibilities = [...(updated[expIndex].responsibilities || [])];
+    newResponsibilities.splice(respIndex, 1);
+    updated[expIndex] = {
+      ...updated[expIndex],
+      responsibilities: newResponsibilities,
+    };
+    setEditableExperience(updated);
+  };
+  const handleAddExperience = () =>
+    setEditableExperience([
+      ...editableExperience,
+      { role: "", company: "", duration: "", responsibilities: [""] },
+    ]);
+  const handleRemoveExperience = (index: number) =>
+    setEditableExperience(editableExperience.filter((_, i) => i !== index));
+  const handleSaveExperience = () => {
+    console.log("Saving Experience:", editableExperience);
+    setIsEditingExperience(false);
+  };
+  const handleCancelExperience = () => {
+    setEditableExperience(parsedExperience);
+    setIsEditingExperience(false);
+  };
+
+  const handleEducationChange = (
+    index: number,
+    field: keyof Education,
+    value: string
+  ) => {
+    const updated = [...editableEducation];
+    updated[index] = { ...updated[index], [field]: value };
+    setEditableEducation(updated);
+  };
+  const handleAddEducation = () =>
+    setEditableEducation([
+      ...editableEducation,
+      { degree: "", institution: "", duration: "" },
+    ]);
+  const handleRemoveEducation = (index: number) =>
+    setEditableEducation(editableEducation.filter((_, i) => i !== index));
+  const handleSaveEducation = () => {
+    console.log("Saving Education:", editableEducation);
+    setIsEditingEducation(false);
+  };
+  const handleCancelEducation = () => {
+    setEditableEducation(parsedEducation);
+    setIsEditingEducation(false);
+  };
+
+  const handleSkillChange = (index: number, value: string) => {
+    const updated = [...editableSkills];
+    updated[index] = value;
+    setEditableSkills(updated);
+  };
+  const handleAddSkill = () => setEditableSkills([...editableSkills, ""]);
+  const handleRemoveSkill = (index: number) =>
+    setEditableSkills(editableSkills.filter((_, i) => i !== index));
+  const handleSaveSkills = () => {
+    console.log("Saving Skills:", editableSkills);
+    setIsEditingSkills(false);
+  };
+  const handleCancelSkills = () => {
+    setEditableSkills(skill);
+    setIsEditingSkills(false);
+  };
+
   return (
     <div className="min-w-full h-full p-3 font-sans">
-      <Card className="p-6 space-y-4 shadow-sm rounded-xl">
+      <Card className="p-4 space-y-4 shadow-sm rounded-xl">
         <div className="flex items-start space-x-6">
           <Avatar className="h-16 w-16 text-xl">
             {photo_url ? (
@@ -176,8 +297,8 @@ export default function CandidateProfileCard({
           </div>
         )}
 
-        <div className="space-y-4 pt-4 border-t border-slate-200">
-          <div className="grid grid-cols-1 md:grid-cols-1 gap-x-6 gap-y-2 text-sm text-slate-700">
+        <div className="space-y-2 pt-4 border-t border-slate-200">
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-x-6 gap-y-1 text-sm text-slate-700">
             {email && (
               <p>
                 <strong className="font-medium text-slate-500">Email:</strong>{" "}
@@ -248,7 +369,7 @@ export default function CandidateProfileCard({
             + Add job
           </Button>
         </div>
-        {job_titles && job_titles.length > 0 ? (
+        {job_titles?.length > 0 ? (
           job_titles.map((title) => (
             <Badge key={title} variant="secondary" className="mx-1">
               {title}
@@ -262,15 +383,111 @@ export default function CandidateProfileCard({
       <Card className="p-4 mt-4 space-y-2">
         <div className="flex items-center justify-between">
           <p className="font-semibold text-sm">EDUCATION</p>
-          <Button variant="outline" size="sm" className="px-2 text-xs">
-            + Add Education
-          </Button>
+          {!isEditingEducation ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="px-2 text-xs"
+              onClick={() => setIsEditingEducation(true)}
+            >
+              Edit Education
+            </Button>
+          ) : (
+            <div className="space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="px-2 text-xs"
+                onClick={handleCancelEducation}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="px-2 text-xs"
+                onClick={handleSaveEducation}
+              >
+                Save
+              </Button>
+            </div>
+          )}
         </div>
-        {parsedEducation.length > 0 ? (
+        {isEditingEducation ? (
+          <div className="space-y-4">
+            {editableEducation.map((edu, index) => (
+              <div
+                key={index}
+                className="p-3 border rounded-md space-y-2 bg-slate-50 relative"
+              >
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-1 right-1 h-7 w-7 text-red-500 hover:bg-red-100"
+                  onClick={() => handleRemoveEducation(index)}
+                >
+                  <MinusCircle className="h-5 w-5" />
+                </Button>
+                <div>
+                  <label className="text-xs font-medium text-slate-600">
+                    Degree
+                  </label>
+                  <input
+                    type="text"
+                    value={edu.degree}
+                    onChange={(e) =>
+                      handleEducationChange(index, "degree", e.target.value)
+                    }
+                    className="w-full p-1 border rounded-md text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-600">
+                    Institution
+                  </label>
+                  <input
+                    type="text"
+                    value={edu.institution}
+                    onChange={(e) =>
+                      handleEducationChange(
+                        index,
+                        "institution",
+                        e.target.value
+                      )
+                    }
+                    className="w-full p-1 border rounded-md text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-600">
+                    Duration
+                  </label>
+                  <input
+                    type="text"
+                    value={edu.duration || ""}
+                    onChange={(e) =>
+                      handleEducationChange(index, "duration", e.target.value)
+                    }
+                    className="w-full p-1 border rounded-md text-xs"
+                  />
+                </div>
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="secondary"
+              className="w-full"
+              onClick={handleAddEducation}
+            >
+              + Add Education
+            </Button>
+          </div>
+        ) : parsedEducation.length > 0 ? (
           parsedEducation.map((edu, idx) => (
             <div key={idx} className="py-1">
               <p className="text-xs text-gray-800 capitalize">
-                {edu.degree || "Education details"} - {edu.institution}
+                {edu.degree || "N/A"} - {edu.institution}
               </p>
               {edu.duration && (
                 <p className="text-xs text-gray-600">{edu.duration}</p>
@@ -285,13 +502,146 @@ export default function CandidateProfileCard({
       <Card className="p-4 mt-4 space-y-2">
         <div className="flex items-center justify-between">
           <p className="font-semibold text-sm">EXPERIENCE</p>
-          <Button variant="outline" size="sm" className="px-2 text-xs">
-            + Add experience
-          </Button>
+          {!isEditingExperience ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="px-2 text-xs"
+              onClick={() => setIsEditingExperience(true)}
+            >
+              Edit Experience
+            </Button>
+          ) : (
+            <div className="space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="px-2 text-xs"
+                onClick={handleCancelExperience}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="px-2 text-xs"
+                onClick={handleSaveExperience}
+              >
+                Save
+              </Button>
+            </div>
+          )}
         </div>
-        {parsedExperience.length > 0 ? (
+        {isEditingExperience ? (
+          <div className="space-y-4">
+            {editableExperience.map((exp, expIdx) => (
+              <div
+                key={expIdx}
+                className="p-3 border rounded-md space-y-3 bg-slate-50 relative"
+              >
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-1 right-1 h-7 w-7 text-red-500 hover:bg-inherit hover:text-red-600"
+                  onClick={() => handleRemoveExperience(expIdx)}
+                >
+                  <Trash2 className="h-5 w-5" />
+                </Button>
+                <div>
+                  <label className="text-xs font-medium text-slate-600">
+                    Role
+                  </label>
+                  <input
+                    type="text"
+                    value={exp.role}
+                    onChange={(e) =>
+                      handleExperienceChange(expIdx, "role", e.target.value)
+                    }
+                    className="w-full p-1 border rounded-md text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-600">
+                    Company
+                  </label>
+                  <input
+                    type="text"
+                    value={exp.company}
+                    onChange={(e) =>
+                      handleExperienceChange(expIdx, "company", e.target.value)
+                    }
+                    className="w-full p-1 border rounded-md text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-600">
+                    Duration
+                  </label>
+                  <input
+                    type="text"
+                    value={exp.duration || ""}
+                    onChange={(e) =>
+                      handleExperienceChange(expIdx, "duration", e.target.value)
+                    }
+                    className="w-full p-1 border rounded-md text-xs"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-slate-600">
+                    Responsibilities
+                  </label>
+                  {(exp.responsibilities || []).map((resp, respIdx) => (
+                    <div key={respIdx} className="flex items-start space-x-2">
+                      <textarea
+                        value={resp}
+                        onChange={(e) =>
+                          handleResponsibilityChange(
+                            expIdx,
+                            respIdx,
+                            e.target.value
+                          )
+                        }
+                        className="w-full p-1 border rounded-md text-xs"
+                        rows={5}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="pt-2 h-3 w-3 flex-shrink-0"
+                        onClick={() =>
+                          handleRemoveResponsibility(expIdx, respIdx)
+                        }
+                      >
+                        <MinusCircle className="h-1 w-1" />
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                    onClick={() => handleAddResponsibility(expIdx)}
+                  >
+                    + Add Responsibility
+                  </Button>
+                </div>
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="secondary"
+              className="w-full"
+              onClick={handleAddExperience}
+            >
+              + Add Experience
+            </Button>
+          </div>
+        ) : parsedExperience.length > 0 ? (
           parsedExperience.map((exp, idx) => (
-            <div key={idx} className="py-2">
+            <div key={idx} className="pb-1">
               <p className="text-sm font-medium text-gray-800">
                 {exp.role} at {exp.company}
               </p>
@@ -312,14 +662,72 @@ export default function CandidateProfileCard({
         )}
       </Card>
 
-      <Card className="p-4 mt-4 space-y-2">
+      <Card className="p-4 my-4 space-y-2">
         <div className="flex items-center justify-between">
           <p className="font-semibold text-sm">SKILLS</p>
-          <Button variant="outline" size="sm" className="px-2 text-xs">
-            + Add skill
-          </Button>
+          {!isEditingSkills ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="px-2 text-xs"
+              onClick={() => setIsEditingSkills(true)}
+            >
+              Edit Skills
+            </Button>
+          ) : (
+            <div className="space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="px-2 text-xs"
+                onClick={handleCancelSkills}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="px-2 text-xs"
+                onClick={handleSaveSkills}
+              >
+                Save
+              </Button>
+            </div>
+          )}
         </div>
-        {skill?.length > 0 ? (
+        {isEditingSkills ? (
+          <div className="space-y-2">
+            <div className="flex flex-col space-y-2">
+              {editableSkills.map((skillItem, index) => (
+                <div key={index} className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    value={skillItem}
+                    onChange={(e) => handleSkillChange(index, e.target.value)}
+                    className="w-full p-1 border rounded-md text-xs"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 flex-shrink-0"
+                    onClick={() => handleRemoveSkill(index)}
+                  >
+                    <MinusCircle className="h-5 w-5" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+            <Button
+              type="button"
+              variant="secondary"
+              className="w-full"
+              onClick={handleAddSkill}
+            >
+              + Add Skill
+            </Button>
+          </div>
+        ) : skill?.length > 0 ? (
           <div className="flex flex-wrap gap-2 mt-2">
             {skill.map((s) => (
               <Badge key={s} variant="secondary">
@@ -332,21 +740,25 @@ export default function CandidateProfileCard({
         )}
       </Card>
 
+      <div className="pt-1"></div>
+
       {editOpen && (
         <EditCandidateModal
           isOpen={editOpen}
-          onOpenChange={() => setEditOpen(false)}
+          onOpenChange={setEditOpen}
           candidate={candidate}
           onSaveSuccess={() => setEditOpen(false)}
         />
       )}
-
       {jobOpen && (
         <AssignToJobModal
           open={jobOpen}
-          onOpenChange={() => setJobOpen(false)}
+          onOpenChange={setJobOpen}
           candidateIds={[id]}
-          onSuccess={() => setJobOpen(false)}
+          onSuccess={() => {
+            fetchCandidates();
+            setJobOpen(false);
+          }}
         />
       )}
     </div>
