@@ -248,7 +248,7 @@ export default function CandidateProfileCard({
             + Add job
           </Button>
         </div>
-        {job_titles.length > 0 ? (
+        {job_titles && job_titles.length > 0 ? (
           job_titles.map((title) => (
             <Badge key={title} variant="secondary" className="mx-1">
               {title}
