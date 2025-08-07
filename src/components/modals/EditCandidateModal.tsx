@@ -18,8 +18,6 @@ import { toast } from "sonner";
 
 const API_BASE_URL = "http://51.20.181.155:3000";
 
-// --- TYPE DEFINITIONS (As provided by user) ---
-
 interface CandidateProfile {
   id: number;
   first_name: string;
@@ -84,7 +82,6 @@ const EditCandidateModal: React.FC<EditCandidateModalProps> = ({
     if (isOpen && candidate) {
       setFormData({
         ...candidate,
-        // The interface defines skill as string[], so we ensure it's an array for the form state
         skill: Array.isArray(candidate.skill)
           ? candidate.skill
           : parseJsonString<string[]>(candidate.skill as any, []),
