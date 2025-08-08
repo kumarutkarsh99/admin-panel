@@ -254,52 +254,6 @@ const EditCandidateModal: React.FC<EditCandidateModalProps> = ({
 
               <fieldset className="border p-4 rounded-md">
                 <legend className="text-sm font-medium px-1">
-                  Professional Details
-                </legend>
-                <div className="space-y-4 mt-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="headline">Headline</Label>
-                    <Input
-                      id="headline"
-                      name="headline"
-                      value={formData.headline || ""}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="current_company">Current Company</Label>
-                    <Input
-                      id="current_company"
-                      name="current_company"
-                      value={formData.current_company || ""}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="linkedinprofile">
-                      LinkedIn Profile URL
-                    </Label>
-                    <Input
-                      id="linkedinprofile"
-                      name="linkedinprofile"
-                      value={formData.linkedinprofile || ""}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="skill">Skills (comma-separated)</Label>
-                    <Textarea
-                      id="skill"
-                      name="skill"
-                      value={currentSkills}
-                      onChange={handleSkillChange}
-                    />
-                  </div>
-                </div>
-              </fieldset>
-
-              <fieldset className="border p-4 rounded-md">
-                <legend className="text-sm font-medium px-1">
                   Compensation & Availability
                 </legend>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
@@ -363,6 +317,52 @@ const EditCandidateModal: React.FC<EditCandidateModalProps> = ({
                       name="hmapproval"
                       value={formData.hmapproval || ""}
                       onChange={handleChange}
+                    />
+                  </div>
+                </div>
+              </fieldset>
+
+              <fieldset className="border p-4 rounded-md">
+                <legend className="text-sm font-medium px-1">
+                  Professional Details
+                </legend>
+                <div className="space-y-4 mt-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="headline">Headline</Label>
+                    <Input
+                      id="headline"
+                      name="headline"
+                      value={formData.headline || ""}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="current_company">Current Company</Label>
+                    <Input
+                      id="current_company"
+                      name="current_company"
+                      value={formData.current_company || ""}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="linkedinprofile">
+                      LinkedIn Profile URL
+                    </Label>
+                    <Input
+                      id="linkedinprofile"
+                      name="linkedinprofile"
+                      value={formData.linkedinprofile || ""}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="skill">Skills (comma-separated)</Label>
+                    <Textarea
+                      id="skill"
+                      name="skill"
+                      value={currentSkills}
+                      onChange={handleSkillChange}
                     />
                   </div>
                 </div>
