@@ -99,6 +99,8 @@ interface CandidateForm {
   updated_at: string;
   linkedinprofile: string;
   notice_period: string;
+  institutiontier: string;
+  companytier: string;
 }
 
 interface ParsedEducation {
@@ -415,6 +417,12 @@ export default function CandidateViewList({
               <Button size="sm" onClick={handleEdit} variant="outline">
                 Update fields
               </Button>
+              <Button size="sm" variant="outline">
+                Email
+              </Button>
+              <Button size="sm" variant="outline">
+                WhatsApp
+              </Button>
               <Button size="sm" onClick={handleDelete} variant="destructive">
                 Delete records
               </Button>
@@ -507,7 +515,7 @@ export default function CandidateViewList({
                         </TableCell>
                         {visibleColumns.includes("name") && (
                           <TableCell className="min-w-[200px] py-2">
-                            <CandidateActionsPopover candidateId={candidate.id}>
+                            <CandidateActionsPopover candidate={candidate}>
                               <div className="flex items-center gap-2">
                                 <Avatar className="h-8 w-8">
                                   <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
@@ -874,7 +882,7 @@ export default function CandidateViewList({
         open={isProfileModalOpen}
         onOpenChange={setProfileModalOpen}
         candidate={selectedCandidate}
-        fetchCandidates = {fetchCandidates}
+        fetchCandidates={fetchCandidates}
       />
     </div>
   );

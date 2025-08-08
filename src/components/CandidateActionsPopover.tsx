@@ -8,19 +8,47 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import CandidateNotesPanel from "./CandidateNotesPanel";
 import CallLogPanel from "./CallLogPanel";
+import EditCandidateModal from "./modals/EditCandidateModal";
+
+interface CandidateProfile {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  headline: string | null;
+  photo_url: string | null;
+  education: string;
+  experience: string;
+  current_ctc: string | null;
+  expected_ctc: string | null;
+  skill: string[];
+  current_company: string | null;
+  linkedinprofile: string;
+  rating: number | string | null;
+  status: string;
+  recruiter_status: string;
+  hmapproval: string;
+  notice_period: string;
+  institutiontier: string;
+  companytier: string;
+  resume_url: string;
+  job_titles: string[];
+}
 
 type CandidateActionsPopoverProps = {
-  candidateId: number;
+  candidate: CandidateProfile;
   children: React.ReactNode;
 };
 
 export function CandidateActionsPopover({
-  candidateId,
+  candidate,
   children,
 }: CandidateActionsPopoverProps) {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [callLogOpen, setCallLogOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   return (
     <>
@@ -63,19 +91,38 @@ export function CandidateActionsPopover({
           >
             Call Log
           </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start"
+            onClick={() => {
+              setPopoverOpen(false);
+              setEditModalOpen(true);
+            }}
+          >
+            Edit
+          </Button>
         </PopoverContent>
       </Popover>
 
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent>
-          <CandidateNotesPanel candidateId={candidateId} authorId={1} />
+          <CandidateNotesPanel candidateId={candidate.id} authorId={1} />
         </SheetContent>
       </Sheet>
       <Sheet open={callLogOpen} onOpenChange={setCallLogOpen}>
         <SheetContent>
-          <CallLogPanel candidateId={candidateId} />
+          <CallLogPanel candidateId={candidate.id} />
         </SheetContent>
       </Sheet>
+      {editModalOpen && (
+        <EditCandidateModal
+          isOpen={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          candidate={candidate}
+          onSaveSuccess={() => setEditModalOpen(false)}
+        />
+      )}
     </>
   );
 }
