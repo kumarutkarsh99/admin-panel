@@ -8,7 +8,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical, Trash2, MinusCircle, Minus } from "lucide-react";
+import {
+  MoreVertical,
+  Trash2,
+  MinusCircle,
+  Minus,
+  Building,
+  User,
+  Briefcase,
+  Calendar,
+  GraduationCap,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import StarRating from "./StarRating";
 import AssignToJobModal from "./modals/AssigntoJobModal";
@@ -302,10 +312,7 @@ export default function CandidateProfileCard({
             {email && (
               <p>
                 <strong className="font-medium text-slate-500">Email:</strong>{" "}
-                <a
-                  href={`mailto:${email}`}
-                  className="text-blue-600 hover:underline"
-                >
+                <a href={`mailto:${email}`} className="text-gray-400">
                   {email}
                 </a>
               </p>
@@ -325,10 +332,18 @@ export default function CandidateProfileCard({
                   href={linkedInUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
+                  className="text-gray-400"
                 >
                   View Profile
                 </a>
+              </p>
+            )}
+            {current_company && (
+              <p>
+                <strong className="font-medium text-slate-500">
+                  Current Company:
+                </strong>{" "}
+                {current_company}
               </p>
             )}
             {current_ctc && (
@@ -336,7 +351,15 @@ export default function CandidateProfileCard({
                 <strong className="font-medium text-slate-500">
                   Current CTC:
                 </strong>{" "}
-                {`₹${parseFloat(current_ctc).toLocaleString("en-IN")}`}
+                {current_ctc}
+              </p>
+            )}
+            {expected_ctc && (
+              <p>
+                <strong className="font-medium text-slate-500">
+                  Expected CTC:
+                </strong>{" "}
+                {expected_ctc}
               </p>
             )}
           </div>
@@ -485,13 +508,24 @@ export default function CandidateProfileCard({
           </div>
         ) : parsedEducation.length > 0 ? (
           parsedEducation.map((edu, idx) => (
-            <div key={idx} className="py-1">
-              <p className="text-xs text-gray-800 capitalize">
-                {edu.degree || "N/A"} - {edu.institution}
-              </p>
-              {edu.duration && (
-                <p className="text-xs text-gray-600">{edu.duration}</p>
-              )}
+            <div key={idx} className="flex items-start gap-2 py-1">
+              <GraduationCap className="h-4 w-4 flex-shrink-0 text-gray-500 mt-1" />
+              <div className="flex-1">
+                <div className="flex justify-between items-start">
+                  <p className="text-sm font-semibold text-gray-800 capitalize">
+                    {edu.degree || "N/A"}
+                  </p>
+                  {edu.duration && (
+                    <div className="flex items-center gap-1 text-xs text-gray-500">
+                      <Calendar className="h-3 w-3" />
+                      <span>{edu.duration}</span>
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  {edu.institution}
+                </p>
+              </div>
             </div>
           ))
         ) : (
@@ -587,7 +621,7 @@ export default function CandidateProfileCard({
                     className="w-full p-1 border rounded-md text-xs"
                   />
                 </div>
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                   <label className="text-xs font-medium text-slate-600">
                     Responsibilities
                   </label>
@@ -627,7 +661,7 @@ export default function CandidateProfileCard({
                   >
                     + Add Responsibility
                   </Button>
-                </div>
+                </div> */}
               </div>
             ))}
             <Button
@@ -641,20 +675,26 @@ export default function CandidateProfileCard({
           </div>
         ) : parsedExperience.length > 0 ? (
           parsedExperience.map((exp, idx) => (
-            <div key={idx} className="pb-1">
-              <p className="text-sm font-medium text-gray-800">
-                {exp.role} at {exp.company}
-              </p>
-              {exp.duration && (
-                <p className="text-xs text-gray-600">{exp.duration}</p>
-              )}
-              {exp.responsibilities?.length > 0 && (
-                <ul className="list-disc pl-5 text-xs text-gray-700 mt-1 space-y-1">
-                  {exp.responsibilities.map((d, i) => (
-                    <li key={i}>{d}</li>
-                  ))}
-                </ul>
-              )}
+            <div key={idx} className="bg-white px-1 pt-1 rounded-md">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-1.5">
+                  <Briefcase className="h-5 w-5 mr-2 flex-shrink-0 text-gray-600" />
+                  <div>
+                    <h5 className="text-sm font-semibold text-gray-900">
+                      {exp.role}
+                    </h5>
+                    <p className="text-xs text-gray-700 mt-0.5">
+                      {exp.company}
+                    </p>
+                  </div>
+                </div>
+                {exp.duration && (
+                  <div className="flex items-center gap-1 text-[10px] text-gray-500">
+                    <Calendar className="h-3 w-3" />
+                    <span>{exp.duration}</span>
+                  </div>
+                )}
+              </div>
             </div>
           ))
         ) : (

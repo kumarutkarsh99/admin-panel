@@ -13,7 +13,7 @@ export interface FileItem {
   created_at: string;
   uploadedBy: string;
   is_current?: boolean;
-  uploaderAvatarUrl?: string; // if needed
+  uploaderAvatarUrl?: string; 
 }
 
 interface FilesPanelProps {
