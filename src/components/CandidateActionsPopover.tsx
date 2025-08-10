@@ -26,14 +26,10 @@ interface CandidateProfile {
   current_company: string | null;
   linkedinprofile: string;
   rating: number | string | null;
-  status: string;
-  recruiter_status: string;
-  hmapproval: string;
   notice_period: string;
   institutiontier: string;
   companytier: string;
   resume_url: string;
-  job_titles: string[];
 }
 
 type CandidateActionsPopoverProps = {

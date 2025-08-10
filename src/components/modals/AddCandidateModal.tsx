@@ -47,16 +47,16 @@ const AddCandidateModal = ({
               </TabsTrigger>
             </TabsList>
             <TabsContent value="manual">
-              <CandidateManual jobId={jobId} />
+              <CandidateManual jobId={jobId} onClose={handleClose} />
             </TabsContent>
             <TabsContent value="resume">
-              <UploadResume jobId={jobId} />
+              <UploadResume jobId={jobId} onClose={handleClose} />
             </TabsContent>
             <TabsContent value="upload">
-              <Uploadbulk jobId={jobId} />
+              <Uploadbulk jobId={jobId} onClose={handleClose} />
             </TabsContent>
             <TabsContent value="linkedin">
-              <LinkedinImPort jobId={jobId} />
+              <LinkedinImPort jobId={jobId} onClose={handleClose} />
             </TabsContent>
           </Tabs>
         </div>

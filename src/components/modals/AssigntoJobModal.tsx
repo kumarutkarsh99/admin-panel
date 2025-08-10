@@ -109,8 +109,6 @@ const AssignToJobModal: React.FC<AssignToJobModalProps> = ({
       );
       onSuccess();
       onOpenChange(false);
-
-      
     } catch (err) {
       console.error("Batch assignment failed:", err);
       toast.error("Failed to assign candidates!");

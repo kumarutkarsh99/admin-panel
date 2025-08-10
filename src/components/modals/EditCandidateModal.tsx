@@ -34,14 +34,10 @@ interface CandidateProfile {
   current_company: string | null;
   linkedinprofile: string;
   rating: number | string | null;
-  status: string;
-  recruiter_status: string;
-  hmapproval: string;
   notice_period: string;
   institutiontier: string;
   companytier: string;
   resume_url: string;
-  job_titles: string[];
 }
 
 interface EditCandidateModalProps {
@@ -145,17 +141,17 @@ const EditCandidateModal: React.FC<EditCandidateModalProps> = ({
           action: "change_to",
           value: formData.notice_period,
         },
-        { field: "status", action: "change_to", value: formData.status },
-        {
-          field: "recruiter_status",
-          action: "change_to",
-          value: formData.recruiter_status,
-        },
-        {
-          field: "hmapproval",
-          action: "change_to",
-          value: formData.hmapproval,
-        },
+        // { field: "status", action: "change_to", value: formData.status },
+        // {
+        //   field: "recruiter_status",
+        //   action: "change_to",
+        //   value: formData.recruiter_status,
+        // },
+        // {
+        //   field: "hmapproval",
+        //   action: "change_to",
+        //   value: formData.hmapproval,
+        // },
         {
           field: "skill",
           action: "change_to",
@@ -287,7 +283,7 @@ const EditCandidateModal: React.FC<EditCandidateModalProps> = ({
                 </div>
               </fieldset>
 
-              <fieldset className="border p-4 rounded-md">
+              {/* <fieldset className="border p-4 rounded-md">
                 <legend className="text-sm font-medium px-1">
                   Application Status
                 </legend>
@@ -320,7 +316,7 @@ const EditCandidateModal: React.FC<EditCandidateModalProps> = ({
                     />
                   </div>
                 </div>
-              </fieldset>
+              </fieldset> */}
 
               <fieldset className="border p-4 rounded-md">
                 <legend className="text-sm font-medium px-1">
