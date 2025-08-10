@@ -1,5 +1,5 @@
 import Layout from "@/components/Layout";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { UserCheck, FileText, Calendar, Download } from "lucide-react";
@@ -45,7 +45,7 @@ interface CandidateForm {
   notice_period: string;
   institutiontier: string;
   companytier: string;
-  jobs_assigned: JobAssignment[]; 
+  jobs_assigned: JobAssignment[];
 }
 
 const formatCandidateAddress = (address: string): string => {
@@ -81,16 +81,14 @@ const formatCandidateAddress = (address: string): string => {
 export default function Candidates() {
   const [candidates, setCandidates] = useState<CandidateForm[]>([]);
   const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    fetchCandidates();
-  }, []);
+
   const fetchCandidates = async () => {
     setLoading(true);
     try {
       const { data } = await axios.get(
         `${API_BASE_URL}/candidate/getAllCandidates`
       );
-      setCandidates(data.result);
+      setCandidates(data.result || []);
     } catch (err) {
       console.error(err);
       toast.error("Failed to fetch candidates.");
@@ -98,6 +96,32 @@ export default function Candidates() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchCandidates();
+  }, []);
+
+  const summaryCounts = useMemo(() => {
+    let pendingRecruiter = 0;
+    let pendingHM = 0;
+
+    candidates.forEach((candidate) => {
+      (candidate.jobs_assigned || []).forEach((job) => {
+        if (job.recruiter_status === "New Application") {
+          pendingRecruiter++;
+        }
+        if (job.hmapproval === "Pending") {
+          pendingHM++;
+        }
+      });
+    });
+
+    const readyForInterview = candidates.filter(
+      (c) => c.status === "Interview"
+    ).length;
+
+    return { pendingRecruiter, pendingHM, readyForInterview };
+  }, [candidates]);
 
   const handleExport = () => {
     if (!candidates.length) {
@@ -107,11 +131,11 @@ export default function Candidates() {
 
     const header = [
       "Name",
-      "Job ID",
+      "Assigned Jobs",
       "Email",
       "Phone",
       "LinkedIn",
-      "Status",
+      "Overall Status",
       "Current Company",
       "Location",
       "Skills",
@@ -119,7 +143,7 @@ export default function Candidates() {
 
     const rows = candidates.map((c) => [
       `${c.first_name} ${c.last_name}`,
-      c.jobs_assigned,
+      (c.jobs_assigned || []).map((job) => job.job_title).join("; "),
       c.email,
       c.phone,
       c.linkedinprofile,
@@ -190,11 +214,7 @@ export default function Candidates() {
                     Pending Recruiter Review
                   </p>
                   <p className="text-2xl font-bold text-blue-600">
-                    {
-                      candidates.filter(
-                        (c) => c.recruiter_status === "New Application"
-                      ).length
-                    }
+                    {summaryCounts.pendingRecruiter}
                   </p>
                 </div>
                 <UserCheck className="h-8 w-8 text-blue-600" />
@@ -207,10 +227,7 @@ export default function Candidates() {
                 <div>
                   <p className="text-sm text-slate-600">Awaiting HM Approval</p>
                   <p className="text-2xl font-bold text-yellow-600">
-                    {
-                      candidates.filter((c) => c.hmapproval === "Pending")
-                        .length
-                    }
+                    {summaryCounts.pendingHM}
                   </p>
                 </div>
                 <FileText className="h-8 w-8 text-yellow-600" />
@@ -223,7 +240,7 @@ export default function Candidates() {
                 <div>
                   <p className="text-sm text-slate-600">Ready for Interview</p>
                   <p className="text-2xl font-bold text-green-600">
-                    {candidates.filter((c) => c.status === "Interview").length}
+                    {summaryCounts.readyForInterview}
                   </p>
                 </div>
                 <Calendar className="h-8 w-8 text-green-600" />
