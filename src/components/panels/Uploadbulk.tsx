@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import axios from "axios";
 import { Download, FileSpreadsheet } from "lucide-react";
 
-const API_BASE_URL = "http://51.20.181.155:3000";
+const API_BASE_URL = "http://13.51.235.31:3000";
 
 export interface CandidateForm {
   first_name: string;
@@ -66,9 +66,10 @@ const TEMPLATE_HEADERS: (keyof CandidateForm)[] = [
 
 interface UploadbulkProps {
   jobId: number;
+  onClose: () => void;
 }
 
-export default function Uploadbulk({ jobId }: UploadbulkProps) {
+export default function Uploadbulk({ jobId, onClose }: UploadbulkProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [parsedRows, setParsedRows] = useState<any[]>([]);
   const [fileError, setFileError] = useState<string>("");
@@ -192,6 +193,7 @@ export default function Uploadbulk({ jobId }: UploadbulkProps) {
       );
       toast.success("Candidates uploaded successfully!");
       resetForm();
+      onClose();
     } catch (err) {
       toast.error("An error occurred during upload.");
     } finally {

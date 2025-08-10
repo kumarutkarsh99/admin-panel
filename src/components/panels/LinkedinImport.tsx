@@ -5,13 +5,17 @@ import { DialogClose } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import axios from "axios";
 
-const API_BASE_URL = "http://51.20.181.155:3000";
+const API_BASE_URL = "http://13.51.235.31:3000";
 
 interface LinkedinImPortProps {
   jobId: number;
+  onClose: () => void;
 }
 
-export default function LinkedinImPort({ jobId }: LinkedinImPortProps) {
+export default function LinkedinImPort({
+  jobId,
+  onClose,
+}: LinkedinImPortProps) {
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [importing, setImporting] = useState(false);
 
@@ -47,6 +51,7 @@ export default function LinkedinImPort({ jobId }: LinkedinImPortProps) {
       });
       toast.success("LinkedIn profiles imported successfully.");
       resetForm();
+      onClose();
     } catch {
       toast.error("Bulk import failed.");
     } finally {

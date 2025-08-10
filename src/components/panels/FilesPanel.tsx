@@ -23,7 +23,7 @@ interface FilesPanelProps {
   refreshTrigger?: boolean;
 }
 
-const API_BASE = "http://51.20.181.155:3000";
+const API_BASE = "http://13.51.235.31:3000";
 
 export function FilesPanel({ files, candidateId }: FilesPanelProps) {
   const sampleFiles: FileItem[] = []; // optional fallback if needed

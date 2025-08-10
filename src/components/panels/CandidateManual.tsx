@@ -13,7 +13,7 @@ import {
 import { toast } from "sonner";
 import axios from "axios";
 
-const API_BASE_URL = "http://51.20.181.155:3000";
+const API_BASE_URL = "http://13.51.235.31:3000";
 
 interface CandidateForm {
   first_name: string;
@@ -89,9 +89,10 @@ const initialCandidateForm: CandidateForm = {
 
 interface CandidateManualProps {
   jobId: number;
+  onClose: () => void;
 }
 
-export const CandidateManual = ({ jobId }: CandidateManualProps) => {
+export const CandidateManual = ({ jobId, onClose }: CandidateManualProps) => {
   const fieldRefs = useRef<
     Record<string, HTMLInputElement | HTMLTextAreaElement | null>
   >({});
@@ -239,6 +240,7 @@ export const CandidateManual = ({ jobId }: CandidateManualProps) => {
       await axios.post(`${API_BASE_URL}/candidate/createCandidate`, payload);
       toast.success("Candidate added successfully");
       resetForm();
+      onClose();
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         toast.error(
