@@ -18,32 +18,46 @@ import { toast } from "sonner";
 
 const API_BASE_URL = "http://13.51.235.31:3000";
 
-interface CandidateProfile {
+interface JobAssignment {
+  job_id: number;
+  status: string;
+  job_title: string;
+  hmapproval: string;
+  recruiter_status: string;
+}
+
+interface CandidateForm {
   id: number;
   first_name: string;
   last_name: string;
   email: string;
   phone: string;
   headline: string | null;
+  address: string;
+  experience: string;
   photo_url: string | null;
   education: string;
-  experience: string;
+  summary: string | null;
+  resume_url: string;
+  cover_letter: string | null;
+  rating: string | null;
+  current_company: string | null;
   current_ctc: string | null;
   expected_ctc: string | null;
   skill: string[];
-  current_company: string | null;
+  created_at: string;
+  updated_at: string;
   linkedinprofile: string;
-  rating: number | string | null;
   notice_period: string;
   institutiontier: string;
   companytier: string;
-  resume_url: string;
+  jobs_assigned: JobAssignment[];
 }
 
 interface EditCandidateModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  candidate: CandidateProfile | null;
+  candidate: CandidateForm | null;
   onSaveSuccess?: () => void;
 }
 
@@ -53,10 +67,7 @@ const parseJsonString = <T,>(value: string | T, defaultValue: T): T => {
   }
   try {
     const parsed = JSON.parse(value);
-    if (Array.isArray(parsed)) {
-      return parsed as T;
-    }
-    return [parsed] as T;
+    return Array.isArray(parsed) ? (parsed as T) : ([parsed] as T);
   } catch {
     return defaultValue;
   }
@@ -68,9 +79,7 @@ const EditCandidateModal: React.FC<EditCandidateModalProps> = ({
   candidate,
   onSaveSuccess,
 }) => {
-  const [formData, setFormData] = useState<Partial<CandidateProfile> | null>(
-    null
-  );
+  const [formData, setFormData] = useState<Partial<CandidateForm> | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -106,70 +115,27 @@ const EditCandidateModal: React.FC<EditCandidateModalProps> = ({
     setError(null);
 
     try {
-      const updates = [
-        {
-          field: "first_name",
-          action: "change_to",
-          value: formData.first_name,
-        },
-        { field: "last_name", action: "change_to", value: formData.last_name },
-        { field: "email", action: "change_to", value: formData.email },
-        { field: "phone", action: "change_to", value: formData.phone },
-        { field: "headline", action: "change_to", value: formData.headline },
-        {
-          field: "current_company",
-          action: "change_to",
-          value: formData.current_company,
-        },
-        {
-          field: "linkedinprofile",
-          action: "change_to",
-          value: formData.linkedinprofile,
-        },
-        {
-          field: "current_ctc",
-          action: "change_to",
-          value: formData.current_ctc,
-        },
-        {
-          field: "expected_ctc",
-          action: "change_to",
-          value: formData.expected_ctc,
-        },
-        {
-          field: "notice_period",
-          action: "change_to",
-          value: formData.notice_period,
-        },
-        // { field: "status", action: "change_to", value: formData.status },
-        // {
-        //   field: "recruiter_status",
-        //   action: "change_to",
-        //   value: formData.recruiter_status,
-        // },
-        // {
-        //   field: "hmapproval",
-        //   action: "change_to",
-        //   value: formData.hmapproval,
-        // },
-        {
-          field: "skill",
-          action: "change_to",
-          value: JSON.stringify(formData.skill),
-        },
-      ];
-
       const payload = {
-        ids: [candidate.id],
-        updates: updates,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        email: formData.email,
+        phone: formData.phone,
+        headline: formData.headline,
+        current_company: formData.current_company,
+        linkedinprofile: formData.linkedinprofile,
+        current_ctc: formData.current_ctc,
+        expected_ctc: formData.expected_ctc,
+        notice_period: formData.notice_period,
+        skill: JSON.stringify(formData.skill || []),
       };
-      console.log(payload);
-      const res = await axios.post(
-        `${API_BASE_URL}/candidate/bulk-update`,
+
+      const res = await axios.put(
+        `${API_BASE_URL}/candidate/${candidate.id}`,
         payload
       );
-      console.log(res);
-      toast.success("Fields updated successfully!");
+
+      console.log("Update successful:", res);
+      toast.success("Candidate updated successfully!");
       onSaveSuccess?.();
       onOpenChange(false);
     } catch (err: any) {
@@ -282,41 +248,6 @@ const EditCandidateModal: React.FC<EditCandidateModalProps> = ({
                   </div>
                 </div>
               </fieldset>
-
-              {/* <fieldset className="border p-4 rounded-md">
-                <legend className="text-sm font-medium px-1">
-                  Application Status
-                </legend>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="status">Status</Label>
-                    <Input
-                      id="status"
-                      name="status"
-                      value={formData.status || ""}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="recruiter_status">Recruiter Status</Label>
-                    <Input
-                      id="recruiter_status"
-                      name="recruiter_status"
-                      value={formData.recruiter_status || ""}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="hmapproval">Hiring Manager Approval</Label>
-                    <Input
-                      id="hmapproval"
-                      name="hmapproval"
-                      value={formData.hmapproval || ""}
-                      onChange={handleChange}
-                    />
-                  </div>
-                </div>
-              </fieldset> */}
 
               <fieldset className="border p-4 rounded-md">
                 <legend className="text-sm font-medium px-1">
