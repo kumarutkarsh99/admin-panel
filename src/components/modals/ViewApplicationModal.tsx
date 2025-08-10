@@ -103,17 +103,6 @@ export default function ViewApplicationsModal({
             <div className="flex items-center">
               <DialogTitle className="flex items-center space-x-4 text-lg">
                 <span>View Applications</span>
-                <Button
-                  variant="outline"
-                  onClick={fetchApplicants}
-                  aria-label="Refresh applicants"
-                  disabled={loading}
-                >
-                  <RefreshCw
-                    className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`}
-                  />
-                  Refresh
-                </Button>
               </DialogTitle>
             </div>
 

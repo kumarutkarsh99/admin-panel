@@ -391,9 +391,9 @@ export default function CandidateViewList({
         value,
       });
       toast.success("Stage updated successfully.");
+      fetchCandidates();
     } catch (err) {
       toast.error("Failed to update stage. Reverting changes.");
-      fetchCandidates();
     }
   };
 
@@ -572,7 +572,10 @@ export default function CandidateViewList({
                         </TableCell>
                         {visibleColumns.includes("name") && (
                           <TableCell className="min-w-[200px] py-2">
-                            <CandidateActionsPopover candidate={candidate}>
+                            <CandidateActionsPopover
+                              candidate={candidate}
+                              fetchCandidates={fetchCandidates}
+                            >
                               <div className="flex items-center gap-2">
                                 <Avatar className="h-8 w-8">
                                   <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
