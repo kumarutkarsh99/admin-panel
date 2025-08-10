@@ -74,13 +74,13 @@ export default function UploadResume({ jobId, onClose }: UploadResumeProps) {
       });
       toast.success("Files Uploaded!");
       resetForm();
+      onClose();
     } catch (err: any) {
       console.error(err);
       toast.error("Upload Failed!");
       setResumeError(err.response?.data?.message || "Upload failed.");
     } finally {
       setResumeUpload(false);
-      onClose();
     }
   };
 

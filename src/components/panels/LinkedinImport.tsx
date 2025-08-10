@@ -51,11 +51,11 @@ export default function LinkedinImPort({
       });
       toast.success("LinkedIn profiles imported successfully.");
       resetForm();
+      onClose();
     } catch {
       toast.error("Bulk import failed.");
     } finally {
       setImporting(false);
-      onClose();
     }
   };
 

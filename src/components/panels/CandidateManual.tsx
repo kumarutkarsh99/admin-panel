@@ -240,6 +240,7 @@ export const CandidateManual = ({ jobId, onClose }: CandidateManualProps) => {
       await axios.post(`${API_BASE_URL}/candidate/createCandidate`, payload);
       toast.success("Candidate added successfully");
       resetForm();
+      onClose();
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         toast.error(
@@ -251,7 +252,6 @@ export const CandidateManual = ({ jobId, onClose }: CandidateManualProps) => {
       }
     } finally {
       setLoading(false);
-      onClose();
     }
   };
 

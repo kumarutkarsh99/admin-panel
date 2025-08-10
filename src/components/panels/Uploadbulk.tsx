@@ -193,11 +193,11 @@ export default function Uploadbulk({ jobId, onClose }: UploadbulkProps) {
       );
       toast.success("Candidates uploaded successfully!");
       resetForm();
+      onClose();
     } catch (err) {
       toast.error("An error occurred during upload.");
     } finally {
       setUploading(false);
-      onClose();
     }
   };
 
