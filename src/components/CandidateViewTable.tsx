@@ -384,7 +384,7 @@ export default function CandidateViewList({
     );
 
     try {
-      await axios.put(`${API_BASE_URL}/candidate-job-assignment/update`, {
+      await axios.put(`${API_BASE_URL}/candidate/job-assignment/update`, {
         candidateId,
         jobId,
         field,
@@ -616,7 +616,7 @@ export default function CandidateViewList({
                                           <Button
                                             size="sm"
                                             variant="outline"
-                                            className="h-auto p-2 text-xs min-w-[100px]"
+                                            className="h-auto p-2 text-xs min-w-[120px] justify-start"
                                           >
                                             <span
                                               className={`w-2 h-2 rounded-full ${getStatusColor(
@@ -650,7 +650,7 @@ export default function CandidateViewList({
                                           <Button
                                             size="sm"
                                             variant="outline"
-                                            className="h-auto p-2 text-xs min-w-[130px]"
+                                            className="h-auto p-2 text-xs min-w-[150px] justify-start"
                                           >
                                             <span
                                               className={`w-2 h-2 rounded-full ${getRecruiterStatusColor(
@@ -684,7 +684,7 @@ export default function CandidateViewList({
                                           <Button
                                             size="sm"
                                             variant="outline"
-                                            className="h-auto p-2 text-xs min-w-[100px]"
+                                            className="h-auto p-2 text-xs min-w-[120px] justify-start"
                                           >
                                             <span
                                               className={`w-2 h-2 rounded-full ${getHMApprovalColor(

@@ -89,9 +89,10 @@ const initialCandidateForm: CandidateForm = {
 
 interface CandidateManualProps {
   jobId: number;
+  onClose: () => void;
 }
 
-export const CandidateManual = ({ jobId }: CandidateManualProps) => {
+export const CandidateManual = ({ jobId, onClose }: CandidateManualProps) => {
   const fieldRefs = useRef<
     Record<string, HTMLInputElement | HTMLTextAreaElement | null>
   >({});
@@ -250,6 +251,7 @@ export const CandidateManual = ({ jobId }: CandidateManualProps) => {
       }
     } finally {
       setLoading(false);
+      onClose();
     }
   };
 

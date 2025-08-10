@@ -9,9 +9,13 @@ const API_BASE_URL = "http://51.20.181.155:3000";
 
 interface LinkedinImPortProps {
   jobId: number;
+  onClose: () => void;
 }
 
-export default function LinkedinImPort({ jobId }: LinkedinImPortProps) {
+export default function LinkedinImPort({
+  jobId,
+  onClose,
+}: LinkedinImPortProps) {
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [importing, setImporting] = useState(false);
 
@@ -51,6 +55,7 @@ export default function LinkedinImPort({ jobId }: LinkedinImPortProps) {
       toast.error("Bulk import failed.");
     } finally {
       setImporting(false);
+      onClose();
     }
   };
 

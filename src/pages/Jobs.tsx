@@ -17,7 +17,8 @@ import axios from "axios";
 import EditJobModal from "@/components/modals/EditJobModal";
 import CloneJobModal from "@/components/modals/CloneJobModal";
 
-const API_BASE_URL = "http://51.20.181.155:3000";
+// NOTE: Using the API URL from the JSON response for consistency.
+const API_BASE_URL = "http://13.51.235.31:3000";
 
 const PIPELINE_STAGES = [
   "Sourced",
@@ -100,20 +101,36 @@ export default function Jobs() {
             const applicantsRes = await axios.get(
               `${API_BASE_URL}/jobs/${job.id}/applicants`
             );
-            applicantsList = applicantsRes.data.result || [];
+            // Ensure result is always an array
+            if (
+              applicantsRes.data &&
+              applicantsRes.data.status &&
+              Array.isArray(applicantsRes.data.result)
+            ) {
+              applicantsList = applicantsRes.data.result;
+            }
           } catch (err: any) {
             console.warn(
-              `No applicants found for job ID ${job.id}:`,
+              `Could not fetch applicants for job ID ${job.id}. It might have none.`,
               err.message
             );
           }
 
+          // ==========================================================
+          // CORRECTED STAGE COUNT LOGIC
+          // ==========================================================
           const stageCounts = PIPELINE_STAGES.reduce((acc, stage) => {
-            acc[stage] = applicantsList.filter(
-              (app) => app.status === stage
-            ).length;
+            acc[stage] = applicantsList.filter((applicant) => {
+              // Find the application details specific to the current job
+              const jobApplication = applicant.jobs_assigned?.find(
+                (jobApp: any) => jobApp.job_id === job.id
+              );
+              // Count the applicant only if their status for THIS job matches the stage
+              return jobApplication && jobApplication.status === stage;
+            }).length;
             return acc;
           }, {} as Record<string, number>);
+          // ==========================================================
 
           return {
             ...job,
@@ -456,6 +473,7 @@ export default function Jobs() {
       <PostNewJobModal
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onSuccess={fetchJobs}
       />
       {isJobViewOpen && selectedJob && (
         <JobViewModal

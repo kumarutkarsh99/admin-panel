@@ -1,17 +1,18 @@
 import { useState, useEffect } from "react";
 import {
   Dialog,
+  DialogClose, // Import DialogClose
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import axios from "axios";
 import CandidateViewList from "../CandidateViewTable";
-import { RefreshCw, Users } from "lucide-react";
+import { RefreshCw, Users, X } from "lucide-react"; // Import X icon
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-const API_BASE_URL = "http://51.20.181.155:3000";
+const API_BASE_URL = "http://13.51.235.31:3000";
 
 const STATUSES = [
   "All",
@@ -50,14 +51,17 @@ export default function ViewApplicationsModal({
       const { data } = await axios.get(
         `${API_BASE_URL}/jobs/${jobId}/applicants`
       );
-      if (data.status) {
-        setApplicants(data.result || []); // Always default to an empty array
+      if (data.status && Array.isArray(data.result)) {
+        setApplicants(data.result);
       } else {
-        throw new Error(data.message || "Failed to fetch applicants");
+        setApplicants([]);
+        if (!data.status) {
+          throw new Error(data.message || "Failed to fetch applicants");
+        }
       }
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message);
+      toast.error(err.response?.data?.message || err.message);
       setApplicants([]);
     } finally {
       setLoading(false);
@@ -66,19 +70,35 @@ export default function ViewApplicationsModal({
 
   useEffect(() => {
     if (open && jobId) {
+      setActiveStatus(initialStatus);
       fetchApplicants();
     }
-  }, [open, jobId]);
+  }, [open, jobId, initialStatus]);
 
-  const filteredApplicants =
-    activeStatus === "All"
-      ? applicants
-      : applicants.filter((applicant) => applicant.status === activeStatus);
+  const filteredApplicants = applicants
+    .filter((applicant) =>
+      applicant.jobs_assigned?.some((job: any) => job.job_id === jobId)
+    )
+    .map((applicant) => {
+      const jobData = applicant.jobs_assigned.find(
+        (job: any) => job.job_id === jobId
+      );
+      return {
+        ...applicant,
+        status: jobData?.status || applicant.status,
+      };
+    })
+    .filter((applicant) => {
+      if (activeStatus === "All") {
+        return true;
+      }
+      return applicant.status === activeStatus;
+    });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-screen h-screen flex flex-col p-0 gap-0">
-        <div className="flex-shrink-0 p-6 border-b bg-white/80 backdrop-blur-sm">
+        <div className="relative flex-shrink-0 p-6 border-b bg-white/80 backdrop-blur-sm top-0 z-10">
           <DialogHeader className="space-y-0">
             <div className="flex items-center">
               <DialogTitle className="flex items-center space-x-4 text-lg">
@@ -87,7 +107,11 @@ export default function ViewApplicationsModal({
                   variant="outline"
                   onClick={fetchApplicants}
                   aria-label="Refresh applicants"
+                  disabled={loading}
                 >
+                  <RefreshCw
+                    className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`}
+                  />
                   Refresh
                 </Button>
               </DialogTitle>
@@ -99,10 +123,13 @@ export default function ViewApplicationsModal({
                   key={status}
                   variant={status === activeStatus ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setActiveStatus(status)}
+                  onClick={() => {
+                    fetchApplicants();
+                    setActiveStatus(status);
+                  }}
                   className={
                     status === activeStatus
-                      ? "whitespace-nowrap bg-blue-500"
+                      ? "whitespace-nowrap bg-blue-500 hover:bg-blue-600"
                       : "whitespace-nowrap"
                   }
                 >
@@ -111,9 +138,19 @@ export default function ViewApplicationsModal({
               ))}
             </div>
           </DialogHeader>
+
+          {/* === ADDED CLOSE BUTTON === */}
+          <DialogClose asChild>
+            <Button
+              variant="ghost"
+              className="absolute top-6 right-6 p-2 h-auto rounded-full"
+              aria-label="Close"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </DialogClose>
         </div>
 
-        {/* === Scrollable Content Area === */}
         <div className="flex-grow overflow-y-auto bg-gray-50">
           {loading ? (
             <div className="flex items-center justify-center h-full text-gray-500">
@@ -121,15 +158,16 @@ export default function ViewApplicationsModal({
               <span>Loading Applicants...</span>
             </div>
           ) : filteredApplicants.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-gray-500">
+            <div className="flex flex-col items-center justify-center h-full text-gray-500 text-center px-4">
               <Users className="h-12 w-12 mb-4" />
               <h3 className="text-lg font-semibold">No Applicants Found</h3>
               <p className="text-sm">
-                There are no applicants in the "{activeStatus}" stage.
+                There are no applicants in the "{activeStatus}" stage for this
+                job.
               </p>
             </div>
           ) : (
-            <div className="flex items-center justify-center py-6">
+            <div className="p-4 md:p-6">
               <CandidateViewList
                 loading={false}
                 jobId={jobId}
