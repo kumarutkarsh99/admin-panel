@@ -7,12 +7,18 @@ import axios from "axios";
 import { saveAs } from "file-saver";
 import { toast } from "sonner";
 import CandidateViewList from "@/components/CandidateViewTable";
-const API_BASE_URL = "http://51.20.181.155:3000";
+const API_BASE_URL = "http://13.51.235.31:3000";
+
+interface JobAssignment {
+  job_id: number;
+  status: string;
+  job_title: string;
+  hmapproval: string;
+  recruiter_status: string;
+}
 
 interface CandidateForm {
   id: number;
-  job_ids: number[];
-  job_titles: string[];
   first_name: string;
   last_name: string;
   email: string;
@@ -37,6 +43,9 @@ interface CandidateForm {
   updated_at: string;
   linkedinprofile: string;
   notice_period: string;
+  institutiontier: string;
+  companytier: string;
+  jobs_assigned: JobAssignment[]; 
 }
 
 const formatCandidateAddress = (address: string): string => {
@@ -110,7 +119,7 @@ export default function Candidates() {
 
     const rows = candidates.map((c) => [
       `${c.first_name} ${c.last_name}`,
-      c.job_ids,
+      c.jobs_assigned,
       c.email,
       c.phone,
       c.linkedinprofile,

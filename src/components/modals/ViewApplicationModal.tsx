@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import axios from "axios";
 import CandidateViewList from "../CandidateViewTable";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -51,11 +51,7 @@ export default function ViewApplicationsModal({
         `${API_BASE_URL}/jobs/${jobId}/applicants`
       );
       if (data.status) {
-        let list = data.result as any[];
-        if (activeStatus && activeStatus !== "All") {
-          list = list.filter((applicant) => applicant.status === activeStatus);
-        }
-        setApplicants(list);
+        setApplicants(data.result || []); // Always default to an empty array
       } else {
         throw new Error(data.message || "Failed to fetch applicants");
       }
@@ -72,59 +68,77 @@ export default function ViewApplicationsModal({
     if (open && jobId) {
       fetchApplicants();
     }
-  }, [open, jobId, activeStatus]);
+  }, [open, jobId]);
+
+  const filteredApplicants =
+    activeStatus === "All"
+      ? applicants
+      : applicants.filter((applicant) => applicant.status === activeStatus);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="scrollbar-custom max-w-screen h-screen overflow-auto bg-gray-50">
-        <DialogHeader className="flex flex-col space-y-2">
-          {/* Title + Refresh */}
-          <div className="flex items-center">
-            <DialogTitle className="flex items-center space-x-2">
-              <span>View Applications</span>
-              {activeStatus !== "All" && (
-                <span className="text-blue-600 font-medium">
-                  — {activeStatus}
-                </span>
-              )}
-            </DialogTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={fetchApplicants}
-              aria-label="Refresh applicants"
-              className="ml-1"
-            >
-              <RefreshCw className="h-5 w-5" />
-            </Button>
-          </div>
+      <DialogContent className="max-w-screen h-screen flex flex-col p-0 gap-0">
+        <div className="flex-shrink-0 p-6 border-b bg-white/80 backdrop-blur-sm">
+          <DialogHeader className="space-y-0">
+            <div className="flex items-center">
+              <DialogTitle className="flex items-center space-x-4 text-lg">
+                <span>View Applications</span>
+                <Button
+                  variant="outline"
+                  onClick={fetchApplicants}
+                  aria-label="Refresh applicants"
+                >
+                  Refresh
+                </Button>
+              </DialogTitle>
+            </div>
 
-          <div className="flex space-x-2 overflow-auto">
-            {STATUSES.map((status) => (
-              <Button
-                key={status}
-                variant={status === activeStatus ? "secondary" : "outline"}
-                size="sm"
-                onClick={() => setActiveStatus(status)}
-              >
-                {status}
-              </Button>
-            ))}
-          </div>
-        </DialogHeader>
+            <div className="flex space-x-2 overflow-x-auto pt-4 pb-1">
+              {STATUSES.map((status) => (
+                <Button
+                  key={status}
+                  variant={status === activeStatus ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setActiveStatus(status)}
+                  className={
+                    status === activeStatus
+                      ? "whitespace-nowrap bg-blue-500"
+                      : "whitespace-nowrap"
+                  }
+                >
+                  {status}
+                </Button>
+              ))}
+            </div>
+          </DialogHeader>
+        </div>
 
-        {loading ? (
-          <div className="flex justify-center py-8">Loading...</div>
-        ) : (
-          <div>
-            <CandidateViewList
-              loading={loading}
-              jobId={jobId}
-              candidates={applicants}
-              fetchCandidates={fetchApplicants}
-            />
-          </div>
-        )}
+        {/* === Scrollable Content Area === */}
+        <div className="flex-grow overflow-y-auto bg-gray-50">
+          {loading ? (
+            <div className="flex items-center justify-center h-full text-gray-500">
+              <RefreshCw className="h-6 w-6 animate-spin mr-3" />
+              <span>Loading Applicants...</span>
+            </div>
+          ) : filteredApplicants.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-gray-500">
+              <Users className="h-12 w-12 mb-4" />
+              <h3 className="text-lg font-semibold">No Applicants Found</h3>
+              <p className="text-sm">
+                There are no applicants in the "{activeStatus}" stage.
+              </p>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center py-6">
+              <CandidateViewList
+                loading={false}
+                jobId={jobId}
+                candidates={filteredApplicants}
+                fetchCandidates={fetchApplicants}
+              />
+            </div>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );
