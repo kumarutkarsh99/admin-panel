@@ -17,7 +17,6 @@ import axios from "axios";
 import EditJobModal from "@/components/modals/EditJobModal";
 import CloneJobModal from "@/components/modals/CloneJobModal";
 
-// NOTE: Using the API URL from the JSON response for consistency.
 const API_BASE_URL = "http://13.51.235.31:3000";
 
 const PIPELINE_STAGES = [
