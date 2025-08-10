@@ -157,15 +157,6 @@ export default function ViewApplicationsModal({
               <RefreshCw className="h-6 w-6 animate-spin mr-3" />
               <span>Loading Applicants...</span>
             </div>
-          ) : filteredApplicants.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-gray-500 text-center px-4">
-              <Users className="h-12 w-12 mb-4" />
-              <h3 className="text-lg font-semibold">No Applicants Found</h3>
-              <p className="text-sm">
-                There are no applicants in the "{activeStatus}" stage for this
-                job.
-              </p>
-            </div>
           ) : (
             <div className="p-4 md:p-6">
               <CandidateViewList
