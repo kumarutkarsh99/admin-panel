@@ -19,6 +19,9 @@ import {
   ArrowUpCircle,
   ArrowUp,
   ChevronUp,
+  ExternalLink,
+  Paperclip,
+  FileText,
 } from "lucide-react";
 import {
   Table,
@@ -51,6 +54,7 @@ import {
 import { CandidateActionsPopover } from "./CandidateActionsPopover";
 
 const API_BASE_URL = "http://13.51.235.31:3000";
+const FILE_SERVER_URL = "http://13.51.235.31";
 
 const CANDIDATE_STATUSES = [
   "Sourced",
@@ -225,7 +229,6 @@ const EditableCell = ({
       className="inline-flex items-center gap-1 text-sm text-slate-700 cursor-pointer hover:bg-slate-100 p-1 rounded min-h-[32px]"
       onClick={() => setIsEditing(true)}
     >
-      <DollarSign className="h-3 w-3 text-green-600" />
       {value || "N/A"}
     </span>
   );
@@ -583,6 +586,7 @@ export default function CandidateViewList({
                                     {candidate.last_name?.toUpperCase()[0]}
                                   </AvatarFallback>
                                 </Avatar>
+
                                 <button
                                   onClick={() => {
                                     setSelectedCandidate(candidate);
@@ -592,6 +596,17 @@ export default function CandidateViewList({
                                 >
                                   {candidate.first_name} {candidate.last_name}
                                 </button>
+                                {candidate.resume_url && (
+                                  <a
+                                    href={`${FILE_SERVER_URL}/ats-api/uploads/${candidate.resume_url}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center justify-center p-2 text-gray-500 hover:text-blue-600 transition-colors"
+                                    title="View Resume in new tab"
+                                  >
+                                    <FileText className="h-4 w-4" />
+                                  </a>
+                                )}
                               </div>
                             </CandidateActionsPopover>
                           </TableCell>
@@ -938,6 +953,10 @@ export default function CandidateViewList({
         open={isAddModalOpen}
         jobId={jobId}
         handleClose={() => setAddModalOpen(false)}
+        onSuccess={() => {
+          fetchCandidates();
+          setAddModalOpen(false);
+        }}
       />
       <CandidateProfileModal
         open={isProfileModalOpen}

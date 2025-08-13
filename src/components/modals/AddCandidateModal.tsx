@@ -14,12 +14,14 @@ interface AddCandidateModalProps {
   open: boolean;
   jobId: number;
   handleClose: () => void;
+  onSuccess: () => void;
 }
 
 const AddCandidateModal = ({
   open,
   jobId,
   handleClose,
+  onSuccess
 }: AddCandidateModalProps) => {
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
@@ -47,16 +49,16 @@ const AddCandidateModal = ({
               </TabsTrigger>
             </TabsList>
             <TabsContent value="manual">
-              <CandidateManual jobId={jobId} onClose={handleClose} />
+              <CandidateManual jobId={jobId} onClose={handleClose} onSuccess={onSuccess} />
             </TabsContent>
             <TabsContent value="resume">
-              <UploadResume jobId={jobId} onClose={handleClose} />
+              <UploadResume jobId={jobId} onClose={handleClose} onSuccess={onSuccess}/>
             </TabsContent>
             <TabsContent value="upload">
-              <Uploadbulk jobId={jobId} onClose={handleClose} />
+              <Uploadbulk jobId={jobId} onClose={handleClose} onSuccess={onSuccess}/>
             </TabsContent>
             <TabsContent value="linkedin">
-              <LinkedinImPort jobId={jobId} onClose={handleClose} />
+              <LinkedinImPort jobId={jobId} onClose={handleClose} onSuccess={onSuccess}/>
             </TabsContent>
           </Tabs>
         </div>

@@ -72,7 +72,7 @@ export function TasksPanel({
     <div className="flex flex-col border rounded-lg bg-white shadow-sm mb-4">
       <div className="flex items-center px-4 py-2 border-b">
         <span className="text-2xl mr-2">✨</span>
-        <span className="font-semibold">AIRA</span>
+        <span className="font-semibold">XBeeAI</span>
       </div>
 
       <div className="px-4 py-2 border-b">
