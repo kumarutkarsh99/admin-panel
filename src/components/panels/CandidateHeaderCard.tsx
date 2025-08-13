@@ -12,7 +12,6 @@ import { MoreVertical } from "lucide-react";
 import StarRating from "../StarRating";
 import { Badge } from "@/components/ui/badge";
 
-// Updated interface to include all necessary fields
 interface CandidateProfileForHeader {
   first_name: string;
   last_name: string;
@@ -29,6 +28,7 @@ interface CandidateProfileForHeader {
   notice_period: string;
   institutiontier: string;
   companytier: string;
+  summary: string;
 }
 
 interface CandidateHeaderCardProps {
@@ -56,6 +56,7 @@ export default function CandidateHeaderCard({
     notice_period,
     institutiontier,
     companytier,
+    summary,
   } = candidate;
 
   const initials = [first_name?.[0], last_name?.[0]]
@@ -65,6 +66,11 @@ export default function CandidateHeaderCard({
 
   const linkedInUrl =
     linkedIn && !linkedIn.startsWith("http") ? `https://${linkedIn}` : linkedIn;
+
+  const FILE_SERVER_URL = "http://13.51.235.31";
+  const fullResumeUrl = resume_url
+    ? `${FILE_SERVER_URL}/ats-api/uploads/${resume_url}`
+    : null;
 
   return (
     <Card className="p-4 space-y-4 shadow-sm rounded-xl">
@@ -90,6 +96,7 @@ export default function CandidateHeaderCard({
               </h2>
               {headline && <p className="text-md text-slate-800">{headline}</p>}
             </div>
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button size="icon" variant="ghost">
@@ -100,14 +107,14 @@ export default function CandidateHeaderCard({
                 <DropdownMenuItem onClick={onEdit}>
                   Edit Candidate
                 </DropdownMenuItem>
-                {resume_url && (
+                {fullResumeUrl && (
                   <DropdownMenuItem asChild>
                     <a
-                      href={resume_url}
+                      href={fullResumeUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      Download Resume
+                      View Resume
                     </a>
                   </DropdownMenuItem>
                 )}
@@ -139,6 +146,7 @@ export default function CandidateHeaderCard({
               {phone}
             </p>
           )}
+
           {linkedInUrl && (
             <p>
               <strong className="font-medium text-slate-500">LinkedIn:</strong>{" "}
@@ -178,7 +186,6 @@ export default function CandidateHeaderCard({
           )}
         </div>
         <div className="flex flex-wrap gap-2 items-center pt-2">
-          {status && <Badge variant="secondary">Status: {status}</Badge>}
           {notice_period && (
             <Badge variant="secondary">Notice: {notice_period}</Badge>
           )}

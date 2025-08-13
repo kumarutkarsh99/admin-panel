@@ -90,9 +90,14 @@ const initialCandidateForm: CandidateForm = {
 interface CandidateManualProps {
   jobId: number;
   onClose: () => void;
+  onSuccess: () => void;
 }
 
-export const CandidateManual = ({ jobId, onClose }: CandidateManualProps) => {
+export const CandidateManual = ({
+  jobId,
+  onClose,
+  onSuccess,
+}: CandidateManualProps) => {
   const fieldRefs = useRef<
     Record<string, HTMLInputElement | HTMLTextAreaElement | null>
   >({});
@@ -240,7 +245,7 @@ export const CandidateManual = ({ jobId, onClose }: CandidateManualProps) => {
       await axios.post(`${API_BASE_URL}/candidate/createCandidate`, payload);
       toast.success("Candidate added successfully");
       resetForm();
-      onClose();
+      onSuccess();
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         toast.error(

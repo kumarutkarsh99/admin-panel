@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import {
   Dialog,
-  DialogClose, // Import DialogClose
+  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import axios from "axios";
 import CandidateViewList from "../CandidateViewTable";
-import { RefreshCw, Users, X } from "lucide-react"; // Import X icon
+import { RefreshCw, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -128,7 +128,6 @@ export default function ViewApplicationsModal({
             </div>
           </DialogHeader>
 
-          {/* === ADDED CLOSE BUTTON === */}
           <DialogClose asChild>
             <Button
               variant="ghost"

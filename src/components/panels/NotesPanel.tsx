@@ -28,7 +28,7 @@ export function NotesPanel({ candidateId }: NotesPanelProps) {
     <div className="flex flex-col border rounded-lg bg-white shadow-sm mb-4">
       <div className="flex items-center space-x-2 px-4 py-2 border-b">
         <span className="text-2xl">✨</span>
-        <span className="font-semibold">AIRA</span>
+        <span className="font-semibold">XBeeAI</span>
       </div>
 
       <div className="px-4 py-3 border-b">
