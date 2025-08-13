@@ -17,9 +17,14 @@ const API_BASE_URL = "http://13.51.235.31:3000";
 interface UploadResumeProps {
   jobId: number | null;
   onClose: () => void;
+  onSuccess: () => void;
 }
 
-export default function UploadResume({ jobId, onClose }: UploadResumeProps) {
+export default function UploadResume({
+  jobId,
+  onClose,
+  onSuccess,
+}: UploadResumeProps) {
   const [progress, setProgress] = useState(0);
   const [resumeupload, setResumeUpload] = useState(false);
   const [resumeFiles, setResumeFiles] = useState<FileList | null>(null);
@@ -74,7 +79,7 @@ export default function UploadResume({ jobId, onClose }: UploadResumeProps) {
       });
       toast.success("Files Uploaded!");
       resetForm();
-      onClose();
+      onSuccess();
     } catch (err: any) {
       console.error(err);
       toast.error("Upload Failed!");

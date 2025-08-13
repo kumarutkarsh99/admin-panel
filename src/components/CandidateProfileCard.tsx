@@ -7,6 +7,7 @@ import JobsCard from "@/components/panels/JobsCard";
 import EducationCard from "@/components/panels/EducationCard";
 import ExperienceCard from "@/components/panels/ExperienceCard";
 import SkillsCard from "@/components/panels/SkillsCard";
+import CandidateSummaryCard from "./panels/CandidateSummaryCard";
 
 interface JobAssignment {
   job_id: number;
@@ -57,7 +58,7 @@ export default function CandidateProfileCard({
   const [jobOpen, setJobOpen] = useState(false);
 
   return (
-    <div className="min-w-full h-full p-3 font-sans">
+    <div className="min-w-full min-h-full p-3 font-sans">
       <CandidateHeaderCard
         candidate={candidate}
         onEdit={() => setEditOpen(true)}
@@ -86,6 +87,8 @@ export default function CandidateProfileCard({
         skills={candidate.skill}
         fetchCandidates={fetchCandidates}
       />
+
+      <CandidateSummaryCard candidate={candidate} />
 
       {editOpen && (
         <EditCandidateModal
