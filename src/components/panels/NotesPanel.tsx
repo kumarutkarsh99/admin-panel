@@ -1,5 +1,7 @@
 import { useState } from "react";
+import axios from "axios";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import {
   Select,
   SelectTrigger,
@@ -21,8 +23,45 @@ interface NotesPanelProps {
   authorId: number;
   refreshTrigger?: boolean;
 }
-export function NotesPanel({ candidateId }: NotesPanelProps) {
+
+  
+export function NotesPanel({ candidateId,authorId }: NotesPanelProps) {
+const [notesName, setNotesName] = useState("");
   const [template, setTemplate] = useState("default");
+  const [saving, setSaving] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState<() => void>(() => () => {});
+  const handleSave = async () => {
+    if (!notesName.trim()) {
+      toast.error("Please provide a task name.");
+      return;
+    }
+    setSaving(true);
+    try {
+      const payload = {
+        candidate_id: candidateId,
+        author_id: authorId,
+        note: notesName,
+      };
+      const res = await axios.post(
+        `http://13.51.235.31:3000/candidate/addCandidateNotes`,
+        payload
+      );
+      if (res.data.status) {
+        toast.success(res.data.message || "notes created successfully.");
+        setNotesName("");
+        refreshTrigger?.();
+      } else {
+        toast.error(res.data.message || "Failed to create notes.");
+      }
+    } catch (err: any) {
+      console.error("Error creating notes", err);
+      toast.error(
+        err.response?.data?.message || err.message || "Server error."
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="flex flex-col border rounded-lg bg-white shadow-sm mb-4">
@@ -34,8 +73,10 @@ export function NotesPanel({ candidateId }: NotesPanelProps) {
       <div className="px-4 py-3 border-b">
         <textarea
           rows={4}
+          value={notesName}
           placeholder="Enter notes here..."
           className="w-full resize-none border-none focus:outline-none text-gray-700 placeholder-gray-400"
+          onChange={(e) => setNotesName(e.target.value)}
         />
       </div>
 
@@ -110,7 +151,8 @@ export function NotesPanel({ candidateId }: NotesPanelProps) {
         </Select>
 
         <Button
-          onClick={() => console.log("Post with template:", template)}
+          onClick={handleSave}
+     
           className="bg-blue-500"
         >
           Post

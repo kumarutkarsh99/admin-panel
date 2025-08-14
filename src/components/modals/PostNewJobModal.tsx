@@ -382,6 +382,7 @@ const [showJobFunctionSuggestions, setShowJobFunctionSuggestions] = useState(fal
     }));
 
   const handleParseJD = async () => {
+        setIsParsing(true);
     if (!pastedJD.trim() && !uploadedFile) {
       toast.warning("Please paste a job description or upload a file.");
       return;
@@ -404,7 +405,7 @@ const [showJobFunctionSuggestions, setShowJobFunctionSuggestions] = useState(fal
     console.log(rawExtracted,'rawextracted')
      rawExtracted = rawExtracted.replace(/```json\n?|```/g, '');
      let extractedObj = JSON.parse(rawExtracted);
-    setIsParsing(true);
+
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
       // const parsedData = {
@@ -431,6 +432,8 @@ const [showJobFunctionSuggestions, setShowJobFunctionSuggestions] = useState(fal
           requirements:extractedObj. requirements
         },
         companyDetails: { industry: extractedObj.industry, jobFunction: extractedObj.jobFunction },
+        company:extractedObj.companyName,
+        about_company:extractedObj.aboutCompany,
         employmentDetails: {
           // experience: "Senior level",
           // education: "Bachelor",
@@ -990,7 +993,7 @@ const [showJobFunctionSuggestions, setShowJobFunctionSuggestions] = useState(fal
                     <label className="text-sm">Salary From</label>
                     <Input
                       type="number"
-                      value={formData.salary.from}
+                      value={formData.salary.from ?? ""}
                       onChange={(e) =>
                         handleNestedChange(
                           "salary",
@@ -1004,7 +1007,7 @@ const [showJobFunctionSuggestions, setShowJobFunctionSuggestions] = useState(fal
                     <label className="text-sm">Salary To</label>
                     <Input
                       type="number"
-                      value={formData.salary.to}
+                      value={formData.salary.to ?? ""}
                       onChange={(e) =>
                         handleNestedChange(
                           "salary",

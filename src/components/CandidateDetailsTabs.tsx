@@ -107,10 +107,11 @@ export default function CandidateDetailsTabs({
         </TabsList>
 
         <TabsContent value="activities">
-          <ActivitiesPanel activities={candidate.activities || []} />
+          {/* <ActivitiesPanel activities={candidate.activities || []} /> */}
+          <ActivitiesPanel candidateId={candidate.id} />
         </TabsContent>
         <TabsContent value="files">
-          <FilesPanel candidateId={candidate.id} authorId={1} />
+          <FilesPanel candidateId={candidate.id}  />
         </TabsContent>
         <TabsContent value="scorecards">
           <ScorecardsPanel scorecards={candidate.scorecards} />
