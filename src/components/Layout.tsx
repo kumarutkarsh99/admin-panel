@@ -64,7 +64,7 @@ const menuItems = [
     title: "Settings",
     url: "/settings",
     icon: Settings,
-    roles: ["admin", , "Interviewer"],
+    roles: ["admin", "Interviewer"],
   },
 ];
 
@@ -79,6 +79,10 @@ function AppSidebar() {
       userRoles.map((r) => r.toLowerCase()).includes(role.toLowerCase())
     )
   );
+
+  console.log(filteredMenuItems, "filteredMenuItems");
+
+  const displayItems = filteredMenuItems.length > 0 ? filteredMenuItems : menuItems;
   return (
     <Sidebar className="border-r bg-slate-50/50 backdrop-blur-sm">
       <SidebarHeader className="border-b p-6">
@@ -91,7 +95,7 @@ function AppSidebar() {
       </SidebarHeader>
       <SidebarContent className="p-4">
         <SidebarMenu>
-          {filteredMenuItems.map((item) => (
+          {displayItems.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton
                 asChild
@@ -137,7 +141,7 @@ export default function Layout({ children }: LayoutProps) {
   };
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 to-blue-50/30">
         <AppSidebar />
         <main className="flex-1 flex flex-col">
