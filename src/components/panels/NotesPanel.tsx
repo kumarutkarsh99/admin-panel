@@ -32,8 +32,9 @@ const [notesName, setNotesName] = useState("");
   const [refreshTrigger, setRefreshTrigger] = useState<() => void>(() => () => {});
   const handleSave = async () => {
     if (!notesName.trim()) {
-      toast.error("Please provide a task name.");
+      toast.error("Please provide a note Description.");
       return;
+
     }
     setSaving(true);
     try {
