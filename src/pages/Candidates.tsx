@@ -1,5 +1,5 @@
 import Layout from "@/components/Layout";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { UserCheck, FileText, Calendar, Download } from "lucide-react";
@@ -7,12 +7,18 @@ import axios from "axios";
 import { saveAs } from "file-saver";
 import { toast } from "sonner";
 import CandidateViewList from "@/components/CandidateViewTable";
-const API_BASE_URL = "http://51.20.181.155:3000";
+const API_BASE_URL = "http://13.51.235.31:3000";
+
+interface JobAssignment {
+  job_id: number;
+  status: string;
+  job_title: string;
+  hmapproval: string;
+  recruiter_status: string;
+}
 
 interface CandidateForm {
   id: number;
-  job_ids: number[];
-  job_titles: string[];
   first_name: string;
   last_name: string;
   email: string;
@@ -37,6 +43,9 @@ interface CandidateForm {
   updated_at: string;
   linkedinprofile: string;
   notice_period: string;
+  institutiontier: string;
+  companytier: string;
+  jobs_assigned: JobAssignment[];
 }
 
 const formatCandidateAddress = (address: string): string => {
@@ -72,16 +81,14 @@ const formatCandidateAddress = (address: string): string => {
 export default function Candidates() {
   const [candidates, setCandidates] = useState<CandidateForm[]>([]);
   const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    fetchCandidates();
-  }, []);
+
   const fetchCandidates = async () => {
     setLoading(true);
     try {
       const { data } = await axios.get(
         `${API_BASE_URL}/candidate/getAllCandidates`
       );
-      setCandidates(data.result);
+      setCandidates(data.result || []);
     } catch (err) {
       console.error(err);
       toast.error("Failed to fetch candidates.");
@@ -89,6 +96,32 @@ export default function Candidates() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchCandidates();
+  }, []);
+
+  const summaryCounts = useMemo(() => {
+    let pendingRecruiter = 0;
+    let pendingHM = 0;
+
+    candidates.forEach((candidate) => {
+      (candidate.jobs_assigned || []).forEach((job) => {
+        if (job.recruiter_status === "New Application") {
+          pendingRecruiter++;
+        }
+        if (job.hmapproval === "Pending") {
+          pendingHM++;
+        }
+      });
+    });
+
+    const readyForInterview = candidates.filter(
+      (c) => c.status === "Interview"
+    ).length;
+
+    return { pendingRecruiter, pendingHM, readyForInterview };
+  }, [candidates]);
 
   const handleExport = () => {
     if (!candidates.length) {
@@ -98,11 +131,11 @@ export default function Candidates() {
 
     const header = [
       "Name",
-      "Job ID",
+      "Assigned Jobs",
       "Email",
       "Phone",
       "LinkedIn",
-      "Status",
+      "Overall Status",
       "Current Company",
       "Location",
       "Skills",
@@ -110,7 +143,7 @@ export default function Candidates() {
 
     const rows = candidates.map((c) => [
       `${c.first_name} ${c.last_name}`,
-      c.job_ids,
+      (c.jobs_assigned || []).map((job) => job.job_title).join("; "),
       c.email,
       c.phone,
       c.linkedinprofile,
@@ -181,11 +214,7 @@ export default function Candidates() {
                     Pending Recruiter Review
                   </p>
                   <p className="text-2xl font-bold text-blue-600">
-                    {
-                      candidates.filter(
-                        (c) => c.recruiter_status === "New Application"
-                      ).length
-                    }
+                    {summaryCounts.pendingRecruiter}
                   </p>
                 </div>
                 <UserCheck className="h-8 w-8 text-blue-600" />
@@ -198,10 +227,7 @@ export default function Candidates() {
                 <div>
                   <p className="text-sm text-slate-600">Awaiting HM Approval</p>
                   <p className="text-2xl font-bold text-yellow-600">
-                    {
-                      candidates.filter((c) => c.hmapproval === "Pending")
-                        .length
-                    }
+                    {summaryCounts.pendingHM}
                   </p>
                 </div>
                 <FileText className="h-8 w-8 text-yellow-600" />
@@ -214,7 +240,7 @@ export default function Candidates() {
                 <div>
                   <p className="text-sm text-slate-600">Ready for Interview</p>
                   <p className="text-2xl font-bold text-green-600">
-                    {candidates.filter((c) => c.status === "Interview").length}
+                    {summaryCounts.readyForInterview}
                   </p>
                 </div>
                 <Calendar className="h-8 w-8 text-green-600" />

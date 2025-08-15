@@ -47,13 +47,15 @@ interface CandidateForm {
 }
 
 type CandidateActionsPopoverProps = {
-  candidate: CandidateForm;
+    candidate:CandidateForm,
+  candidateId: number;
   fetchCandidates: () => void;
   children: React.ReactNode;
 };
 
 export function CandidateActionsPopover({
-  candidate,
+    candidate,
+  candidateId,
   fetchCandidates,
   children,
 }: CandidateActionsPopoverProps) {
@@ -119,12 +121,12 @@ export function CandidateActionsPopover({
 
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent>
-          <CandidateNotesPanel candidateId={candidate.id} authorId={1} />
+          <CandidateNotesPanel candidateId={candidateId} authorId={1} />
         </SheetContent>
       </Sheet>
       <Sheet open={callLogOpen} onOpenChange={setCallLogOpen}>
         <SheetContent>
-          <CallLogPanel candidateId={candidate.id} />
+          <CallLogPanel candidateId={candidateId} />
         </SheetContent>
       </Sheet>
       {editModalOpen && (

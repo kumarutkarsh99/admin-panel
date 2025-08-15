@@ -1,106 +1,139 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format, parseISO } from "date-fns";
-import { FileText, Download } from "lucide-react";
-import React, { useState, useEffect } from "react";
+import { FileText, Download, Loader2 } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 
-export interface FileItem {
-  id: string;
-  candidate_id: string;
+export interface ResumeFile {
+  id: number;
+  candidate_id: number;
   resume_url: string;
-  uploadedAt: string;
-  uploadedBy: string;
+  uploaded_at: string;
+  uploaded_by: string;
   is_current?: boolean;
-  uploaderAvatarUrl?: string; // if needed
 }
 
 interface FilesPanelProps {
-  files?: FileItem[];
   candidateId: number;
-  authorId: number;
-  refreshTrigger?: boolean;
 }
 
-const API_BASE = "http://51.20.181.155:3000";
+const API_BASE_URL = "http://13.51.235.31:3000";
+const FILE_SERVER_URL = "http://13.51.235.31";
 
-export function FilesPanel({ files, candidateId }: FilesPanelProps) {
-  const sampleFiles: FileItem[] = []; // optional fallback if needed
-  const fileList = files && files.length ? files : sampleFiles;
-
+export function FilesPanel({ candidateId }: FilesPanelProps) {
   const [loading, setLoading] = useState<boolean>(false);
-  const [tasks, setTasks] = useState<FileItem[]>([]);
+  const [resumes, setResumes] = useState<ResumeFile[]>([]);
+  const [downloadingId, setDownloadingId] = useState<number | null>(null);
 
-  const fetchTasks = async () => {
+  const fetchResumes = useCallback(async () => {
+    if (!candidateId) return;
     setLoading(true);
     try {
-      const res = await axios.get(`${API_BASE}/candidate/candidateResumes/${candidateId}`);
+      const res = await axios.get(
+        `${API_BASE_URL}/candidate/candidateResumes/${candidateId}`
+      );
       if (res.data.status) {
-        setTasks(res.data.result);
+        setResumes(res.data.result || []);
       } else {
         toast.error(res.data.message || "Failed to load files.");
       }
     } catch (err: any) {
       if (err.response?.status === 404) {
-        setTasks([]);
+        setResumes([]);
       } else {
-        console.error("Error fetching tasks", err);
-        toast.error(err.response?.data?.message || err.message || "Server error while fetching files.");
+        console.error("Error fetching resumes", err);
+        toast.error(
+          err.response?.data?.message ||
+            err.message ||
+            "Server error while fetching files."
+        );
       }
     } finally {
       setLoading(false);
     }
-  };
+  }, [candidateId]);
 
   useEffect(() => {
-    fetchTasks();
-  }, [candidateId]);
+    fetchResumes();
+  }, [fetchResumes]);
+
+  const handleDownload = async (
+    fileUrl: string,
+    filename: string,
+    fileId: number
+  ) => {
+    setDownloadingId(fileId);
+    try {
+      const response = await axios.get(fileUrl, {
+        responseType: "blob",
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      toast.success("Resume downloaded successfully!");
+    } catch (error) {
+      console.error("Download failed", error);
+      toast.error("Failed to download resume.");
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   return (
     <ScrollArea className="h-[400px] p-2">
-      {tasks.map((f) => (
-        <div
-          key={f.id}
-          className="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm mb-4"
-        >
-          <div className="flex items-center space-x-4">
-            <FileText className="w-6 h-6 text-gray-600" />
-            <a
-              href= {`http://51.20.181.155/ats-api/uploads/${f.resume_url}`}
-              target="_blank"
-              rel="noreferrer"
-              className="font-medium text-blue-600 hover:underline break-all"
-            >
-              {f.resume_url}
-            </a>
-          </div>
-          <div className="flex items-center space-x-4">
-            {/* Uncomment and modify if you have avatar data */}
-            {/* <div className="flex items-center space-x-2 text-sm text-gray-500">
-              <Avatar className="w-5 h-5">
-                {f.uploaderAvatarUrl ? (
-                  <AvatarImage src={f.uploaderAvatarUrl} alt={f.uploadedBy} />
+      {resumes.map((resume) => {
+        const fileUrl = `${FILE_SERVER_URL}/ats-api/uploads/${resume.resume_url}`;
+        const isDownloading = downloadingId === resume.id;
+
+        return (
+          <div
+            key={resume.id}
+            className="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm mb-4"
+          >
+            <div className="flex items-center space-x-4">
+              <FileText className="w-6 h-6 text-gray-600" />
+              <a
+                href={fileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-blue-600 hover:underline break-all"
+              >
+                {resume.resume_url}
+              </a>
+            </div>
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-gray-500">
+                {resume.uploaded_at
+                  ? format(parseISO(resume.uploaded_at), "dd MMM, yyyy")
+                  : "N/A"}
+              </span>
+
+              <button
+                onClick={() =>
+                  handleDownload(fileUrl, resume.resume_url, resume.id)
+                }
+                disabled={isDownloading}
+                className="text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed p-1"
+                title="Download Resume"
+              >
+                {isDownloading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
-                  <AvatarFallback>{f.uploadedBy?.[0] ?? "?"}</AvatarFallback>
+                  <Download className="w-5 h-5" />
                 )}
-              </Avatar>
-              <span>{f.uploadedBy}</span>
-            </div> */}
-            <span className="text-sm text-gray-500">
-        {f.uploadedAt ? format(parseISO(f.uploadedAt), "dd MMM, yyyy") : "N/A"}
-            </span>
-            <a
-              href={`http://51.20.181.155/ats-api/uploads/${f.resume_url}`}
-              download
-              className="text-gray-600 hover:text-gray-800"
-              target="blank"
-            >
-              <Download className="w-5 h-5" />
-            </a>
+              </button>
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </ScrollArea>
   );
 }

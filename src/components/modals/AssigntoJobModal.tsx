@@ -14,7 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { InfoIcon } from "lucide-react";
 
-const API_BASE_URL = "http://51.20.181.155:3000";
+const API_BASE_URL = "http://13.51.235.31:3000";
 
 interface Job {
   id: number;
@@ -109,8 +109,6 @@ const AssignToJobModal: React.FC<AssignToJobModalProps> = ({
       );
       onSuccess();
       onOpenChange(false);
-
-      
     } catch (err) {
       console.error("Batch assignment failed:", err);
       toast.error("Failed to assign candidates!");

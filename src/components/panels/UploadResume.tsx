@@ -12,13 +12,19 @@ import {
 import { toast } from "sonner";
 import axios from "axios";
 
-const API_BASE_URL = "http://51.20.181.155:3000";
+const API_BASE_URL = "http://13.51.235.31:3000";
 
 interface UploadResumeProps {
-  jobId: number;
+  jobId: number | null;
+  onClose: () => void;
+  onSuccess: () => void;
 }
 
-export default function UploadResume({ jobId }: UploadResumeProps) {
+export default function UploadResume({
+  jobId,
+  onClose,
+  onSuccess,
+}: UploadResumeProps) {
   const [progress, setProgress] = useState(0);
   const [resumeupload, setResumeUpload] = useState(false);
   const [resumeFiles, setResumeFiles] = useState<FileList | null>(null);
@@ -57,7 +63,9 @@ export default function UploadResume({ jobId }: UploadResumeProps) {
       formData.append("resumes", file);
     });
 
-    formData.append("job_id", jobId.toString());
+    if (jobId) {
+      formData.append("job_id", jobId.toString());
+    }
 
     try {
       setResumeUpload(true);
@@ -71,7 +79,7 @@ export default function UploadResume({ jobId }: UploadResumeProps) {
       });
       toast.success("Files Uploaded!");
       resetForm();
-      setProgress(100);
+      onSuccess();
     } catch (err: any) {
       console.error(err);
       toast.error("Upload Failed!");

@@ -47,7 +47,7 @@ import {
 } from "@/lib/user-config";
 import { CandidateActionsPopover } from "./CandidateActionsPopover";
 
-const API_BASE_URL = "http://51.20.181.155:3000";
+const API_BASE_URL = "http://13.51.235.31:3000";
 
 interface CandidateForm {
   id: number;

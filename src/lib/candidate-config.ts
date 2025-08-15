@@ -5,10 +5,7 @@ export interface ColumnConfig {
 
 export const ALL_COLUMNS: ColumnConfig[] = [
   { key: "name", label: "Name" },
-  { key: "job_titles", label: "Jobs Assigned to" },
-  { key: "status", label: "Candidate Status" },
-  { key: "recruiter_status", label: "Recruiter Status" },
-  { key: "hmapproval", label: "HM Approval" },
+  { key: "job_and_stage", label: "Job and Stage" },
   { key: "notice_period", label: "Notice Period"},
   { key: "current_ctc", label: "Current CTC" },
   { key: "expected_ctc", label: "Expected CTC" },

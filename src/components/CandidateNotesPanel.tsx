@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import axios from "axios";
 
-const API_BASE = "http://51.20.181.155:3000";
+const API_BASE = "http://13.51.235.31:3000";
 
 interface Note {
   id: number;
@@ -112,7 +112,11 @@ export default function CandidateNotesPanel({
           value={newNote}
           onChange={(e) => setNewNote(e.target.value)}
         />
-        <Button className="mt-2" onClick={addNote} disabled={!newNote.trim()}>
+        <Button
+          className="mt-2 bg-blue-500"
+          onClick={addNote}
+          disabled={!newNote.trim()}
+        >
           Add Note
         </Button>
       </div>
@@ -131,7 +135,11 @@ export default function CandidateNotesPanel({
                   onChange={(e) => setEditingText(e.target.value)}
                 />
                 <div className="flex gap-2 mt-2">
-                  <Button size="sm" onClick={() => updateNote(n.id)}>
+                  <Button
+                    size="sm"
+                    className="bg-blue-500"
+                    onClick={() => updateNote(n.id)}
+                  >
                     Save
                   </Button>
                   <Button

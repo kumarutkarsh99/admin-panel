@@ -9,7 +9,7 @@ import { saveAs } from "file-saver";
 import { toast } from "sonner";
 import CandidateViewList from "@/components/UserViewTable";
 
-const API_BASE_URL = "http://51.20.181.155:3000";
+const API_BASE_URL = "http://13.51.235.31:3000";
 
 interface ParsedAddress {
   firstline: string;

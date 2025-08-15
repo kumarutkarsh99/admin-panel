@@ -65,16 +65,28 @@ export default function CandidateDetailsTabs({
           />
         </TabsContent>
         <TabsContent value="schedule">
-          <SchedulePanel candidate={candidate} />
+          <SchedulePanel   candidate={{
+    candidateId: candidate.id,
+    candidateName: `${candidate.first_name} ${candidate.last_name}`,
+  }} />
         </TabsContent>
         <TabsContent value="email">
-          <EmailPanel candidate={candidate} />
+          <EmailPanel candidate={{
+    candidateId: candidate.id,
+    candidateName: `${candidate.first_name} ${candidate.last_name}`,
+  }} />
         </TabsContent>
         <TabsContent value="calls">
-          <CallsPanel candidate={candidate} />
+          <CallsPanel candidate={{
+    candidateId: candidate.id,
+    candidateName: `${candidate.first_name} ${candidate.last_name}`,
+  }} />
         </TabsContent>
         <TabsContent value="text">
-          <TextPanel candidate={candidate} />
+          <TextPanel candidate={{
+    candidateId: candidate.id,
+    candidateName: `${candidate.first_name} ${candidate.last_name}`,
+  }} />
         </TabsContent>
         <TabsContent value="activity">
           <ActivityPanel candidate={candidate} />
@@ -107,10 +119,11 @@ export default function CandidateDetailsTabs({
         </TabsList>
 
         <TabsContent value="activities">
-          <ActivitiesPanel activities={candidate.activities || []} />
+          {/* <ActivitiesPanel activities={candidate.activities || []} /> */}
+          <ActivitiesPanel candidateId={candidate.id} />
         </TabsContent>
         <TabsContent value="files">
-          <FilesPanel candidateId={candidate.id} authorId={1} />
+          <FilesPanel candidateId={candidate.id}  />
         </TabsContent>
         <TabsContent value="scorecards">
           <ScorecardsPanel scorecards={candidate.scorecards} />

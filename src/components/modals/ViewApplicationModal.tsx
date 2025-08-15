@@ -1,17 +1,18 @@
 import { useState, useEffect } from "react";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import axios from "axios";
 import CandidateViewList from "../CandidateViewTable";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-const API_BASE_URL = "http://51.20.181.155:3000";
+const API_BASE_URL = "http://13.51.235.31:3000";
 
 const STATUSES = [
   "All",
@@ -50,18 +51,17 @@ export default function ViewApplicationsModal({
       const { data } = await axios.get(
         `${API_BASE_URL}/jobs/${jobId}/applicants`
       );
-      if (data.status) {
-        let list = data.result as any[];
-        if (activeStatus && activeStatus !== "All") {
-          list = list.filter((applicant) => applicant.status === activeStatus);
-        }
-        setApplicants(list);
+      if (data.status && Array.isArray(data.result)) {
+        setApplicants(data.result);
       } else {
-        throw new Error(data.message || "Failed to fetch applicants");
+        setApplicants([]);
+        if (!data.status) {
+          throw new Error(data.message || "Failed to fetch applicants");
+        }
       }
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message);
+      toast.error(err.response?.data?.message || err.message);
       setApplicants([]);
     } finally {
       setLoading(false);
@@ -70,61 +70,92 @@ export default function ViewApplicationsModal({
 
   useEffect(() => {
     if (open && jobId) {
+      setActiveStatus(initialStatus);
       fetchApplicants();
     }
-  }, [open, jobId, activeStatus]);
+  }, [open, jobId, initialStatus]);
+
+  const filteredApplicants = applicants
+    .filter((applicant) =>
+      applicant.jobs_assigned?.some((job: any) => job.job_id === jobId)
+    )
+    .map((applicant) => {
+      const jobData = applicant.jobs_assigned.find(
+        (job: any) => job.job_id === jobId
+      );
+      return {
+        ...applicant,
+        status: jobData?.status || applicant.status,
+      };
+    })
+    .filter((applicant) => {
+      if (activeStatus === "All") {
+        return true;
+      }
+      return applicant.status === activeStatus;
+    });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="scrollbar-custom max-w-screen h-screen overflow-auto bg-gray-50">
-        <DialogHeader className="flex flex-col space-y-2">
-          {/* Title + Refresh */}
-          <div className="flex items-center">
-            <DialogTitle className="flex items-center space-x-2">
-              <span>View Applications</span>
-              {activeStatus !== "All" && (
-                <span className="text-blue-600 font-medium">
-                  — {activeStatus}
-                </span>
-              )}
-            </DialogTitle>
+      <DialogContent className="max-w-screen h-screen flex flex-col p-0 gap-0">
+        <div className="relative flex-shrink-0 p-6 border-b bg-white/80 backdrop-blur-sm top-0 z-10">
+          <DialogHeader className="space-y-0">
+            <div className="flex items-center">
+              <DialogTitle className="flex items-center space-x-4 text-lg">
+                <span>View Applications</span>
+              </DialogTitle>
+            </div>
+
+            <div className="flex space-x-2 overflow-x-auto pt-4 pb-1">
+              {STATUSES.map((status) => (
+                <Button
+                  key={status}
+                  variant={status === activeStatus ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => {
+                    fetchApplicants();
+                    setActiveStatus(status);
+                  }}
+                  className={
+                    status === activeStatus
+                      ? "whitespace-nowrap bg-blue-500 hover:bg-blue-600"
+                      : "whitespace-nowrap"
+                  }
+                >
+                  {status}
+                </Button>
+              ))}
+            </div>
+          </DialogHeader>
+
+          <DialogClose asChild>
             <Button
               variant="ghost"
-              size="sm"
-              onClick={fetchApplicants}
-              aria-label="Refresh applicants"
-              className="ml-1"
+              className="absolute top-6 right-6 p-2 h-auto rounded-full"
+              aria-label="Close"
             >
-              <RefreshCw className="h-5 w-5" />
+              <X className="h-5 w-5" />
             </Button>
-          </div>
+          </DialogClose>
+        </div>
 
-          <div className="flex space-x-2 overflow-auto">
-            {STATUSES.map((status) => (
-              <Button
-                key={status}
-                variant={status === activeStatus ? "secondary" : "outline"}
-                size="sm"
-                onClick={() => setActiveStatus(status)}
-              >
-                {status}
-              </Button>
-            ))}
-          </div>
-        </DialogHeader>
-
-        {loading ? (
-          <div className="flex justify-center py-8">Loading...</div>
-        ) : (
-          <div>
-            <CandidateViewList
-              loading={loading}
-              jobId={jobId}
-              candidates={applicants}
-              fetchCandidates={fetchApplicants}
-            />
-          </div>
-        )}
+        <div className="flex-grow overflow-y-auto bg-gray-50">
+          {loading ? (
+            <div className="flex items-center justify-center h-full text-gray-500">
+              <RefreshCw className="h-6 w-6 animate-spin mr-3" />
+              <span>Loading Applicants...</span>
+            </div>
+          ) : (
+            <div className="p-4 md:p-6">
+              <CandidateViewList
+                loading={false}
+                jobId={jobId}
+                candidates={filteredApplicants}
+                fetchCandidates={fetchApplicants}
+              />
+            </div>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

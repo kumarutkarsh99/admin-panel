@@ -16,6 +16,12 @@ import {
   Plus,
   Check,
   X,
+  ArrowUpCircle,
+  ArrowUp,
+  ChevronUp,
+  ExternalLink,
+  Paperclip,
+  FileText,
 } from "lucide-react";
 import {
   Table,
@@ -47,7 +53,8 @@ import {
 } from "@/lib/candidate-config";
 import { CandidateActionsPopover } from "./CandidateActionsPopover";
 
-const API_BASE_URL = "http://51.20.181.155:3000";
+const API_BASE_URL = "http://13.51.235.31:3000";
+const FILE_SERVER_URL = "http://13.51.235.31";
 
 const CANDIDATE_STATUSES = [
   "Sourced",
@@ -71,16 +78,21 @@ const HM_APPROVAL_STATUSES = ["Pending", "Approved", "Rejected"];
 
 const noticePeriodOptions = ["15 days", "30 days", "60 days", "90 days"];
 
+interface JobAssignment {
+  job_id: number;
+  status: string;
+  job_title: string;
+  hmapproval: string;
+  recruiter_status: string;
+}
+
 interface CandidateForm {
   id: number;
-  job_ids: number[];
-  job_titles: string[];
   first_name: string;
   last_name: string;
   email: string;
   phone: string;
   headline: string | null;
-  status: string;
   address: string;
   experience: string;
   photo_url: string | null;
@@ -89,8 +101,6 @@ interface CandidateForm {
   resume_url: string;
   cover_letter: string | null;
   rating: string | null;
-  hmapproval: string;
-  recruiter_status: string;
   current_company: string | null;
   current_ctc: string | null;
   expected_ctc: string | null;
@@ -99,6 +109,9 @@ interface CandidateForm {
   updated_at: string;
   linkedinprofile: string;
   notice_period: string;
+  institutiontier: string;
+  companytier: string;
+  jobs_assigned: JobAssignment[];
 }
 
 interface ParsedEducation {
@@ -216,7 +229,6 @@ const EditableCell = ({
       className="inline-flex items-center gap-1 text-sm text-slate-700 cursor-pointer hover:bg-slate-100 p-1 rounded min-h-[32px]"
       onClick={() => setIsEditing(true)}
     >
-      <DollarSign className="h-3 w-3 text-green-600" />
       {value || "N/A"}
     </span>
   );
@@ -230,10 +242,25 @@ export default function CandidateViewList({
 }: CandidateViewListProps) {
   const [localCandidates, setLocalCandidates] = useState<CandidateForm[]>([]);
   const [isAddModalOpen, setAddModalOpen] = useState(false);
+  const [expandedCandidates, setExpandedCandidates] = useState<Set<number>>(
+    new Set()
+  );
 
   useEffect(() => {
     setLocalCandidates(candidates);
   }, [candidates]);
+
+  const toggleCandidateJobs = (candidateId: number) => {
+    setExpandedCandidates((prev) => {
+      const next = new Set(prev);
+      if (next.has(candidateId)) {
+        next.delete(candidateId);
+      } else {
+        next.add(candidateId);
+      }
+      return next;
+    });
+  };
 
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
@@ -333,13 +360,43 @@ export default function CandidateViewList({
   ) => {
     try {
       await axios.put(`${API_BASE_URL}/candidate/${id}`, { [field]: value });
-      setLocalCandidates((prev) =>
-        prev.map((c) => (c.id === id ? { ...c, [field]: value } : c))
-      );
+      fetchCandidates();
       toast.success(`Candidate's ${field.replace(/_/g, " ")} updated.`);
     } catch (err) {
       console.error(`Failed to update ${field}`, err);
       toast.error(`Could not update ${field}.`);
+    }
+  };
+
+  const handleJobAssignmentUpdate = async (
+    candidateId: number,
+    jobId: number,
+    field: "status" | "recruiter_status" | "hmapproval",
+    value: string
+  ) => {
+    setLocalCandidates((prev) =>
+      (prev || []).map((candidate) => {
+        if (candidate.id === candidateId) {
+          const updatedJobs = (candidate.jobs_assigned || []).map((job) =>
+            job.job_id === jobId ? { ...job, [field]: value } : job
+          );
+          return { ...candidate, jobs_assigned: updatedJobs };
+        }
+        return candidate;
+      })
+    );
+
+    try {
+      await axios.put(`${API_BASE_URL}/candidate/job-assignment/update`, {
+        candidateId,
+        jobId,
+        field,
+        value,
+      });
+      toast.success("Stage updated successfully.");
+      fetchCandidates();
+    } catch (err) {
+      toast.error("Failed to update stage. Reverting changes.");
     }
   };
 
@@ -415,6 +472,12 @@ export default function CandidateViewList({
               <Button size="sm" onClick={handleEdit} variant="outline">
                 Update fields
               </Button>
+              <Button size="sm" variant="outline">
+                Email
+              </Button>
+              <Button size="sm" variant="outline">
+                WhatsApp
+              </Button>
               <Button size="sm" onClick={handleDelete} variant="destructive">
                 Delete records
               </Button>
@@ -443,7 +506,7 @@ export default function CandidateViewList({
         <CardContent className="p-0">
           <div className="max-h-[600px] overflow-auto">
             <Table>
-              <TableHeader className="sticky top-0 bg-white/90 backdrop-blur-sm z-10">
+              <TableHeader className="sticky top-0 bg-gray-50 backdrop-blur-sm z-10">
                 <TableRow>
                   <TableHead className="w-12">
                     <Checkbox
@@ -459,7 +522,7 @@ export default function CandidateViewList({
                         className="whitespace-nowrap text-black"
                         key={col.key}
                       >
-                        {col.label}
+                        {col.label.toUpperCase()}
                       </TableHead>
                     ) : null
                   )}
@@ -492,10 +555,15 @@ export default function CandidateViewList({
                       if (Array.isArray(eduData) && eduData.length > 0)
                         parsedEdu = eduData[0];
                     } catch {}
+
+                    const isExpanded = expandedCandidates.has(candidate.id);
+                    const jobs = candidate.jobs_assigned || [];
+                    const jobsToShow = isExpanded ? jobs : jobs.slice(0, 1);
+
                     return (
                       <TableRow
                         key={candidate.id}
-                        className="hover:bg-slate-50/50"
+                        className="hover:bg-slate-50/50 align-top"
                       >
                         <TableCell className="w-12">
                           <Checkbox
@@ -507,7 +575,10 @@ export default function CandidateViewList({
                         </TableCell>
                         {visibleColumns.includes("name") && (
                           <TableCell className="min-w-[200px] py-2">
-                            <CandidateActionsPopover candidateId={candidate.id}>
+                            <CandidateActionsPopover
+                              candidate={candidate}
+                              fetchCandidates={fetchCandidates}
+                            >
                               <div className="flex items-center gap-2">
                                 <Avatar className="h-8 w-8">
                                   <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
@@ -515,6 +586,7 @@ export default function CandidateViewList({
                                     {candidate.last_name?.toUpperCase()[0]}
                                   </AvatarFallback>
                                 </Avatar>
+
                                 <button
                                   onClick={() => {
                                     setSelectedCandidate(candidate);
@@ -524,168 +596,176 @@ export default function CandidateViewList({
                                 >
                                   {candidate.first_name} {candidate.last_name}
                                 </button>
+                                {candidate.resume_url && (
+                                  <a
+                                    href={`${FILE_SERVER_URL}/ats-api/uploads/${candidate.resume_url}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center justify-center p-2 text-gray-500 hover:text-blue-600 transition-colors"
+                                    title="View Resume in new tab"
+                                  >
+                                    <FileText className="h-4 w-4" />
+                                  </a>
+                                )}
                               </div>
                             </CandidateActionsPopover>
                           </TableCell>
                         )}
-                        {visibleColumns.includes("job_titles") &&
-                          (candidate.job_titles &&
-                          candidate.job_titles.length > 0 &&
-                          candidate.job_titles[0] != null ? (
-                            <TableCell className="py-2">
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="w-full text-xs"
+
+                        {visibleColumns.includes("job_and_stage") && (
+                          <TableCell className="min-w-[400px] py-3">
+                            {(candidate.jobs_assigned || []).length > 0 ? (
+                              <div>
+                                {(isExpanded
+                                  ? candidate.jobs_assigned
+                                  : (candidate.jobs_assigned || []).slice(0, 1)
+                                ).map((job, index) => (
+                                  <div
+                                    key={job.job_id}
+                                    className="mb-3 last:mb-0"
                                   >
-                                    View {candidate.job_titles.length} Jobs
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent>
-                                  {candidate.job_titles.map((title) => (
-                                    <DropdownMenuItem key={title}>
-                                      {title}
-                                    </DropdownMenuItem>
-                                  ))}
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </TableCell>
-                          ) : (
-                            <TableCell>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="w-full text-xs"
-                              >
+                                    <div className="flex items-center gap-3">
+                                      <div className="min-w-[150px] text-sm font-medium text-gray-700 cursor-pointer">
+                                        {job.job_title}
+                                      </div>
+
+                                      <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="h-auto p-2 text-xs min-w-[120px] justify-start"
+                                          >
+                                            <span
+                                              className={`w-2 h-2 rounded-full ${getStatusColor(
+                                                job.status
+                                              )}`}
+                                            />
+                                            {job.status}
+                                          </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent>
+                                          {CANDIDATE_STATUSES.map((s) => (
+                                            <DropdownMenuItem
+                                              key={s}
+                                              onSelect={() =>
+                                                handleJobAssignmentUpdate(
+                                                  candidate.id,
+                                                  job.job_id,
+                                                  "status",
+                                                  s
+                                                )
+                                              }
+                                            >
+                                              {s}
+                                            </DropdownMenuItem>
+                                          ))}
+                                        </DropdownMenuContent>
+                                      </DropdownMenu>
+
+                                      <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="h-auto p-2 text-xs min-w-[150px] justify-start"
+                                          >
+                                            <span
+                                              className={`w-2 h-2 rounded-full ${getRecruiterStatusColor(
+                                                job.recruiter_status
+                                              )}`}
+                                            />
+                                            {job.recruiter_status}
+                                          </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent>
+                                          {RECRUITER_STATUSES.map((s) => (
+                                            <DropdownMenuItem
+                                              key={s}
+                                              onSelect={() =>
+                                                handleJobAssignmentUpdate(
+                                                  candidate.id,
+                                                  job.job_id,
+                                                  "recruiter_status",
+                                                  s
+                                                )
+                                              }
+                                            >
+                                              {s}
+                                            </DropdownMenuItem>
+                                          ))}
+                                        </DropdownMenuContent>
+                                      </DropdownMenu>
+
+                                      <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="h-auto p-2 text-xs min-w-[120px] justify-start"
+                                          >
+                                            <span
+                                              className={`w-2 h-2 rounded-full ${getHMApprovalColor(
+                                                job.hmapproval
+                                              )}`}
+                                            />
+                                            {job.hmapproval}
+                                          </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent>
+                                          {HM_APPROVAL_STATUSES.map((s) => (
+                                            <DropdownMenuItem
+                                              key={s}
+                                              onSelect={() =>
+                                                handleJobAssignmentUpdate(
+                                                  candidate.id,
+                                                  job.job_id,
+                                                  "hmapproval",
+                                                  s
+                                                )
+                                              }
+                                            >
+                                              {s}
+                                            </DropdownMenuItem>
+                                          ))}
+                                        </DropdownMenuContent>
+                                      </DropdownMenu>
+
+                                      {index === 0 &&
+                                        (candidate.jobs_assigned || []).length >
+                                          1 && (
+                                          <button
+                                            onClick={() =>
+                                              toggleCandidateJobs(candidate.id)
+                                            }
+                                            className="text-sm font-medium text-gray-800 hover:underline whitespace-nowrap"
+                                          >
+                                            {isExpanded ? (
+                                              <ChevronUp
+                                                size={20}
+                                                color="black"
+                                                strokeWidth={1.5}
+                                              />
+                                            ) : (
+                                              `+${
+                                                (candidate.jobs_assigned || [])
+                                                  .length - 1
+                                              }`
+                                            )}
+                                          </button>
+                                        )}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="text-slate-500 text-center">
                                 Not Assigned
-                              </Button>
-                            </TableCell>
-                          ))}
-                        {visibleColumns.includes("status") && (
-                          <TableCell className="min-w-[170px]">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  className="flex w-full items-center justify-start gap-2 text-xs font-medium py-2 px-3 h-auto rounded-md"
-                                >
-                                  <span
-                                    className={`h-2 w-2 rounded-full ${getStatusColor(
-                                      candidate.status
-                                    )}`}
-                                    aria-hidden="true"
-                                  />
-                                  <span>
-                                    {candidate.status || "Select status"}
-                                  </span>
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-40">
-                                {CANDIDATE_STATUSES.map((statusOption) => (
-                                  <DropdownMenuItem
-                                    key={statusOption}
-                                    onSelect={() =>
-                                      handleFieldUpdate(
-                                        candidate.id,
-                                        "status",
-                                        statusOption
-                                      )
-                                    }
-                                    disabled={candidate.status === statusOption}
-                                  >
-                                    {statusOption}
-                                  </DropdownMenuItem>
-                                ))}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                              </span>
+                            )}
                           </TableCell>
                         )}
-                        {visibleColumns.includes("recruiter_status") && (
-                          <TableCell className="min-w-[170px]">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  className="flex w-full items-center justify-start gap-2 text-xs font-medium py-2 px-3 h-auto rounded-md"
-                                >
-                                  <span
-                                    className={`h-2 w-2 rounded-full ${getRecruiterStatusColor(
-                                      candidate.recruiter_status
-                                    )}`}
-                                    aria-hidden="true"
-                                  />
-                                  <span>
-                                    {candidate.recruiter_status ||
-                                      "Select status"}
-                                  </span>
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-40">
-                                {RECRUITER_STATUSES.map((statusOption) => (
-                                  <DropdownMenuItem
-                                    key={statusOption}
-                                    onSelect={() =>
-                                      handleFieldUpdate(
-                                        candidate.id,
-                                        "recruiter_status",
-                                        statusOption
-                                      )
-                                    }
-                                    disabled={
-                                      candidate.recruiter_status ===
-                                      statusOption
-                                    }
-                                  >
-                                    {statusOption}
-                                  </DropdownMenuItem>
-                                ))}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        )}
-                        {visibleColumns.includes("hmapproval") && (
-                          <TableCell className="min-w-[170px]">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  className="flex w-full items-center justify-start gap-2 text-xs font-medium py-2 px-3 h-auto rounded-md"
-                                >
-                                  <span
-                                    className={`h-2 w-2 rounded-full ${getHMApprovalColor(
-                                      candidate.hmapproval
-                                    )}`}
-                                    aria-hidden="true"
-                                  />
-                                  <span>
-                                    {candidate.hmapproval || "Select status"}
-                                  </span>
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-40">
-                                {HM_APPROVAL_STATUSES.map((statusOption) => (
-                                  <DropdownMenuItem
-                                    key={statusOption}
-                                    onSelect={() =>
-                                      handleFieldUpdate(
-                                        candidate.id,
-                                        "hmapproval",
-                                        statusOption
-                                      )
-                                    }
-                                    disabled={
-                                      candidate.hmapproval === statusOption
-                                    }
-                                  >
-                                    {statusOption}
-                                  </DropdownMenuItem>
-                                ))}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        )}
+
                         {visibleColumns.includes("notice_period") && (
                           <TableCell className="min-w-[150px]">
                             <DropdownMenu>
@@ -695,7 +775,7 @@ export default function CandidateViewList({
                                   className="flex w-full items-center justify-start gap-2 text-xs font-medium py-2 px-3 h-auto rounded-md"
                                 >
                                   <span>
-                                    {candidate.notice_period || "Select status"}
+                                    {candidate.notice_period || "Select period"}
                                   </span>
                                 </Button>
                               </DropdownMenuTrigger>
@@ -711,7 +791,7 @@ export default function CandidateViewList({
                                       )
                                     }
                                     disabled={
-                                      candidate.hmapproval === periodOption
+                                      candidate.notice_period === periodOption
                                     }
                                   >
                                     {periodOption}
@@ -721,6 +801,7 @@ export default function CandidateViewList({
                             </DropdownMenu>
                           </TableCell>
                         )}
+
                         {visibleColumns.includes("current_ctc") && (
                           <TableCell className="min-w-[150px] whitespace-nowrap py-2">
                             <EditableCell
@@ -754,6 +835,7 @@ export default function CandidateViewList({
                             {candidate.headline || "N/A"}
                           </TableCell>
                         )}
+
                         {visibleColumns.includes("phone") && (
                           <TableCell className="min-w-[150px] whitespace-nowrap text-sm text-slate-500">
                             {candidate.phone}
@@ -764,6 +846,7 @@ export default function CandidateViewList({
                             {candidate.email}
                           </TableCell>
                         )}
+
                         {visibleColumns.includes("current_company") && (
                           <TableCell className="min-w-[150px]">
                             <span className="inline-flex items-center gap-1 whitespace-nowrap text-sm text-slate-500">
@@ -814,6 +897,7 @@ export default function CandidateViewList({
                             </div>
                           </TableCell>
                         )}
+
                         {visibleColumns.includes("address") && (
                           <TableCell className="min-w-[200px] max-w-[250px]">
                             <div
@@ -869,12 +953,16 @@ export default function CandidateViewList({
         open={isAddModalOpen}
         jobId={jobId}
         handleClose={() => setAddModalOpen(false)}
+        onSuccess={() => {
+          fetchCandidates();
+          setAddModalOpen(false);
+        }}
       />
       <CandidateProfileModal
         open={isProfileModalOpen}
         onOpenChange={setProfileModalOpen}
         candidate={selectedCandidate}
-        fetchCandidates = {fetchCandidates}
+        fetchCandidates={fetchCandidates}
       />
     </div>
   );

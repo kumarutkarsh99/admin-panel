@@ -21,7 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import axios from "axios";
 import { Upload, Loader2, Download, FileSpreadsheet } from "lucide-react";
-const API_BASE_URL = "http://51.20.181.155:3000";
+const API_BASE_URL = "http://13.51.235.31:3000";
 
 interface PostNewJobModalProps {
   open: boolean;
@@ -34,13 +34,6 @@ const employmentTypes = [
   "Contract",
   "Internship",
   "Temporary",
-];
-const experienceLevels = [
-  "Entry level",
-  "Mid level",
-  "Senior level",
-  "Director",
-  "Executive",
 ];
 const educationLevels = [
   "High School",
@@ -68,7 +61,7 @@ const initialForm = {
   about_company: "",
   notice_period: "",
 };
-const noticePeriodOptions = ["15 days", "30 days", "60 days", "90 days"];
+
 const industries = [
   "IT Services",
   "Information Technology",
@@ -114,7 +107,45 @@ const industries = [
   "Human Resources",
   "Research & Development",
   "Environmental Services",
-  "Sports & Recreation"
+  "Sports & Recreation",
+  "Biotechnology",
+  "Chemicals",
+  "Civil Engineering",
+  "Computer Hardware",
+  "Consumer Electronics",
+  "Cosmetics",
+  "Dairy",
+  "Design",
+  "Electric Vehicles",
+  "Fashion",
+  "Food Production",
+  "Gaming",
+  "Graphic Design",
+  "Hardware Engineering",
+  "Home Furnishings",
+  "Industrial Automation",
+  "Information Services",
+  "Internet",
+  "Journalism",
+  "Leisure, Travel & Tourism",
+  "Machine Learning",
+  "Management Consulting",
+  "Mechanical Engineering",
+  "Medical Devices",
+  "Military",
+  "Music",
+  "Nanotechnology",
+  "Oil & Gas",
+  "Packaging",
+  "Plastics",
+  "Political Organization",
+  "Printing",
+  "Public Relations",
+  "Railroad Manufacture",
+  "Renewables & Environment",
+  "Semiconductors",
+  "Space",
+  "Venture Capital & Private Equity",
 ];
 
 const jobFunctions = [
@@ -150,6 +181,7 @@ const jobFunctions = [
   "Software Support Engineer",
 ];
 
+const currencyOptions = ["INR", "USD", "EUR", "GBP", "JPY", "CAD", "AUD"];
 
 export interface JobsForm {
   job_title: string;
@@ -204,18 +236,6 @@ const TEMPLATE_HEADERS: (keyof JobsForm)[] = [
   "about_company",
   "notice_period",
 ];
-const downloadCsvTemplate = () => {
-  const headerRow = TEMPLATE_HEADERS.join(",");
-  const emptyRow = TEMPLATE_HEADERS.map(() => "").join(",");
-  const csvContent = [headerRow, emptyRow].join("\n");
-  const blob = new Blob([csvContent], { type: "text/csv" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "jobs_template.csv";
-  a.click();
-  URL.revokeObjectURL(url);
-};
 
 const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
   open,
@@ -232,13 +252,15 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isParsing, setIsParsing] = useState(false);
   const [locationSuggestions, setLocationSuggestions] = useState<string[]>([]);
-const [industrySuggestions, setIndustrySuggestions] = useState<string[]>([]);
-const [showIndustrySuggestions, setShowIndustrySuggestions] = useState(false);
-const [jobFunctionSuggestions, setJobFunctionSuggestions] = useState<string[]>([]);
-const [showJobFunctionSuggestions, setShowJobFunctionSuggestions] = useState(false);
+  const [industrySuggestions, setIndustrySuggestions] = useState<string[]>([]);
+  const [showIndustrySuggestions, setShowIndustrySuggestions] = useState(false);
+  const [jobFunctionSuggestions, setJobFunctionSuggestions] = useState<
+    string[]
+  >([]);
+  const [showJobFunctionSuggestions, setShowJobFunctionSuggestions] =
+    useState(false);
 
-
-   const [progress, setProgress] = useState(0);
+  const [progress, setProgress] = useState(0);
 
   const [departments] = useState([
     "Engineering",
@@ -260,7 +282,6 @@ const [showJobFunctionSuggestions, setShowJobFunctionSuggestions] = useState(fal
     { city: "Kolkata", state: "West Bengal" },
     { city: "Jaipur", state: "Rajasthan" },
     { city: "Surat", state: "Gujarat" },
-    // Add more as needed
   ];
   const [suggestions, setSuggestions] = useState<string[]>([]);
 
@@ -275,7 +296,6 @@ const [showJobFunctionSuggestions, setShowJobFunctionSuggestions] = useState(fal
       setUploadedFile(null);
     }
   }, [open]);
-  
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
@@ -288,7 +308,7 @@ const [showJobFunctionSuggestions, setShowJobFunctionSuggestions] = useState(fal
     if (!formData.officeLocation.primary.trim())
       newErrors.officeLocation = "Primary office location is required.";
     // if (!formData.description.about.trim())
-    //   newErrors.about = "Job summary is required.";
+    // 	newErrors.about = "Job summary is required.";
     if (!formData.companyDetails.industry.trim())
       newErrors.industry = "Industry is required.";
     if (!formData.companyDetails.jobFunction.trim())
@@ -306,7 +326,7 @@ const [showJobFunctionSuggestions, setShowJobFunctionSuggestions] = useState(fal
     if (!formData.company.trim())
       newErrors.company = "Company name is required.";
     // if (!formData.notice_period.trim())
-    // newErrors.company = "Company name is required.";
+    // 	newErrors.company = "Company name is required.";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -341,21 +361,21 @@ const [showJobFunctionSuggestions, setShowJobFunctionSuggestions] = useState(fal
       setLocationSuggestions(filtered); // ✅ no type error
     }
 
-     // Industry suggestion logic
-  if (section === "companyDetails" && field === "industry") {
-    const filtered = industries.filter((item) =>
-      item.toLowerCase().includes(value.toLowerCase())
-    );
-    setIndustrySuggestions(filtered); // <-- Define this in useState
-  }
+    // Industry suggestion logic
+    if (section === "companyDetails" && field === "industry") {
+      const filtered = industries.filter((item) =>
+        item.toLowerCase().includes(value.toLowerCase())
+      );
+      setIndustrySuggestions(filtered); // <-- Define this in useState
+    }
 
     // For Job Function suggestions
-  if (section === "companyDetails" && field === "jobFunction") {
-    const filtered = jobFunctions.filter((item) =>
-      item.toLowerCase().includes(value.toLowerCase())
-    );
-    setJobFunctionSuggestions(filtered);
-  }
+    if (section === "companyDetails" && field === "jobFunction") {
+      const filtered = jobFunctions.filter((item) =>
+        item.toLowerCase().includes(value.toLowerCase())
+      );
+      setJobFunctionSuggestions(filtered);
+    }
   };
   const addKeyword = () => {
     if (
@@ -382,64 +402,51 @@ const [showJobFunctionSuggestions, setShowJobFunctionSuggestions] = useState(fal
     }));
 
   const handleParseJD = async () => {
+        setIsParsing(true);
     if (!pastedJD.trim() && !uploadedFile) {
       toast.warning("Please paste a job description or upload a file.");
       return;
     }
 
     const formData = new FormData();
-  formData.append("file", uploadedFile);
-  formData.append("fileName", uploadedFile.name);
+    if (uploadedFile) {
+      formData.append("file", uploadedFile);
+      formData.append("fileName", uploadedFile.name);
+    } else {
+      formData.append("jdText", pastedJD);
+    }
 
-   const response = await axios.post(`${API_BASE_URL}/jobs/extractJob`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-        onUploadProgress: (evt) => {
-          const pct = Math.round((evt.loaded * 100) / (evt.total || 1));
-          setProgress(pct);
-        },
-      });
-   
-    const result = await response ;
-    let rawExtracted = result.data.results[0].extractedData;
-    console.log(rawExtracted,'rawextracted')
-     rawExtracted = rawExtracted.replace(/```json\n?|```/g, '');
-     let extractedObj = JSON.parse(rawExtracted);
-    setIsParsing(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      // const parsedData = {
-      //   jobTitle: "Senior Software Engineer (React)",
-      //   description: {
-      //     about:
-      //       "We are seeking an experienced Frontend Developer to join our dynamic team.",
-      //     requirements:
-      //       "5+ years of React experience.\nProficient in TypeScript.",
-      //     benefits: "Health Insurance\nFlexible work hours",
-      //   },
-      //   companyDetails: { industry: "Technology", jobFunction: "Engineering" },
-      //   employmentDetails: {
-      //     experience: "Senior level",
-      //     education: "Bachelor",
-      //     keywords: ["React", "TypeScript", "JavaScript"],
-      //   },
-      // };
+      setIsParsing(true);
+      const response = await axios.post(
+        `${API_BASE_URL}/jobs/extractJob`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+          onUploadProgress: (evt) => {
+            const pct = Math.round((evt.loaded * 100) / (evt.total || 1));
+            setProgress(pct);
+          },
+        }
+      );
+
+      let rawExtracted = response.data.results[0].extractedData;
+      console.log(rawExtracted, "rawextracted");
+      rawExtracted = rawExtracted.replace(/```json\n?|```/g, "");
+      let extractedObj = JSON.parse(rawExtracted);
 
       const parsedData = {
         jobTitle: extractedObj.jobTitle,
         description: {
-          about:extractedObj.about,
-          requirements:extractedObj. requirements
+          about: extractedObj.about,
+          requirements: extractedObj.requirements,
         },
         companyDetails: { industry: extractedObj.industry, jobFunction: extractedObj.jobFunction },
         employmentDetails: {
-          // experience: "Senior level",
-          // education: "Bachelor",
-          // keywords: ["React", "TypeScript", "JavaScript"],
-             experience: "",
+          experience: "",
           education: "",
           keywords: [],
         },
-
       };
 
       setFormData((prev) => ({
@@ -463,6 +470,8 @@ const [showJobFunctionSuggestions, setShowJobFunctionSuggestions] = useState(fal
       console.error("JD Parsing Error:", error);
     } finally {
       setIsParsing(false);
+      setUploadedFile(null);
+      setPastedJD("");
     }
   };
 
@@ -472,7 +481,7 @@ const [showJobFunctionSuggestions, setShowJobFunctionSuggestions] = useState(fal
 
     if (Object.keys(errors).length > 0) {
       const firstErrorKey = Object.keys(errors)[0];
-      toast.error(errors[firstErrorKey]); // Show first error
+      toast.error(errors[firstErrorKey]);
       return;
     }
     if (!validateForm()) {
@@ -565,19 +574,6 @@ const [showJobFunctionSuggestions, setShowJobFunctionSuggestions] = useState(fal
                       </p>
                     )}
                   </div>
-                  {/* <div>
-                    <label className="text-sm">Job Code *</label>
-                    <Input
-                      placeholder="JOB-001"
-                      value={formData.jobCode}
-                      onChange={(e) => handleChange("jobCode", e.target.value)}
-                    />
-                    {errors.jobCode && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.jobCode}
-                      </p>
-                    )}
-                  </div> */}
                   <div className="relative">
                     <label className="text-sm">Department</label>
                     <Input
@@ -617,27 +613,57 @@ const [showJobFunctionSuggestions, setShowJobFunctionSuggestions] = useState(fal
                     <Input
                       placeholder="Location"
                       value={formData.officeLocation.primary}
-                      onChange={(e) =>
+                      onChange={(e) => {
                         handleNestedChange(
                           "officeLocation",
                           "primary",
                           e.target.value
-                        )
-                      }
+                        );
+                        // Show suggestions on change
+                        setLocationSuggestions(
+                          indianCities
+                            .filter(({ city, state }) =>
+                              `${city}, ${state}`
+                                .toLowerCase()
+                                .includes(e.target.value.toLowerCase())
+                            )
+                            .map(({ city, state }) => `${city}, ${state}`)
+                        );
+                      }}
+                      onFocus={() => {
+                        // Show suggestions when the input is focused
+                        if (formData.officeLocation.primary) {
+                          setLocationSuggestions(
+                            indianCities
+                              .filter(({ city, state }) =>
+                                `${city}, ${state}`
+                                  .toLowerCase()
+                                  .includes(
+                                    formData.officeLocation.primary.toLowerCase()
+                                  )
+                              )
+                              .map(({ city, state }) => `${city}, ${state}`)
+                          );
+                        }
+                      }}
+                      onBlur={() => {
+                        setTimeout(() => setLocationSuggestions([]), 150);
+                      }}
                     />
                     {locationSuggestions.length > 0 && (
-                      <ul className="absolute z-10 bg-white border border-gray-300 mt-1 w-full max-h-40 overflow-auto rounded-md shadow-md">
+                      <ul
+                        className="absolute z-10 bg-white border border-gray-300 mt-1 w-full max-h-40 overflow-auto rounded-md shadow-md"
+                        onMouseDown={(e) => e.preventDefault()}
+                      >
                         {locationSuggestions.map((location, index) => (
                           <li
                             key={index}
                             onClick={() => {
-                              setFormData((prev) => ({
-                                ...prev,
-                                officeLocation: {
-                                  ...prev.officeLocation,
-                                  primary: location,
-                                },
-                              }));
+                              handleNestedChange(
+                                "officeLocation",
+                                "primary",
+                                location
+                              );
                               setLocationSuggestions([]);
                             }}
                             className="px-3 py-1 hover:bg-gray-100 cursor-pointer"
@@ -653,7 +679,7 @@ const [showJobFunctionSuggestions, setShowJobFunctionSuggestions] = useState(fal
                       </p>
                     )}
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center pt-4 gap-4">
                     <label className="text-sm">Workplace</label>
                     <ToggleGroup
                       type="single"
@@ -751,82 +777,116 @@ const [showJobFunctionSuggestions, setShowJobFunctionSuggestions] = useState(fal
                   <div className="md:col-span-2 mt-4 mb-2">
                     <h3 className="text-xl font-semibold">Company Details</h3>
                   </div>
-                 <div className="relative w-full">
-  <label className="text-sm">Industry *</label>
-  <Input
-    placeholder="IT Services"
-    value={formData.companyDetails.industry}
-    onChange={(e) => {
-      handleNestedChange("companyDetails", "industry", e.target.value);
-      setShowIndustrySuggestions(true);
-    }}
-    onBlur={() => setTimeout(() => setShowIndustrySuggestions(false), 150)}
-    onFocus={() => {
-      if (formData.companyDetails.industry)
-        setShowIndustrySuggestions(true);
-    }}
-  />
-
-  {/* Suggestions dropdown */}
-  {showIndustrySuggestions && industrySuggestions.length > 0 && (
-    <ul className="absolute z-10 bg-white border border-gray-300 rounded-md w-full mt-1 max-h-48 overflow-y-auto shadow-md">
-      {industrySuggestions.map((item, index) => (
-        <li
-          key={index}
-          onClick={() => {
-            handleNestedChange("companyDetails", "industry", item);
-            setShowIndustrySuggestions(false);
-          }}
-          className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
-        >
-          {item}
-        </li>
-      ))}
-    </ul>
-  )}
-
-  {errors.industry && (
-    <p className="text-red-500 text-xs mt-1">{errors.industry}</p>
-  )}
-</div>
                   <div className="relative w-full">
-  <label className="text-sm">Job Function *</label>
-  <Input
-    placeholder="Software Development"
-    value={formData.companyDetails.jobFunction}
-    onChange={(e) => {
-      handleNestedChange("companyDetails", "jobFunction", e.target.value);
-      setShowJobFunctionSuggestions(true);
-    }}
-    onBlur={() => setTimeout(() => setShowJobFunctionSuggestions(false), 150)}
-    onFocus={() => {
-      if (formData.companyDetails.jobFunction)
-        setShowJobFunctionSuggestions(true);
-    }}
-  />
+                    <label className="text-sm">Industry *</label>
+                    <Input
+                      placeholder="IT Services"
+                      value={formData.companyDetails.industry}
+                      onChange={(e) => {
+                        handleNestedChange(
+                          "companyDetails",
+                          "industry",
+                          e.target.value
+                        );
+                        setShowIndustrySuggestions(true);
+                      }}
+                      onBlur={() =>
+                        setTimeout(() => setShowIndustrySuggestions(false), 150)
+                      }
+                      onFocus={() => {
+                        if (formData.companyDetails.industry)
+                          setShowIndustrySuggestions(true);
+                      }}
+                    />
 
-  {/* Autosuggestion Dropdown */}
-  {showJobFunctionSuggestions && jobFunctionSuggestions.length > 0 && (
-    <ul className="absolute z-10 bg-white border border-gray-300 rounded-md w-full mt-1 max-h-48 overflow-y-auto shadow-md">
-      {jobFunctionSuggestions.map((item, index) => (
-        <li
-          key={index}
-          onClick={() => {
-            handleNestedChange("companyDetails", "jobFunction", item);
-            setShowJobFunctionSuggestions(false);
-          }}
-          className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
-        >
-          {item}
-        </li>
-      ))}
-    </ul>
-  )}
+                    {/* Suggestions dropdown */}
+                    {showIndustrySuggestions &&
+                      industrySuggestions.length > 0 && (
+                        <ul
+                          className="absolute z-10 bg-white border border-gray-300 rounded-md w-full mt-1 max-h-48 overflow-y-auto shadow-md"
+                          onMouseDown={(e) => e.preventDefault()}
+                        >
+                          {industrySuggestions.map((item, index) => (
+                            <li
+                              key={index}
+                              onClick={() => {
+                                handleNestedChange(
+                                  "companyDetails",
+                                  "industry",
+                                  item
+                                );
+                                setShowIndustrySuggestions(false);
+                              }}
+                              className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                            >
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
 
-  {errors.jobFunction && (
-    <p className="text-red-500 text-xs mt-1">{errors.jobFunction}</p>
-  )}
-</div>
+                    {errors.industry && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.industry}
+                      </p>
+                    )}
+                  </div>
+                  <div className="relative w-full">
+                    <label className="text-sm">Job Function *</label>
+                    <Input
+                      placeholder="Software Development"
+                      value={formData.companyDetails.jobFunction}
+                      onChange={(e) => {
+                        handleNestedChange(
+                          "companyDetails",
+                          "jobFunction",
+                          e.target.value
+                        );
+                        setShowJobFunctionSuggestions(true);
+                      }}
+                      onBlur={() =>
+                        setTimeout(
+                          () => setShowJobFunctionSuggestions(false),
+                          150
+                        )
+                      }
+                      onFocus={() => {
+                        if (formData.companyDetails.jobFunction)
+                          setShowJobFunctionSuggestions(true);
+                      }}
+                    />
+
+                    {showJobFunctionSuggestions &&
+                      jobFunctionSuggestions.length > 0 && (
+                        <ul
+                          className="absolute z-10 bg-white border border-gray-300 rounded-md w-full mt-1 max-h-48 overflow-y-auto shadow-md"
+                          onMouseDown={(e) => e.preventDefault()}
+                        >
+                          {jobFunctionSuggestions.map((item, index) => (
+                            <li
+                              key={index}
+                              onClick={() => {
+                                handleNestedChange(
+                                  "companyDetails",
+                                  "jobFunction",
+                                  item
+                                );
+                                setShowJobFunctionSuggestions(false);
+                              }}
+                              className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                            >
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+
+                    {errors.jobFunction && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.jobFunction}
+                      </p>
+                    )}
+                  </div>
                   <div>
                     <label className="text-sm">Company *</label>
                     <Input
@@ -888,27 +948,18 @@ const [showJobFunctionSuggestions, setShowJobFunctionSuggestions] = useState(fal
                   </div>
                   <div>
                     <label className="text-sm">Experience *</label>
-                    <Select
+                    <Input
+                      type="text"
+                      placeholder="e.g., 5-7 years"
                       value={formData.employmentDetails.experience}
-                      onValueChange={(value) =>
+                      onChange={(e) =>
                         handleNestedChange(
                           "employmentDetails",
                           "experience",
-                          value
+                          e.target.value
                         )
                       }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Experience Level" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {experienceLevels.map((level) => (
-                          <SelectItem key={level} value={level}>
-                            {level}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    />
                     {errors.experience && (
                       <p className="text-red-500 text-xs mt-1">
                         {errors.experience}
@@ -983,9 +1034,6 @@ const [showJobFunctionSuggestions, setShowJobFunctionSuggestions] = useState(fal
                     </div>
                   </div>
 
-                  <div className="md:col-span-2 mt-4 mb-2">
-                    <h3 className="text-xl font-semibold">Salary</h3>
-                  </div>
                   <div>
                     <label className="text-sm">Salary From</label>
                     <Input
@@ -1021,13 +1069,23 @@ const [showJobFunctionSuggestions, setShowJobFunctionSuggestions] = useState(fal
                   </div>
                   <div>
                     <label className="text-sm">Currency *</label>
-                    <Input
-                      placeholder="INR"
+                    <Select
                       value={formData.salary.currency}
-                      onChange={(e) =>
-                        handleNestedChange("salary", "currency", e.target.value)
+                      onValueChange={(value) =>
+                        handleNestedChange("salary", "currency", value)
                       }
-                    />
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Currency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {currencyOptions.map((currency) => (
+                          <SelectItem key={currency} value={currency}>
+                            {currency}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     {errors.currency && (
                       <p className="text-red-500 text-xs mt-1">
                         {errors.currency}
@@ -1035,36 +1093,11 @@ const [showJobFunctionSuggestions, setShowJobFunctionSuggestions] = useState(fal
                     )}
                   </div>
                 </div>
-                {/* <div className="md:col-span-2 mt-4 mb-2">
-                  <label className="text-sm">Notice Period *</label>
-                  <Select
-                    value={formData.notice_period}
-                    onValueChange={(value) =>
-                      handleChange("notice_period", value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Notice Period" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {noticePeriodOptions.map((level) => (
-                        <SelectItem key={level} value={level}>
-                          {level}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errors.experience && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {errors.notice_period}
-                    </p>
-                  )}
-                </div> */}
               </TabsContent>
 
               <TabsContent value="import" className="mt-4">
                 <div className="space-y-4">
-                  {/* <div>
+                  <div>
                     <label htmlFor="jd-paste" className="text-sm font-medium">
                       Paste Job Description
                     </label>
@@ -1083,7 +1116,7 @@ const [showJobFunctionSuggestions, setShowJobFunctionSuggestions] = useState(fal
                     <span className="relative bg-white px-4 text-sm text-gray-500">
                       OR
                     </span>
-                  </div> */}
+                  </div>
                   <div>
                     <label htmlFor="jd-upload" className="text-sm font-medium">
                       Upload Jobs
