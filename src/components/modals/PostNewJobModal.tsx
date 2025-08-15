@@ -402,6 +402,7 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
     }));
 
   const handleParseJD = async () => {
+        setIsParsing(true);
     if (!pastedJD.trim() && !uploadedFile) {
       toast.warning("Please paste a job description or upload a file.");
       return;
@@ -440,10 +441,7 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
           about: extractedObj.about,
           requirements: extractedObj.requirements,
         },
-        companyDetails: {
-          industry: extractedObj.industry,
-          jobFunction: extractedObj.jobFunction,
-        },
+        companyDetails: { industry: extractedObj.industry, jobFunction: extractedObj.jobFunction },
         employmentDetails: {
           experience: "",
           education: "",
@@ -1039,29 +1037,29 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                   <div>
                     <label className="text-sm">Salary From</label>
                     <Input
-                      type="text"
-                      placeholder="e.g., 500000"
+                      type="number"
                       value={formData.salary.from}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (value === "" || /^[0-9\b]+$/.test(value)) {
-                          handleNestedChange("salary", "from", Number(value));
-                        }
-                      }}
+                      onChange={(e) =>
+                        handleNestedChange(
+                          "salary",
+                          "from",
+                          Number(e.target.value)
+                        )
+                      }
                     />
                   </div>
                   <div>
                     <label className="text-sm">Salary To</label>
                     <Input
-                      type="text"
-                      placeholder="e.g., 700000"
+                      type="number"
                       value={formData.salary.to}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (value === "" || /^[0-9\b]+$/.test(value)) {
-                          handleNestedChange("salary", "to", Number(value));
-                        }
-                      }}
+                      onChange={(e) =>
+                        handleNestedChange(
+                          "salary",
+                          "to",
+                          Number(e.target.value)
+                        )
+                      }
                     />
                     {errors.salaryRange && (
                       <p className="text-red-500 text-xs mt-1">
