@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { format, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +11,10 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Filter } from "lucide-react";
+import axios from "axios";
+import { toast } from "sonner";
+
+const API_BASE = "http://13.51.235.31:3000";
 
 export interface Activity {
   id: string;
@@ -22,55 +26,63 @@ export interface Activity {
 
 interface ActivitiesPanelProps {
   activities?: Activity[];
+  candidateId: number;
 }
 
-const sampleActivities: Activity[] = [
-  {
-    id: "a1",
-    description: "Updated profile picture",
-    actorName: "Alice",
-    timestamp: "2025-06-20T09:15:00Z",
-  },
-  {
-    id: "a2",
-    description: "Changed email address",
-    actorName: "Bob",
-    timestamp: "2025-06-21T11:30:00Z",
-  },
-  {
-    id: "a3",
-    description: "Added new skill: ReactJS",
-    actorName: "Carol",
-    timestamp: "2025-06-22T14:45:00Z",
-  },
-  {
-    id: "a4",
-    description: "Removed outdated certification",
-    actorName: "Dave",
-    timestamp: "2025-06-23T08:00:00Z",
-  },
-  {
-    id: "a5",
-    description: "Updated LinkedIn URL",
-    actorName: "Eve",
-    timestamp: "2025-06-24T16:20:00Z",
-  },
-];
-
-export function ActivitiesPanel({ activities }: ActivitiesPanelProps) {
+export function ActivitiesPanel({ candidateId }: ActivitiesPanelProps) {
   const [filterOpen, setFilterOpen] = useState(false);
-  const acts = activities && activities.length ? activities : sampleActivities;
+  const [loading, setLoading] = useState<boolean>(false);
+  const [activity, setActivity] = useState<Activity[]>([]);
+
+  const fetchActivities = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(
+        `${API_BASE}/candidate/activities/${candidateId}`
+      );
+      if (res.data && Array.isArray(res.data)) {
+        // Transform API data into Activity[]
+        const mapped = res.data.map((item: any) => ({
+          id: String(item.id),
+          description: item.activity_details?.note || item.activity_type,
+          actorName: `Recruiter ${item.recruiter_id}`, // Adjust if you have recruiter name
+          actorAvatarUrl: undefined, // You can map recruiter photo if available
+          timestamp: item.created_at,
+        }));
+        setActivity(mapped);
+      } else {
+        toast.error("Unexpected response format.");
+      }
+    } catch (err: any) {
+      if (err.response?.status === 404) {
+        setActivity([]);
+      } else {
+        console.error("Error fetching activities", err);
+        toast.error(
+          err.response?.data?.message ||
+            err.message ||
+            "Server error while fetching activities."
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchActivities();
+  }, [candidateId]);
 
   const grouped = useMemo(() => {
-    return acts.reduce<Record<string, Activity[]>>((acc, act) => {
+    return activity.reduce<Record<string, Activity[]>>((acc, act) => {
       const dateKey = act.timestamp.split("T")[0];
       if (!acc[dateKey]) acc[dateKey] = [];
       acc[dateKey].push(act);
       return acc;
     }, {});
-  }, [acts]);
+  }, [activity]);
 
-  const totalCount = acts.length;
+  const totalCount = activity.length;
 
   return (
     <div className="p-1">
@@ -122,14 +134,11 @@ export function ActivitiesPanel({ activities }: ActivitiesPanelProps) {
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <div className="font-semibold text-gray-800">
-                        Profile updated
+                        {act.description}
                       </div>
                       <div className="text-xs text-gray-500">
                         {format(parseISO(act.timestamp), "hh:mm a")}
                       </div>
-                    </div>
-                    <div className="mt-1 text-sm text-gray-700">
-                      {act.description}
                     </div>
                     <div className="mt-2 flex items-center text-xs text-gray-500">
                       <Avatar className="w-4 h-4">
