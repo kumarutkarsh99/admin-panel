@@ -324,6 +324,11 @@ export default function CandidateViewList({
   const handleDelete = async () => {
     if (!selected.size) return;
 
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${selected.size} candidate(s)?`
+    );
+    if (!confirmed) return;
+
     const originalCandidates = [...localCandidates];
     const originalSelected = new Set(selected);
 
