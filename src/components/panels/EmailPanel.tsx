@@ -32,6 +32,7 @@ export interface Person {
 
 interface EmailPanelProps {
   candidate: Person;
+  refreshTrigger?: () => void;
 }
 
 export function EmailPanel({ candidate }: EmailPanelProps) {

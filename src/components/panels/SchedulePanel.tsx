@@ -20,6 +20,7 @@ export interface Person {
 
 interface SchedulePanelProps {
   candidate: Person;
+  refreshTrigger?: () => void;
 }
 
 export const SchedulePanel: React.FC<SchedulePanelProps> = ({ candidate: { candidateId, candidateName } }) => {

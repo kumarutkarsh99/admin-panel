@@ -21,7 +21,7 @@ import {
 interface NotesPanelProps {
   candidateId: number;
   authorId: number;
-  refreshTrigger?: boolean;
+  refreshTrigger?: () => void;
 }
 
   
