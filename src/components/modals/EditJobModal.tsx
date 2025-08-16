@@ -3,6 +3,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -198,20 +199,20 @@ export default function EditJobModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-5xl rounded-2xl p-0 overflow-hidden">
-        <div className="max-h-[90vh] overflow-y-auto p-6 space-y-6">
+      <DialogContent className="sm:max-w-5xl rounded-xl overflow-hidden p-0">
+        <div className="max-h-[80vh] overflow-y-auto p-6">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-semibold">
+            <DialogTitle className="text-2xl font-bold mb-4">
               Edit Job
             </DialogTitle>
           </DialogHeader>
 
-          {/* General Info */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ">
+            <div className="md:col-span-2 mt-5 mb-4">
+              <h3 className="text-xl font-semibold">Work Details</h3>
+            </div>
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Job Title
-              </label>
+              <label className="text-sm">Job Title *</label>
               <Input
                 name="job_title"
                 placeholder="Job Title"
@@ -220,7 +221,7 @@ export default function EditJobModal({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Job Code</label>
+              <label className="text-sm">Job Code</label>
               <Input
                 name="job_code"
                 placeholder="Job Code"
@@ -229,9 +230,7 @@ export default function EditJobModal({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Department
-              </label>
+              <label className="text-sm">Department</label>
               <Input
                 name="department"
                 placeholder="Department"
@@ -240,9 +239,7 @@ export default function EditJobModal({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Workspace
-              </label>
+              <label className="text-sm">Workplace</label>
               <Select
                 value={form.workplace}
                 onValueChange={(val) => handleSelectChange("workplace", val)}
@@ -258,9 +255,7 @@ export default function EditJobModal({
               </Select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Office Location
-              </label>
+              <label className="text-sm">Office Location *</label>
               <Input
                 name="office_primary_location"
                 placeholder="Primary Office Location"
@@ -270,22 +265,18 @@ export default function EditJobModal({
             </div>
           </div>
 
-          {/* Checkbox */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 mb-4">
             <Checkbox
               checked={form.office_on_careers_page}
               onCheckedChange={handleCheckboxChange}
             />
-            <label className="text-sm font-medium">
+            <label className="text-sm">
               Show office on careers page
             </label>
           </div>
 
-          {/* Additional Locations */}
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Additional Office Locations
-            </label>
+            <label className="text-sm ">Additional Office Locations</label>
             <Input
               onKeyDown={handleLocationAdd}
               placeholder="Add location and press Enter"
@@ -307,136 +298,131 @@ export default function EditJobModal({
           </div>
 
           {/* Descriptions */}
-          <div className="grid gap-4">
-            <label className="block text-sm font-medium mb">About</label>
-            <Textarea
-              name="description_about"
-              placeholder="About the Job"
-              value={form.description_about}
-              onChange={handleChange}
-            />
-            <label className="block text-sm font-medium mb">
-              Description Requirnment
-            </label>
-            <Textarea
-              name="description_requirements"
-              placeholder="Requirements"
-              value={form.description_requirements}
-              onChange={handleChange}
-            />
-            <label className="block text-sm font-medium mb">Benifits</label>
-            <Textarea
-              name="description_benefits"
-              placeholder="Benefits"
-              value={form.description_benefits}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb">Company</label>
-            <Input
-              placeholder="Company Name"
-              value={form.company}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="block text-sm font-medium mb">
-            <label className="text-sm">About Company</label>
-            <Textarea
-              placeholder="Describe the Company"
-              rows={4}
-              value={form.about_company}
-              onChange={handleChange}
-            />
+          <div className="grid grid-cols-1 gap-4 mt-6">
+            <div className="md:col-span-1 mb-2">
+              <h3 className="text-xl font-semibold">Job Description</h3>
+            </div>
+            <div>
+              <label className="text-sm">About the Job *</label>
+              <Textarea
+                name="description_about"
+                placeholder="Describe the role and responsibilities"
+                value={form.description_about}
+                onChange={handleChange}
+                rows={4}
+                className="w-full"
+              />
+            </div>
+            <div className="w-full">
+              <label className="text-sm">Requirements</label>
+              <Textarea
+                name="description_requirements"
+                placeholder="Skills, experience, and qualifications required"
+                value={form.description_requirements}
+                onChange={handleChange}
+                rows={4}
+              />
+            </div>
+            <div>
+              <label className="text-sm">Benefits</label>
+              <Textarea
+                name="description_benefits"
+                placeholder="What we offer to our employees"
+                value={form.description_benefits}
+                onChange={handleChange}
+                rows={4}
+              />
+            </div>
           </div>
 
-          {/* Select Fields */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {/* <div>
-              <label className="block text-sm font-medium mb-1">
-                Employment Type
-              </label>
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4 ">
+            <div className="md:col-span-1 mb-2 mt-10">
+              <h3 className="text-xl font-semibold">Company Information</h3>
+            </div>
+            <div>
+              <label className="text-sm">Company Name</label>
               <Input
-                name="employment_type"
-                placeholder="Employment Type"
-                value={form.employment_type}
+                name="company"
+                placeholder="Company Name"
+                value={form.company}
                 onChange={handleChange}
               />
-            </div> */}
-
-            <div>
-              <label className="block text-sm font-medium mb">
-                Employment Type
-              </label>
-              <select
-                className="w-full border rounded-md p-2 mt-1 text-sm"
-                value={form.employment_type}
-                onChange={handleChange}
-              >
-                <option value="">Select Employment Type</option>
-                {employmentTypes.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
             </div>
-
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Experience
-              </label>
-              {/* <Input
-                name="experience"
-                placeholder="Experience"
-                value={form.experience}
+              <label className="text-sm">About Company</label>
+              <Textarea
+                name="about_company"
+                placeholder="Describe the company"
+                rows={3}
+                value={form.about_company}
                 onChange={handleChange}
-              /> */}
-
-              <select
-                className="w-full border rounded-md p-2 mt-1 text-sm"
-                value={form.experience}
-                onChange={handleChange}
-              >
-                <option value="">Select Experience Level</option>
-                {experienceLevels.map((level) => (
-                  <option key={level} value={level}>
-                    {level}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Education
-              </label>
-
-              <select
-                className="w-full border rounded-md p-2 mt-1 text-sm"
-                value={form.education}
-                onChange={handleChange}
-              >
-                <option value="">Select Education Level</option>
-                {educationLevels.map((level) => (
-                  <option key={level} value={level}>
-                    {level}
-                  </option>
-                ))}
-              </select>
-              {/* <Input
-                name="education"
-                placeholder="Education"
-                value={form.education}
-                onChange={handleChange}
-              /> */}
+              />
             </div>
           </div>
 
-          {/* Company Info */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-10">
+            <div className="md:col-span-2 mb-2">
+              <h3 className="text-xl font-semibold">Employment Details</h3>
+            </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Industry</label>
+              <label className="text-sm">Employment Type *</label>
+              <Select
+                value={form.employment_type}
+                onValueChange={(val) => handleSelectChange("employment_type", val)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Employment Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {employmentTypes.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm">Experience Level *</label>
+              <Select
+                value={form.experience}
+                onValueChange={(val) => handleSelectChange("experience", val)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Experience Level" />
+                </SelectTrigger>
+                <SelectContent>
+                  {experienceLevels.map((level) => (
+                    <SelectItem key={level} value={level}>
+                      {level}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm">Education Level</label>
+              <Select
+                value={form.education}
+                onValueChange={(val) => handleSelectChange("education", val)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Education Level" />
+                </SelectTrigger>
+                <SelectContent>
+                  {educationLevels.map((level) => (
+                    <SelectItem key={level} value={level}>
+                      {level}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm">Industry</label>
               <Input
                 name="company_industry"
                 placeholder="Industry"
@@ -445,9 +431,7 @@ export default function EditJobModal({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Job Function
-              </label>
+              <label className="text-sm">Job Function</label>
               <Input
                 name="company_job_function"
                 placeholder="Job Function"
@@ -457,76 +441,71 @@ export default function EditJobModal({
             </div>
           </div>
 
-          {/* Salary Section */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Salary From
-              </label>
-              <Input
-                name="salary_from"
-                placeholder="Salary From"
-                value={form.salary_from}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Salary To
-              </label>
-              <Input
-                name="salary_to"
-                placeholder="Salary To"
-                value={form.salary_to}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Currency</label>
-              <Input
-                name="salary_currency"
-                placeholder="Currency"
-                value={form.salary_currency}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 mt-10 mb-2">
+  <div className="md:col-span-2 mb-4">
+    <h3 className="text-xl font-semibold">Salary Information</h3>
+  </div>
+  <div>
+    <label className="text-sm">Salary From</label>
+    <Input
+      name="salary_from"
+      placeholder="Minimum salary"
+      value={form.salary_from}
+      onChange={handleChange}
+      type="number"
+    />
+  </div>
+  <div>
+    <label className="text-sm">Salary To</label>
+    <Input
+      name="salary_to"
+      placeholder="Maximum salary"
+      value={form.salary_to}
+      onChange={handleChange}
+      type="number"
+    />
+  </div>
+</div>
 
-          {/* Keywords */}
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Keywords (Press Enter to add)
-            </label>
-            <Input
-              onKeyDown={handleKeywordAdd}
-              placeholder="Add keyword and press Enter"
-            />
-            <div className="flex flex-wrap gap-2 mt-2">
-              {form.keywords.map((kw, idx) => (
-                <Badge
-                  key={idx}
-                  className="flex items-center gap-1 px-2 py-1 text-sm bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
-                >
-                  {kw}
-                  <X
-                    className="h-3 w-3 cursor-pointer"
-                    onClick={() => removeKeyword(kw)}
-                  />
-                </Badge>
-              ))}
-            </div>
-          </div>
+<div className="mt-5 md:mt-5">
+  <label className="text-sm">Keywords (Press Enter to add)</label>
+  <Input
+    onKeyDown={handleKeywordAdd}
+    placeholder="Add keyword and press Enter"
+  />
+  <div className="flex flex-wrap gap-2 mt-2">
+    {form.keywords.map((kw, idx) => (
+      <Badge
+        key={idx}
+        className="flex items-center gap-1 px-2 py-1 text-sm bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
+      >
+        {kw}
+        <X
+          className="h-3 w-3 cursor-pointer"
+          onClick={() => removeKeyword(kw)}
+        />
+      </Badge>
+    ))}
+  </div>
+</div>
 
-          {/* Submit Button */}
-          <div className="pt-4 flex justify-end">
-            <Button
-              onClick={handleSubmit}
-              disabled={loading}
-              className="px-6 py-2 text-base bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
-            >
-              {loading ? "Saving..." : "Save Changes"}
-            </Button>
-          </div>
+        </div>
+        <div className="p-6 pt-4 flex justify-end gap-3 border-t bg-gray-50 sticky bottom-0">
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => onOpenChange(false)}
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="bg-blue-500"
+          >
+            {loading ? "Saving..." : "Save Changes"}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
