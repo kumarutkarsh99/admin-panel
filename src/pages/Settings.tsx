@@ -130,16 +130,16 @@ const Settings = () => {
     }));
   };
 
-  const openDialog = (type: string) => {
-    setDialogs(prev => ({ ...prev, [type]: true }));
-    setFormData({
-      templateName: '',
-      templateType: '',
-      subject: '',
-      body: '',
-      shareWithEveryone: false
-    });
-  };
+const openDialog = (type: string) => {
+  setFormData({
+    templateName: '',
+    templateType: '',
+    subject: '',
+    body: '',
+    shareWithEveryone: false
+  });
+  setDialogs(prev => ({ ...prev, [type]: true }));
+};
 
   const closeDialog = (type: string) => {
     setDialogs(prev => ({ ...prev, [type]: false }));
@@ -563,11 +563,13 @@ const Settings = () => {
                   </div>
                 </TooltipProvider>
               )}
-             <Textarea
+          
+
+<Textarea
   placeholder={type === 'email' ? 'Enter your email template content...' : 'Enter template content...'}
   value={formData.body}
   onChange={(e) => setFormData(prev => ({ ...prev, body: e.target.value }))}
-  className="border-none focus:ring-0 resize-none overflow-y-auto"
+  className="focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none overflow-y-auto"
   rows={type === 'email' ? 6 : 8}
   style={{ 
     maxHeight: type === 'email' ? '150px' : 'auto',
@@ -972,65 +974,621 @@ const Settings = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="templates">
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-3xl font-bold tracking-tight">Templates</h2>
-                <p className="text-gray-600 mt-2">
-                  Manage your templates for email, SMS, notes, and AIRA communications.
-                </p>
-              </div>
+         <TabsContent value="templates">
+  <div className="space-y-6">
+    <div>
+      <h2 className="text-3xl font-bold tracking-tight">Templates</h2>
+      <p className="text-gray-600 mt-2">
+        Manage your templates for email, SMS, notes, and AIRA communications.
+      </p>
+    </div>
 
-              <div className="max-w-4xl">
-                <TemplateSection
-                  title="Email Templates"
-                  type="email"
-                  icon="✉️"
-                />
-                <TemplateSection
-                  title="SMS Templates"
-                  type="sms"
-                  icon="💬"
-                />
-                <TemplateSection
-                  title="Notes Templates"
-                  type="notes"
-                  icon="📝"
-                />
-                <TemplateSection
-                  title="AIRA Prompt Templates"
-                  type="aira"
-                  icon="🤖"
-                />
-              </div>
+    <div className="max-w-4xl">
+      <TemplateSection
+        title="Email Templates"
+        type="email"
+        icon="✉️"
+      />
+      <TemplateSection
+        title="SMS Templates"
+        type="sms"
+        icon="💬"
+      />
+      <TemplateSection
+        title="Notes Templates"
+        type="notes"
+        icon="📝"
+      />
+      <TemplateSection
+        title="AIRA Prompt Templates"
+        type="aira"
+        icon="🤖"
+      />
+    </div>
 
-              {/* Template Creation Dialogs */}
-              <AddTemplateDialog
-                type="email"
-                title="Add Email Template"
-                isOpen={dialogs.email}
-                onClose={closeDialog}
-              />
-              <AddTemplateDialog
-                type="sms"
-                title="Add SMS Template"
-                isOpen={dialogs.sms}
-                onClose={closeDialog}
-              />
-              <AddTemplateDialog
-                type="notes"
-                title="Add Notes Template"
-                isOpen={dialogs.notes}
-                onClose={closeDialog}
-              />
-              <AddTemplateDialog
-                type="aira"
-                title="Add AIRA Prompt Template"
-                isOpen={dialogs.aira}
-                onClose={closeDialog}
+    {/* Email Template Dialog */}
+    <Dialog open={dialogs.email} onOpenChange={(open) => !open && closeDialog('email')}>
+      <DialogContent className="sm:max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Add Email Template</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-sm font-medium text-gray-700">
+                TEMPLATE NAME <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                placeholder="Enter template name..."
+                value={formData.templateName}
+                onChange={(e) => setFormData(prev => ({ ...prev, templateName: e.target.value }))}
+                className="mt-2"
               />
             </div>
-          </TabsContent>
+            <div>
+              <Label className="text-sm font-medium text-gray-700">
+                TEMPLATE TYPE <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                value={formData.templateType}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, templateType: value }))}
+              >
+                <SelectTrigger className="mt-2">
+                  <SelectValue placeholder="Select a template type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="candidate-email">Candidate Email</SelectItem>
+                  <SelectItem value="post-interview-candidate">Post-interview email (Candidate)</SelectItem>
+                  <SelectItem value="contact-email">Contact Email</SelectItem>
+                  <SelectItem value="submission-email">Candidate Submission Email</SelectItem>
+                  <SelectItem value="post-interview-contact">Post-interview email (Contact)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium text-gray-700">SUBJECT</Label>
+            <Input
+              placeholder="Enter a subject"
+              value={formData.subject}
+              onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
+              className="mt-2"
+            />
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium text-gray-700">BODY</Label>
+            <div className="border border-gray-300 rounded-lg mt-2">
+              <TooltipProvider>
+                <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-gray-50">
+                  <div className="flex items-center space-x-3">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div>
+                          <Select
+                            value={emailFormat.htmlTag}
+                            onValueChange={(value) => setEmailFormat(prev => ({ ...prev, htmlTag: value }))}
+                          >
+                            <SelectTrigger className="w-20 h-8 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="div">Div</SelectItem>
+                              <SelectItem value="p">P</SelectItem>
+                              <SelectItem value="h1">H1</SelectItem>
+                              <SelectItem value="h2">H2</SelectItem>
+                              <SelectItem value="h3">H3</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>HTML Tag</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div>
+                          <Select
+                            value={emailFormat.fontSize}
+                            onValueChange={(value) => setEmailFormat(prev => ({ ...prev, fontSize: value }))}
+                          >
+                            <SelectTrigger className="w-16 h-8 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="10px">10px</SelectItem>
+                              <SelectItem value="12px">12px</SelectItem>
+                              <SelectItem value="13px">13px</SelectItem>
+                              <SelectItem value="14px">14px</SelectItem>
+                              <SelectItem value="16px">16px</SelectItem>
+                              <SelectItem value="18px">18px</SelectItem>
+                              <SelectItem value="24px">24px</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Font Size</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div>
+                          <Select
+                            value={emailFormat.fontFamily}
+                            onValueChange={(value) => setEmailFormat(prev => ({ ...prev, fontFamily: value }))}
+                          >
+                            <SelectTrigger className="w-24 h-8 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Arial">Arial</SelectItem>
+                              <SelectItem value="Helvetica">Helvetica</SelectItem>
+                              <SelectItem value="Times New Roman">Times</SelectItem>
+                              <SelectItem value="Georgia">Georgia</SelectItem>
+                              <SelectItem value="Verdana">Verdana</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Font Family</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+
+                  <div className="flex items-center space-x-1">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant={emailFormat.bold ? "default" : "ghost"}
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={toggleBold}
+                        >
+                          <Bold className="w-4 h-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Bold</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant={emailFormat.italic ? "default" : "ghost"}
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={toggleItalic}
+                        >
+                          <Italic className="w-4 h-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Italic</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant={emailFormat.underline ? "default" : "ghost"}
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={toggleUnderline}
+                        >
+                          <Underline className="w-4 h-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Underline</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <div className="w-px h-6 bg-gray-300 mx-1"></div>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant={emailFormat.alignment === 'left' ? "default" : "ghost"}
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => setAlignment('left')}
+                        >
+                          <AlignLeft className="w-4 h-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Align Left</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant={emailFormat.alignment === 'center' ? "default" : "ghost"}
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => setAlignment('center')}
+                        >
+                          <AlignCenter className="w-4 h-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Align Center</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant={emailFormat.alignment === 'right' ? "default" : "ghost"}
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => setAlignment('right')}
+                        >
+                          <AlignRight className="w-4 h-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Align Right</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <div className="w-px h-6 bg-gray-300 mx-1"></div>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={insertLink}
+                        >
+                          <Link className="w-4 h-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Insert Link</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={insertImage}
+                        >
+                          <Image className="w-4 h-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Insert Image</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={attachFile}
+                        >
+                          <Paperclip className="w-4 h-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Attach File</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <div className="w-px h-6 bg-gray-300 mx-1"></div>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 px-2 text-xs"
+                          onClick={resetFormatting}
+                        >
+                          <Type className="w-4 h-4 mr-1" />
+                          Reset
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Reset Formatting</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                </div>
+              </TooltipProvider>
+              <Textarea
+                placeholder="Enter your email template content..."
+                value={formData.body}
+                onChange={(e) => setFormData(prev => ({ ...prev, body: e.target.value }))}
+                className="border-0 focus:ring-0 resize-none"
+                rows={6}
+                style={{ 
+                  maxHeight: '150px',
+                  minHeight: '120px',
+                  fontSize: emailFormat.fontSize,
+                  fontFamily: emailFormat.fontFamily,
+                  fontWeight: emailFormat.bold ? 'bold' : 'normal',
+                  fontStyle: emailFormat.italic ? 'italic' : 'normal',
+                  textDecoration: emailFormat.underline ? 'underline' : 'none',
+                  textAlign: emailFormat.alignment as 'left' | 'center' | 'right'
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="shareWithEveryone-email"
+              checked={formData.shareWithEveryone}
+              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, shareWithEveryone: !!checked }))}
+            />
+            <Label htmlFor="shareWithEveryone-email" className="text-sm text-gray-700">
+              Share template with everyone
+            </Label>
+          </div>
+
+          <div className="flex justify-end space-x-3 pt-4">
+            <Button variant="outline" onClick={() => handleCancel('email')}>
+              Cancel
+            </Button>
+            <Button onClick={() => handleSave('email')} className="bg-blue-600 hover:bg-blue-700">
+              Save
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+
+    {/* SMS Template Dialog */}
+    <Dialog open={dialogs.sms} onOpenChange={(open) => !open && closeDialog('sms')}>
+      <DialogContent className="sm:max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Add SMS Template</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-sm font-medium text-gray-700">
+                TEMPLATE NAME <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                placeholder="Enter template name..."
+                value={formData.templateName}
+                onChange={(e) => setFormData(prev => ({ ...prev, templateName: e.target.value }))}
+                className="mt-2"
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-700">
+                TEMPLATE TYPE <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                value={formData.templateType}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, templateType: value }))}
+              >
+                <SelectTrigger className="mt-2">
+                  <SelectValue placeholder="Select a template type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="otp">Candidate SMS</SelectItem>
+                  <SelectItem value="reminder">Contact SMS</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium text-gray-700">BODY</Label>
+            <Textarea
+              placeholder="Enter template content..."
+              value={formData.body}
+              onChange={(e) => setFormData(prev => ({ ...prev, body: e.target.value }))}
+              className="mt-2"
+              rows={8}
+            />
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="shareWithEveryone-sms"
+              checked={formData.shareWithEveryone}
+              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, shareWithEveryone: !!checked }))}
+            />
+            <Label htmlFor="shareWithEveryone-sms" className="text-sm text-gray-700">
+              Share template with everyone
+            </Label>
+          </div>
+
+          <div className="flex justify-end space-x-3 pt-4">
+            <Button variant="outline" onClick={() => handleCancel('sms')}>
+              Cancel
+            </Button>
+            <Button onClick={() => handleSave('sms')} className="bg-blue-600 hover:bg-blue-700">
+              Save
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+
+    {/* Notes Template Dialog */}
+    <Dialog open={dialogs.notes} onOpenChange={(open) => !open && closeDialog('notes')}>
+      <DialogContent className="sm:max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Add Notes Template</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-sm font-medium text-gray-700">
+                TEMPLATE NAME <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                placeholder="Enter template name..."
+                value={formData.templateName}
+                onChange={(e) => setFormData(prev => ({ ...prev, templateName: e.target.value }))}
+                className="mt-2"
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-700">
+                TEMPLATE TYPE <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                value={formData.templateType}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, templateType: value }))}
+              >
+                <SelectTrigger className="mt-2">
+                  <SelectValue placeholder="Select a template type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="candidate-feedback">Candidate Note</SelectItem>
+                  <SelectItem value="interview-notes">Contact Note</SelectItem>
+                  <SelectItem value="internal-comments">Job Note</SelectItem>
+                  <SelectItem value="task-notes">Company Note</SelectItem>
+                  <SelectItem value="deal-notes">Deal Note</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium text-gray-700">BODY</Label>
+            <Textarea
+              placeholder="Enter template content..."
+              value={formData.body}
+              onChange={(e) => setFormData(prev => ({ ...prev, body: e.target.value }))}
+              className="mt-2"
+              rows={8}
+            />
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="shareWithEveryone-notes"
+              checked={formData.shareWithEveryone}
+              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, shareWithEveryone: !!checked }))}
+            />
+            <Label htmlFor="shareWithEveryone-notes" className="text-sm text-gray-700">
+              Share template with everyone
+            </Label>
+          </div>
+
+          <div className="flex justify-end space-x-3 pt-4">
+            <Button variant="outline" onClick={() => handleCancel('notes')}>
+              Cancel
+            </Button>
+            <Button onClick={() => handleSave('notes')} className="bg-blue-600 hover:bg-blue-700">
+              Save
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+
+    {/* AIRA Template Dialog */}
+    <Dialog open={dialogs.aira} onOpenChange={(open) => !open && closeDialog('aira')}>
+      <DialogContent className="sm:max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Add AIRA Prompt Template</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-sm font-medium text-gray-700">
+                TEMPLATE NAME <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                placeholder="Enter template name..."
+                value={formData.templateName}
+                onChange={(e) => setFormData(prev => ({ ...prev, templateName: e.target.value }))}
+                className="mt-2"
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-700">
+                TEMPLATE TYPE <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                value={formData.templateType}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, templateType: value }))}
+              >
+                <SelectTrigger className="mt-2">
+                  <SelectValue placeholder="Select a template type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ai-intro">Candidate Prompt</SelectItem>
+                  <SelectItem value="ai-followup">Contact Prompt</SelectItem>
+                  <SelectItem value="ai-summary">Job Prompt</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium text-gray-700">BODY</Label>
+            <Textarea
+              placeholder="Enter template content..."
+              value={formData.body}
+              onChange={(e) => setFormData(prev => ({ ...prev, body: e.target.value }))}
+              className="mt-2"
+              rows={8}
+            />
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="shareWithEveryone-aira"
+              checked={formData.shareWithEveryone}
+              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, shareWithEveryone: !!checked }))}
+            />
+            <Label htmlFor="shareWithEveryone-aira" className="text-sm text-gray-700">
+              Share template with everyone
+            </Label>
+          </div>
+
+          <div className="flex justify-end space-x-3 pt-4">
+            <Button variant="outline" onClick={() => handleCancel('aira')}>
+              Cancel
+            </Button>
+            <Button onClick={() => handleSave('aira')} className="bg-blue-600 hover:bg-blue-700">
+              Save
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  </div>
+</TabsContent>
 
           <TabsContent value="security">
             <Card className="border-0 shadow-sm bg-white/60 backdrop-blur-sm">
