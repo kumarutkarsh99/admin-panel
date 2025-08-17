@@ -49,6 +49,7 @@ import {
   AlignRight,
   Paperclip,
   Type,
+  ListChecks,
 } from "lucide-react";
 import { useState } from "react";
 import { StatusSettingsTab } from "@/components/StatusSettingsTab";
@@ -760,7 +761,7 @@ const Settings = () => {
               Templates
             </TabsTrigger>
             <TabsTrigger value="status" className="flex items-center gap-2">
-              <FileText className="w-4 h-4" />
+              <ListChecks className="w-4 h-4" />
               Status
             </TabsTrigger>
             <TabsTrigger value="security" className="flex items-center gap-2">

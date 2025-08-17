@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { FilterColumnsModal } from "@/components/modals/FilterCoulmnModal";
 import AddCandidateModal from "@/components/modals/AddCandidateModal";
+import { SiWhatsapp } from "react-icons/si";
 import {
   Search,
   Filter,
@@ -584,44 +585,56 @@ export default function CandidateViewList({
                             className="border-0 bg-gray-200 outline-none"
                           />
                         </TableCell>
-                        {visibleColumns.includes("name") && (
-                          <TableCell className="min-w-[200px] py-2">
-                            <CandidateActionsPopover
-                              candidate={candidate}
-                              fetchCandidates={fetchCandidates}
-                            >
-                              <div className="flex items-center gap-2">
-                                <Avatar className="h-8 w-8">
-                                  <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
-                                    {candidate.first_name?.toUpperCase()[0]}
-                                    {candidate.last_name?.toUpperCase()[0]}
-                                  </AvatarFallback>
-                                </Avatar>
 
-                                <button
-                                  onClick={() => {
-                                    setSelectedCandidate(candidate);
-                                    setProfileModalOpen(true);
-                                  }}
-                                  className="whitespace-nowrap text-sm font-medium text-slate-600 focus:outline-none hover:underline"
+                        <TableCell className="min-w-[200px] py-2">
+                          <CandidateActionsPopover
+                            candidate={candidate}
+                            fetchCandidates={fetchCandidates}
+                          >
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-8 w-8">
+                                <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
+                                  {candidate.first_name?.toUpperCase()[0]}
+                                  {candidate.last_name?.toUpperCase()[0]}
+                                </AvatarFallback>
+                              </Avatar>
+
+                              <button
+                                onClick={() => {
+                                  setSelectedCandidate(candidate);
+                                  setProfileModalOpen(true);
+                                }}
+                                className="whitespace-nowrap text-sm font-medium text-slate-600 focus:outline-none hover:underline"
+                              >
+                                {candidate.first_name} {candidate.last_name}
+                              </button>
+
+                              {candidate.resume_url && (
+                                <a
+                                  href={`${FILE_SERVER_URL}/ats-api/uploads/${candidate.resume_url}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center justify-center p-2 text-gray-500 hover:text-blue-600 transition-colors"
+                                  title="View Resume in new tab"
                                 >
-                                  {candidate.first_name} {candidate.last_name}
-                                </button>
-                                {candidate.resume_url && (
-                                  <a
-                                    href={`${FILE_SERVER_URL}/ats-api/uploads/${candidate.resume_url}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center justify-center p-2 text-gray-500 hover:text-blue-600 transition-colors"
-                                    title="View Resume in new tab"
-                                  >
-                                    <FileText className="h-4 w-4" />
-                                  </a>
-                                )}
-                              </div>
-                            </CandidateActionsPopover>
-                          </TableCell>
-                        )}
+                                  <FileText className="h-4 w-4" />
+                                </a>
+                              )}
+
+                              {candidate.phone && (
+                                <a
+                                  href={`https://wa.me/${candidate.phone}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center justify-center p-2 text-gray-500 hover:text-green-600 transition-colors"
+                                  title="Chat on WhatsApp"
+                                >
+                                  <SiWhatsapp className="h-4 w-4 text-green-600" />
+                                </a>
+                              )}
+                            </div>
+                          </CandidateActionsPopover>
+                        </TableCell>
 
                         {visibleColumns.includes("job_and_stage") && (
                           <TableCell className="min-w-[400px] py-3">
