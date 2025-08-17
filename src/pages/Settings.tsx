@@ -14,7 +14,16 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bell, User, Building, Mail, Shield, Save } from "lucide-react";
+import {
+  Bell,
+  User,
+  Building,
+  Mail,
+  Shield,
+  Save,
+  ListChecks,
+} from "lucide-react";
+import { StatusSettingsTab } from "@/components/StatusSettingsTab";
 
 const Settings = () => {
   return (
@@ -30,7 +39,7 @@ const Settings = () => {
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-white/60 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-6 bg-white/60 backdrop-blur-sm">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="w-4 h-4" />
               Profile
@@ -49,6 +58,10 @@ const Settings = () => {
             <TabsTrigger value="email" className="flex items-center gap-2">
               <Mail className="w-4 h-4" />
               Email
+            </TabsTrigger>
+            <TabsTrigger value="statuses" className="flex items-center gap-2">
+              <ListChecks className="w-4 h-4" />
+              Statuses
             </TabsTrigger>
             <TabsTrigger value="security" className="flex items-center gap-2">
               <Shield className="w-4 h-4" />
@@ -370,6 +383,10 @@ const Settings = () => {
                 </Button>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="statuses">
+            <StatusSettingsTab />
           </TabsContent>
 
           <TabsContent value="security">
