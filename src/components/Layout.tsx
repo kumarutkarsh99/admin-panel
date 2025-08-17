@@ -70,7 +70,7 @@ const menuItems = [
 
 function AppSidebar() {
   const location = useLocation();
-  const { getUserRoles } = useAuth();
+  const { getUserRoles, getUserDetails} = useAuth();
   const userRoles = getUserRoles();
   console.log(userRoles, "userRoles");
 
@@ -120,16 +120,22 @@ function AppSidebar() {
     </Sidebar>
   );
 }
+ 
 
+// ✅ Rename the type to avoid conflict with the variable
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 export default function Layout({ children }: LayoutProps) {
-  const { logout } = useAuth();
+  const { logout ,getUserDetails} = useAuth();
+  
   const navigate = useNavigate();
+  const userDetails = getUserDetails();
+ 
+  console.log( userDetails.name,'userDetails')
   const [user] = useState({
-    name: "John Doe",
+    name: userDetails.name,
     avatarUrl:
       "https://ui-avatars.com/api/?name=John+Doe&background=4f46e5&color=fff",
   });
