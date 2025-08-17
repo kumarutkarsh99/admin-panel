@@ -28,8 +28,30 @@ import {
 } from "@/components/ui/tooltip";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bell, User, Building, Mail, Shield, Save, FileText, ChevronDown, ChevronRight, X, Bold, Italic, Underline, Link, Image, AlignLeft, AlignCenter, AlignRight, Paperclip, Type } from "lucide-react";
+import {
+  Bell,
+  User,
+  Building,
+  Mail,
+  Shield,
+  Save,
+  FileText,
+  ChevronDown,
+  ChevronRight,
+  X,
+  Bold,
+  Italic,
+  Underline,
+  Link,
+  Image,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Paperclip,
+  Type,
+} from "lucide-react";
 import { useState } from "react";
+import { StatusSettingsTab } from "@/components/StatusSettingsTab";
 
 const Settings = () => {
   // Templates state management
@@ -37,112 +59,112 @@ const Settings = () => {
     email: true,
     sms: true,
     notes: true,
-    aira: true
+    aira: true,
   });
 
   const [dialogs, setDialogs] = useState({
     email: false,
     sms: false,
     notes: false,
-    aira: false
+    aira: false,
   });
 
   const [formData, setFormData] = useState({
-    templateName: '',
-    templateType: '',
-    subject: '',
-    body: '',
-    shareWithEveryone: false
+    templateName: "",
+    templateType: "",
+    subject: "",
+    body: "",
+    shareWithEveryone: false,
   });
 
   // Email formatting state
   const [emailFormat, setEmailFormat] = useState({
-    htmlTag: 'div',
-    fontSize: '13px',
-    fontFamily: 'Arial',
+    htmlTag: "div",
+    fontSize: "13px",
+    fontFamily: "Arial",
     bold: false,
     italic: false,
     underline: false,
-    alignment: 'left'
+    alignment: "left",
   });
 
   // Email formatting functions
   const toggleBold = () => {
-    setEmailFormat(prev => ({ ...prev, bold: !prev.bold }));
+    setEmailFormat((prev) => ({ ...prev, bold: !prev.bold }));
   };
 
   const toggleItalic = () => {
-    setEmailFormat(prev => ({ ...prev, italic: !prev.italic }));
+    setEmailFormat((prev) => ({ ...prev, italic: !prev.italic }));
   };
 
   const toggleUnderline = () => {
-    setEmailFormat(prev => ({ ...prev, underline: !prev.underline }));
+    setEmailFormat((prev) => ({ ...prev, underline: !prev.underline }));
   };
 
   const setAlignment = (align: string) => {
-    setEmailFormat(prev => ({ ...prev, alignment: align }));
+    setEmailFormat((prev) => ({ ...prev, alignment: align }));
   };
 
   const insertLink = () => {
-    const url = prompt('Enter URL:');
+    const url = prompt("Enter URL:");
     if (url) {
       const linkText = `[Link](${url})`;
-      setFormData(prev => ({ 
-        ...prev, 
-        body: prev.body + linkText 
+      setFormData((prev) => ({
+        ...prev,
+        body: prev.body + linkText,
       }));
     }
   };
 
   const insertImage = () => {
-    const url = prompt('Enter image URL:');
+    const url = prompt("Enter image URL:");
     if (url) {
       const imageText = `![Image](${url})`;
-      setFormData(prev => ({ 
-        ...prev, 
-        body: prev.body + imageText 
+      setFormData((prev) => ({
+        ...prev,
+        body: prev.body + imageText,
       }));
     }
   };
 
   const attachFile = () => {
     // In a real implementation, this would open a file picker
-    alert('File attachment functionality would be implemented here');
+    alert("File attachment functionality would be implemented here");
   };
 
   const resetFormatting = () => {
     setEmailFormat({
-      htmlTag: 'div',
-      fontSize: '13px',
-      fontFamily: 'Arial',
+      htmlTag: "div",
+      fontSize: "13px",
+      fontFamily: "Arial",
       bold: false,
       italic: false,
       underline: false,
-      alignment: 'left'
+      alignment: "left",
     });
   };
 
   // Templates functions
   const toggleSection = (section: string) => {
-    setExpandedSections(prev => ({
+    setExpandedSections((prev) => ({
       ...prev,
-      [section]: !prev[section]
+      [section]: !prev[section],
     }));
   };
 
   const openDialog = (type: string) => {
-    setDialogs(prev => ({ ...prev, [type]: true }));
+    setDialogs((prev) => ({ ...prev, [type]: true }));
     setFormData({
-      templateName: '',
-      templateType: '',
-      subject: '',
-      body: '',
-      shareWithEveryone: false
+      templateName: "",
+      templateType: "",
+      subject: "",
+      body: "",
+      shareWithEveryone: false,
     });
   };
 
   const closeDialog = (type: string) => {
-    setDialogs(prev => ({ ...prev, [type]: false }));
+    setDialogs((prev) => ({ ...prev, [type]: false }));
   };
 
   const handleSave = (type: string) => {
@@ -154,7 +176,15 @@ const Settings = () => {
     closeDialog(type);
   };
 
-  const TemplateSection = ({ title, type, icon }: { title: string; type: string; icon: string }) => (
+  const TemplateSection = ({
+    title,
+    type,
+    icon,
+  }: {
+    title: string;
+    type: string;
+    icon: string;
+  }) => (
     <div className="border border-gray-200 rounded-lg mb-4">
       <div
         onClick={() => toggleSection(type)}
@@ -191,15 +221,22 @@ const Settings = () => {
     </div>
   );
 
-  const AddTemplateDialog = ({ type, title, isOpen, onClose }: { type: string; title: string; isOpen: boolean; onClose: (type: string) => void }) => (
+  const AddTemplateDialog = ({
+    type,
+    title,
+    isOpen,
+    onClose,
+  }: {
+    type: string;
+    title: string;
+    isOpen: boolean;
+    onClose: (type: string) => void;
+  }) => (
     <Dialog open={isOpen} onOpenChange={() => onClose(type)}>
       <DialogContent className="sm:max-w-4xl max-h-[80vh] overflow-y-auto">
-
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogClose asChild>
-           
-          </DialogClose>
+          <DialogClose asChild></DialogClose>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -211,7 +248,12 @@ const Settings = () => {
               <Input
                 placeholder="Enter template name..."
                 value={formData.templateName}
-                onChange={(e) => setFormData(prev => ({ ...prev, templateName: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    templateName: e.target.value,
+                  }))
+                }
                 className="mt-2"
               />
             </div>
@@ -221,60 +263,72 @@ const Settings = () => {
               </Label>
               <Select
                 value={formData.templateType}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, templateType: value }))}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, templateType: value }))
+                }
               >
                 <SelectTrigger className="mt-2">
                   <SelectValue placeholder="Select a template type" />
                 </SelectTrigger>
-               <SelectContent>
-  {type === "email" && (
-    <>
-      <SelectItem value="candidate-email">Candidate Email</SelectItem>
-      <SelectItem value="post-interview-candidate">
-        Post-interview email (Candidate)
-      </SelectItem>
-      <SelectItem value="contact-email">Contact Email</SelectItem>
-      <SelectItem value="submission-email">Candidate Submission Email</SelectItem>
-      <SelectItem value="post-interview-contact">
-        Post-interview email (Contact)
-      </SelectItem>
-    </>
-  )}
+                <SelectContent>
+                  {type === "email" && (
+                    <>
+                      <SelectItem value="candidate-email">
+                        Candidate Email
+                      </SelectItem>
+                      <SelectItem value="post-interview-candidate">
+                        Post-interview email (Candidate)
+                      </SelectItem>
+                      <SelectItem value="contact-email">
+                        Contact Email
+                      </SelectItem>
+                      <SelectItem value="submission-email">
+                        Candidate Submission Email
+                      </SelectItem>
+                      <SelectItem value="post-interview-contact">
+                        Post-interview email (Contact)
+                      </SelectItem>
+                    </>
+                  )}
 
-  {type === "sms" && (
-    <>
-      <SelectItem value="otp">Candidate SMS</SelectItem>
-      <SelectItem value="reminder">Contact SMS</SelectItem>
-      
-    </>
-  )}
+                  {type === "sms" && (
+                    <>
+                      <SelectItem value="otp">Candidate SMS</SelectItem>
+                      <SelectItem value="reminder">Contact SMS</SelectItem>
+                    </>
+                  )}
 
-  {type === "notes" && (
-    <>
-      
-      <SelectItem value="candidate-feedback">Candidate Note</SelectItem>
-      <SelectItem value="interview-notes">Contact Note</SelectItem>
-      <SelectItem value="internal-comments">Job Note</SelectItem>
-      <SelectItem value="task-notes">Company Note</SelectItem>
-      <SelectItem value="interview-notes">Deal Note</SelectItem>
-    </>
-  )}
+                  {type === "notes" && (
+                    <>
+                      <SelectItem value="candidate-feedback">
+                        Candidate Note
+                      </SelectItem>
+                      <SelectItem value="interview-notes">
+                        Contact Note
+                      </SelectItem>
+                      <SelectItem value="internal-comments">
+                        Job Note
+                      </SelectItem>
+                      <SelectItem value="task-notes">Company Note</SelectItem>
+                      <SelectItem value="interview-notes">Deal Note</SelectItem>
+                    </>
+                  )}
 
-  {type === "aira" && (
-    <>
-      <SelectItem value="ai-intro">Candidate Prompt</SelectItem>
-      <SelectItem value="ai-followup">Contact Prompt</SelectItem>
-      <SelectItem value="ai-summary">Job Prompt</SelectItem>
-    
-    </>
-  )}
-</SelectContent>
-
+                  {type === "aira" && (
+                    <>
+                      <SelectItem value="ai-intro">Candidate Prompt</SelectItem>
+                      <SelectItem value="ai-followup">
+                        Contact Prompt
+                      </SelectItem>
+                      <SelectItem value="ai-summary">Job Prompt</SelectItem>
+                    </>
+                  )}
+                </SelectContent>
               </Select>
             </div>
           </div>
 
-          {type === 'email' && (
+          {type === "email" && (
             <div>
               <Label className="text-sm font-medium text-gray-700">
                 SUBJECT
@@ -282,18 +336,18 @@ const Settings = () => {
               <Input
                 placeholder="Enter a subject"
                 value={formData.subject}
-                onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, subject: e.target.value }))
+                }
                 className="mt-2"
               />
             </div>
           )}
 
           <div>
-            <Label className="text-sm font-medium text-gray-700">
-              BODY
-            </Label>
+            <Label className="text-sm font-medium text-gray-700">BODY</Label>
             <div className="border border-gray-300 rounded-lg mt-2">
-              {type === 'email' && (
+              {type === "email" && (
                 <TooltipProvider>
                   <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-gray-50">
                     <div className="flex items-center space-x-3">
@@ -303,7 +357,12 @@ const Settings = () => {
                           <div>
                             <Select
                               value={emailFormat.htmlTag}
-                              onValueChange={(value) => setEmailFormat(prev => ({ ...prev, htmlTag: value }))}
+                              onValueChange={(value) =>
+                                setEmailFormat((prev) => ({
+                                  ...prev,
+                                  htmlTag: value,
+                                }))
+                              }
                             >
                               <SelectTrigger className="w-20 h-8 text-xs">
                                 <SelectValue />
@@ -329,7 +388,12 @@ const Settings = () => {
                           <div>
                             <Select
                               value={emailFormat.fontSize}
-                              onValueChange={(value) => setEmailFormat(prev => ({ ...prev, fontSize: value }))}
+                              onValueChange={(value) =>
+                                setEmailFormat((prev) => ({
+                                  ...prev,
+                                  fontSize: value,
+                                }))
+                              }
                             >
                               <SelectTrigger className="w-16 h-8 text-xs">
                                 <SelectValue />
@@ -357,15 +421,24 @@ const Settings = () => {
                           <div>
                             <Select
                               value={emailFormat.fontFamily}
-                              onValueChange={(value) => setEmailFormat(prev => ({ ...prev, fontFamily: value }))}
+                              onValueChange={(value) =>
+                                setEmailFormat((prev) => ({
+                                  ...prev,
+                                  fontFamily: value,
+                                }))
+                              }
                             >
                               <SelectTrigger className="w-24 h-8 text-xs">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="Arial">Arial</SelectItem>
-                                <SelectItem value="Helvetica">Helvetica</SelectItem>
-                                <SelectItem value="Times New Roman">Times</SelectItem>
+                                <SelectItem value="Helvetica">
+                                  Helvetica
+                                </SelectItem>
+                                <SelectItem value="Times New Roman">
+                                  Times
+                                </SelectItem>
                                 <SelectItem value="Georgia">Georgia</SelectItem>
                                 <SelectItem value="Verdana">Verdana</SelectItem>
                               </SelectContent>
@@ -418,7 +491,9 @@ const Settings = () => {
                         <TooltipTrigger asChild>
                           <Button
                             type="button"
-                            variant={emailFormat.underline ? "default" : "ghost"}
+                            variant={
+                              emailFormat.underline ? "default" : "ghost"
+                            }
                             size="sm"
                             className="h-8 w-8 p-0"
                             onClick={toggleUnderline}
@@ -438,10 +513,14 @@ const Settings = () => {
                         <TooltipTrigger asChild>
                           <Button
                             type="button"
-                            variant={emailFormat.alignment === 'left' ? "default" : "ghost"}
+                            variant={
+                              emailFormat.alignment === "left"
+                                ? "default"
+                                : "ghost"
+                            }
                             size="sm"
                             className="h-8 w-8 p-0"
-                            onClick={() => setAlignment('left')}
+                            onClick={() => setAlignment("left")}
                           >
                             <AlignLeft className="w-4 h-4" />
                           </Button>
@@ -455,10 +534,14 @@ const Settings = () => {
                         <TooltipTrigger asChild>
                           <Button
                             type="button"
-                            variant={emailFormat.alignment === 'center' ? "default" : "ghost"}
+                            variant={
+                              emailFormat.alignment === "center"
+                                ? "default"
+                                : "ghost"
+                            }
                             size="sm"
                             className="h-8 w-8 p-0"
-                            onClick={() => setAlignment('center')}
+                            onClick={() => setAlignment("center")}
                           >
                             <AlignCenter className="w-4 h-4" />
                           </Button>
@@ -472,10 +555,14 @@ const Settings = () => {
                         <TooltipTrigger asChild>
                           <Button
                             type="button"
-                            variant={emailFormat.alignment === 'right' ? "default" : "ghost"}
+                            variant={
+                              emailFormat.alignment === "right"
+                                ? "default"
+                                : "ghost"
+                            }
                             size="sm"
                             className="h-8 w-8 p-0"
-                            onClick={() => setAlignment('right')}
+                            onClick={() => setAlignment("right")}
                           >
                             <AlignRight className="w-4 h-4" />
                           </Button>
@@ -563,23 +650,40 @@ const Settings = () => {
                   </div>
                 </TooltipProvider>
               )}
-             <Textarea
-  placeholder={type === 'email' ? 'Enter your email template content...' : 'Enter template content...'}
-  value={formData.body}
-  onChange={(e) => setFormData(prev => ({ ...prev, body: e.target.value }))}
-  className="border-none focus:ring-0 resize-none overflow-y-auto"
-  rows={type === 'email' ? 6 : 8}
-  style={{ 
-    maxHeight: type === 'email' ? '150px' : 'auto',
-    minHeight: '120px',
-    fontSize: type === 'email' ? emailFormat.fontSize : undefined,
-    fontFamily: type === 'email' ? emailFormat.fontFamily : undefined,
-    fontWeight: type === 'email' && emailFormat.bold ? 'bold' : 'normal',
-    fontStyle: type === 'email' && emailFormat.italic ? 'italic' : 'normal',
-    textDecoration: type === 'email' && emailFormat.underline ? 'underline' : 'none',
-    textAlign: type === 'email' ? (emailFormat.alignment as 'left' | 'center' | 'right') : 'left'
-  }}
-/>
+              <Textarea
+                placeholder={
+                  type === "email"
+                    ? "Enter your email template content..."
+                    : "Enter template content..."
+                }
+                value={formData.body}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, body: e.target.value }))
+                }
+                className="border-none focus:ring-0 resize-none overflow-y-auto"
+                rows={type === "email" ? 6 : 8}
+                style={{
+                  maxHeight: type === "email" ? "150px" : "auto",
+                  minHeight: "120px",
+                  fontSize: type === "email" ? emailFormat.fontSize : undefined,
+                  fontFamily:
+                    type === "email" ? emailFormat.fontFamily : undefined,
+                  fontWeight:
+                    type === "email" && emailFormat.bold ? "bold" : "normal",
+                  fontStyle:
+                    type === "email" && emailFormat.italic
+                      ? "italic"
+                      : "normal",
+                  textDecoration:
+                    type === "email" && emailFormat.underline
+                      ? "underline"
+                      : "none",
+                  textAlign:
+                    type === "email"
+                      ? (emailFormat.alignment as "left" | "center" | "right")
+                      : "left",
+                }}
+              />
             </div>
           </div>
 
@@ -587,18 +691,23 @@ const Settings = () => {
             <Checkbox
               id="shareWithEveryone"
               checked={formData.shareWithEveryone}
-              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, shareWithEveryone: !!checked }))}
+              onCheckedChange={(checked) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  shareWithEveryone: !!checked,
+                }))
+              }
             />
-            <Label htmlFor="shareWithEveryone" className="text-sm text-gray-700">
+            <Label
+              htmlFor="shareWithEveryone"
+              className="text-sm text-gray-700"
+            >
               Share template with everyone
             </Label>
           </div>
 
           <div className="flex justify-end space-x-3 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => handleCancel(type)}
-            >
+            <Button variant="outline" onClick={() => handleCancel(type)}>
               Cancel
             </Button>
             <Button
@@ -626,7 +735,7 @@ const Settings = () => {
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6 bg-white/60 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-7 bg-white/60 backdrop-blur-sm">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="w-4 h-4" />
               Profile
@@ -649,6 +758,10 @@ const Settings = () => {
             <TabsTrigger value="templates" className="flex items-center gap-2">
               <FileText className="w-4 h-4" />
               Templates
+            </TabsTrigger>
+            <TabsTrigger value="status" className="flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              Status
             </TabsTrigger>
             <TabsTrigger value="security" className="flex items-center gap-2">
               <Shield className="w-4 h-4" />
@@ -977,7 +1090,8 @@ const Settings = () => {
               <div>
                 <h2 className="text-3xl font-bold tracking-tight">Templates</h2>
                 <p className="text-gray-600 mt-2">
-                  Manage your templates for email, SMS, notes, and AIRA communications.
+                  Manage your templates for email, SMS, notes, and AIRA
+                  communications.
                 </p>
               </div>
 
@@ -987,11 +1101,7 @@ const Settings = () => {
                   type="email"
                   icon="✉️"
                 />
-                <TemplateSection
-                  title="SMS Templates"
-                  type="sms"
-                  icon="💬"
-                />
+                <TemplateSection title="SMS Templates" type="sms" icon="💬" />
                 <TemplateSection
                   title="Notes Templates"
                   type="notes"
@@ -1003,8 +1113,6 @@ const Settings = () => {
                   icon="🤖"
                 />
               </div>
-
-              {/* Template Creation Dialogs */}
               <AddTemplateDialog
                 type="email"
                 title="Add Email Template"
@@ -1030,6 +1138,10 @@ const Settings = () => {
                 onClose={closeDialog}
               />
             </div>
+          </TabsContent>
+
+          <TabsContent value="status">
+            <StatusSettingsTab />
           </TabsContent>
 
           <TabsContent value="security">
