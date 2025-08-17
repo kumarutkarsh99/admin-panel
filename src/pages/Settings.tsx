@@ -51,11 +51,24 @@ import {
   Type,
   ListChecks,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StatusSettingsTab } from "@/components/StatusSettingsTab";
 
 const Settings = () => {
-  // Templates state management
+  const [activeTab, setActiveTab] = useState("profile");
+
+  useEffect(() => {
+    const savedTab = localStorage.getItem("settingsActiveTab");
+    if (savedTab) {
+      setActiveTab(savedTab);
+    }
+  }, []);
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    localStorage.setItem("settingsActiveTab", tab);
+  };
+
   const [expandedSections, setExpandedSections] = useState({
     email: true,
     sms: true,
@@ -735,7 +748,11 @@ const Settings = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="profile" className="space-y-6">
+        <Tabs
+          value={activeTab}
+          onValueChange={handleTabChange}
+          className="space-y-6"
+        >
           <TabsList className="grid w-full grid-cols-7 bg-white/60 backdrop-blur-sm">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="w-4 h-4" />
