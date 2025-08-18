@@ -591,6 +591,9 @@ export default function CandidateViewList({
                     } catch {}
 
                     const isExpanded = expandedCandidates.has(candidate.id);
+                    const cleanedPhone = candidate.phone
+                      ? candidate.phone.replace(/[^0-9+]/g, "")
+                      : "";
 
                     return (
                       <TableRow
@@ -643,13 +646,11 @@ export default function CandidateViewList({
 
                               {candidate.phone && (
                                 <a
-                                  href={`https://wa.me/${
-                                    candidate.phone
-                                  }?text=Hello%20${
+                                  href={`https://wa.me/${cleanedPhone}?text=Hello%20${
                                     candidate.first_name +
                                     " " +
                                     candidate.last_name
-                                  },%20I%20am%20from%20XYZ%20Recruitment`}
+                                  },%20I%20am%20from%20XBeesHire`}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="inline-flex items-center justify-center p-1 text-gray-500 hover:text-green-600 transition-colors"
