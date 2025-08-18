@@ -108,7 +108,7 @@ const TemplatesManager: React.FC = () => {
     alignment: "left",
   });
 
-  const API_BASE = "http://13.51.235.31:3000/settings";
+  const API_BASE = "http://16.171.117.2:3000/settings";
 
   const fetchTemplates = useCallback(async () => {
     try {
