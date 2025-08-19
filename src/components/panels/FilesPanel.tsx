@@ -24,7 +24,7 @@ interface FilesPanelProps {
   candidateId: number;
 }
 
-const API_BASE_URL = "http://13.51.235.31:3000";
+const API_BASE_URL = "http://16.171.117.2:3000";
 const FILE_SERVER_URL = "http://13.51.235.31";
 
 export function FilesPanel({ candidateId }: FilesPanelProps) {

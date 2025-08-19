@@ -57,7 +57,7 @@ export const SchedulePanel: React.FC<SchedulePanelProps> = ({ candidate: { candi
         author_id: 1
       };
       const res = await axios.post(
-        `http://13.51.235.31:3000/candidate/addCandidateSchedule`,
+        `http://16.171.117.2:3000/candidate/addCandidateSchedule`,
         payload
       );
       if (res.data.status) {
