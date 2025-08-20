@@ -20,7 +20,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import axios from "axios";
-import { Upload, Loader2, Download, FileSpreadsheet } from "lucide-react";
+import { Upload, Loader2, Download, FileSpreadsheet, Currency } from "lucide-react";
+import { currencyOptions,  TEMPLATE_HEADERS,JobsForm,initialForm,educationLevels,employmentTypes,industries,jobFunctions} from "@/components/constants/jobConstants";
 const API_BASE_URL = "http://16.171.117.2:3000";
 
 interface PostNewJobModalProps {
@@ -28,219 +29,11 @@ interface PostNewJobModalProps {
   onClose: () => void;
   onSuccess?: () => void;
 }
-const employmentTypes = [
-  "Full-time",
-  "Part-time",
-  "Contract",
-  "Internship",
-  "Temporary",
-];
-const educationLevels = [
-  "High School",
-  "Associate",
-  "Bachelor",
-  "Master",
-  "Doctorate",
-];
-const initialForm = {
-  jobTitle: "",
-  jobCode: "",
-  department: "",
-  workplace: "On-site",
-  officeLocation: { primary: "", onCareersPage: true },
-  description: { about: "", requirements: "", benefits: "" },
-  companyDetails: { industry: "", jobFunction: "" },
-  employmentDetails: {
-    employmentType: "",
-    experience: "",
-    experienceTo: "",
-    experienceFrom: "",
-    education: "",
-    keywords: [] as string[],
-  },
-  salary: { from: 0, to: 0, currency: "INR" },
-  company: "",
-  about_company: "",
-  notice_period: "",
-};
-
-const industries = [
-  "IT Services",
-  "Information Technology",
-  "Software Development",
-  "Healthcare",
-  "Pharmaceuticals",
-  "Biotechnology",
-  "Finance",
-  "Banking",
-  "Insurance",
-  "Retail",
-  "E-commerce",
-  "Telecommunications",
-  "Manufacturing",
-  "Automotive",
-  "Aerospace",
-  "Construction",
-  "Real Estate",
-  "Education",
-  "Government",
-  "Defense",
-  "Media",
-  "Entertainment",
-  "Hospitality",
-  "Travel & Tourism",
-  "Logistics & Supply Chain",
-  "Transportation",
-  "Energy",
-  "Utilities",
-  "Mining",
-  "Agriculture",
-  "Food & Beverage",
-  "Legal Services",
-  "Non-Profit",
-  "Consulting",
-  "Marketing & Advertising",
-  "Consumer Goods",
-  "Cybersecurity",
-  "Electronics",
-  "Public Sector",
-  "Textile",
-  "Publishing",
-  "Human Resources",
-  "Research & Development",
-  "Environmental Services",
-  "Sports & Recreation",
-  "Biotechnology",
-  "Chemicals",
-  "Civil Engineering",
-  "Computer Hardware",
-  "Consumer Electronics",
-  "Cosmetics",
-  "Dairy",
-  "Design",
-  "Electric Vehicles",
-  "Fashion",
-  "Food Production",
-  "Gaming",
-  "Graphic Design",
-  "Hardware Engineering",
-  "Home Furnishings",
-  "Industrial Automation",
-  "Information Services",
-  "Internet",
-  "Journalism",
-  "Leisure, Travel & Tourism",
-  "Machine Learning",
-  "Management Consulting",
-  "Mechanical Engineering",
-  "Medical Devices",
-  "Military",
-  "Music",
-  "Nanotechnology",
-  "Oil & Gas",
-  "Packaging",
-  "Plastics",
-  "Political Organization",
-  "Printing",
-  "Public Relations",
-  "Railroad Manufacture",
-  "Renewables & Environment",
-  "Semiconductors",
-  "Space",
-  "Venture Capital & Private Equity",
-];
-
-const jobFunctions = [
-  "Frontend Developer",
-  "Backend Developer",
-  "Full Stack Developer",
-  "DevOps Engineer",
-  "Software Engineer",
-  "QA Engineer",
-  "Test Automation Engineer",
-  "Mobile App Developer",
-  "iOS Developer",
-  "Android Developer",
-  "Web Developer",
-  "UI/UX Designer",
-  "Product Manager",
-  "Scrum Master",
-  "Tech Lead",
-  "Solution Architect",
-  "Cloud Engineer",
-  "Database Administrator",
-  "Data Engineer",
-  "Data Scientist",
-  "Machine Learning Engineer",
-  "AI Engineer",
-  "Game Developer",
-  "Embedded Software Engineer",
-  "Security Engineer",
-  "Site Reliability Engineer",
-  "Blockchain Developer",
-  "AR/VR Developer",
-  "System Analyst",
-  "Software Support Engineer",
-];
-
-const currencyOptions = ["INR", "USD", "EUR", "GBP", "JPY", "CAD", "AUD"];
-
-export interface JobsForm {
-  job_title: string;
-  job_code?: string;
-  department?: string;
-  workplace: string;
-  office_primary_location: string;
-  office_on_careers_page?: boolean;
-  office_location_additional?: string[];
-  description_about: string;
-  description_requirements?: string;
-  description_benefits?: string;
-  company_industry: string;
-  company_job_function: string;
-  employment_type: string;
-  experience: string;
-  experienceTo: number;
-  experienceFrom: number;
-  education: string;
-  keywords?: string[];
-  salary_from?: number;
-  salary_to?: number;
-  salary_currency?: string;
-  status?: string;
-  priority?: string;
-  company?: string;
-  about_company?: string;
-  notice_period: string;
+interface Salary {
+  from: number;
+  to: number;
+  currency: string;
 }
-
-const TEMPLATE_HEADERS: (keyof JobsForm)[] = [
-  "job_title",
-  "job_code",
-  "department",
-  "workplace",
-  "office_primary_location",
-  "office_on_careers_page",
-  "office_location_additional",
-  "description_about",
-  "description_requirements",
-  "description_benefits",
-  "company_industry",
-  "company_job_function",
-  "employment_type",
-  "experience",
-  "education",
-  "keywords",
-  "salary_from",
-  "salary_to",
-  "salary_currency",
-  "status",
-  "priority",
-  "company",
-  "about_company",
-  "notice_period",
-];
-
 const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
   open,
   onClose,
@@ -261,9 +54,9 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
   const [jobFunctionSuggestions, setJobFunctionSuggestions] = useState<
     string[]
   >([]);
-  const [salary, setSalary] = useState({ from: "", to: "" });
+  // const [salary, setSalary] = useState<Salary>({ from: 0, to: 0, currency: "INR" });
   const [showJobFunctionSuggestions, setShowJobFunctionSuggestions] =
-    useState(false);
+  useState(false);
 
   const [progress, setProgress] = useState(0);
 
@@ -304,7 +97,6 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
-
     if (!formData.jobTitle.trim())
       newErrors.jobTitle = "Job title is required.";
     // if (!formData.jobCode.trim()) newErrors.jobCode = "Job code is required.";
@@ -337,8 +129,8 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
     ) {
       newErrors.salaryRange = "Salary 'from' cannot be greater than 'to'.";
     }
-    if (!formData.salary.currency.trim())
-      newErrors.currency = "Currency is required.";
+    // if (!formData.salary.currency.trim())
+    //   newErrors.currency = "Currency is required.";
     if (!formData.company.trim())
       newErrors.company = "Company name is required.";
     // if (!formData.notice_period.trim())
@@ -537,7 +329,8 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
       company_industry: formData.companyDetails.industry,
       company_job_function: formData.companyDetails.jobFunction,
       employment_type: formData.employmentDetails.employmentType,
-      experience: formData.employmentDetails.experience,
+      experienceFrom: formData.employmentDetails.experienceFrom,
+      experienceTo: formData.employmentDetails.experienceTo,
       education: formData.employmentDetails.education,
       keywords: formData.employmentDetails.keywords,
       salary_from: String(formData.salary.from),
@@ -1083,7 +876,7 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                     </div>
                   </div>
 
-                  {/* Salary */}
+                 {/* Salary */}
                   <div>
                     <label className="text-sm">Annual Salary</label>
                     <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
@@ -1105,31 +898,34 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                         </SelectContent>
                       </Select>
 
+                      {/* FROM */}
                       <input
                         type="number"
                         placeholder="Min salary"
-                        value={salary.from}
-                        onChange={(e) =>
-                          setSalary({ ...salary, from: e.target.value })
-                        }
+                        value={formData.salary.from}
+                         onChange={(e) => {
+    const val = e.target.value;
+    handleNestedChange("salary", "from", val === "" ? "" : Number(val));
+  }}
                       />
                       <span>To</span>
+
+                      {/* TO */}
                       <input
                         type="number"
                         placeholder="Max salary"
-                        value={salary.to}
-                        onChange={(e) =>
-                          setSalary({ ...salary, to: e.target.value })
-                        }
+                        value={formData.salary.to}
+                          onChange={(e) => {
+    const val = e.target.value;
+    handleNestedChange("salary", "to", val === "" ? "" : Number(val));
+  }}
                       />
-                      {/* <span>Lacs</span> */}
                     </div>
                     {errors.salaryRange && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.salaryRange}
-                      </p>
+                      <p className="text-red-500 text-xs mt-1">{errors.salaryRange}</p>
                     )}
                   </div>
+
 
                   {/* <div>
                     <label className="text-sm">Salary From</label>
