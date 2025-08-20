@@ -53,6 +53,8 @@ const initialForm = {
   employmentDetails: {
     employmentType: "",
     experience: "",
+    experienceTo: "",
+    experienceFrom: "",
     education: "",
     keywords: [] as string[],
   },
@@ -198,6 +200,8 @@ export interface JobsForm {
   company_job_function: string;
   employment_type: string;
   experience: string;
+  experienceTo: number;
+  experienceFrom: number;
   education: string;
   keywords?: string[];
   salary_from?: number;
@@ -257,6 +261,7 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
   const [jobFunctionSuggestions, setJobFunctionSuggestions] = useState<
     string[]
   >([]);
+  const [salary, setSalary] = useState({ from: "", to: "" });
   const [showJobFunctionSuggestions, setShowJobFunctionSuggestions] =
     useState(false);
 
@@ -315,12 +320,23 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
       newErrors.jobFunction = "Job function is required.";
     if (!formData.employmentDetails.employmentType)
       newErrors.employmentType = "Employment type is required.";
-    if (!formData.employmentDetails.experience)
-      newErrors.experience = "Experience level is required.";
+    // if (!formData.employmentDetails.experience)
+    //   newErrors.experience = "Experience level is required.";
+    if (!formData.employmentDetails.experienceFrom)
+      newErrors.experienceFrom = "Experience From is required.";
+    if (!formData.employmentDetails.experienceTo)
+      newErrors.experienceTo = "Experience To is required.";
+
     if (!formData.employmentDetails.education)
       newErrors.education = "Education level is required.";
-    if (formData.salary.from > formData.salary.to && formData.salary.to > 0)
+    if (!formData.salary.from || !formData.salary.to) {
+      newErrors.salaryRange = "Please enter both salary values.";
+    } else if (
+      Number(formData.salary.from) > Number(formData.salary.to) &&
+      Number(formData.salary.to) > 0
+    ) {
       newErrors.salaryRange = "Salary 'from' cannot be greater than 'to'.";
+    }
     if (!formData.salary.currency.trim())
       newErrors.currency = "Currency is required.";
     if (!formData.company.trim())
@@ -442,13 +458,13 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
         // add line break only if responsibilities already present
         if (req) req += "\n\n";
         req += extractedObj.requirements;
-}
+      }
       const parsedData = {
         jobTitle: extractedObj.jobTitle,
         description: {
           about: extractedObj.about,
           requirements: req,
-          benefits:extractedObj.benefits
+          benefits: extractedObj.benefits
         },
         companyDetails: {
           industry: extractedObj.industry,
@@ -459,8 +475,8 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
           education: "",
           keywords: [],
         },
-        company:extractedObj.companyName,
-        about_company:extractedObj.aboutCompany,
+        company: extractedObj.companyName,
+        about_company: extractedObj.aboutCompany,
       };
 
       setFormData((prev) => ({
@@ -962,21 +978,40 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                   </div>
                   <div>
                     <label className="text-sm">Experience *</label>
-                    <Input
-                      type="text"
-                      placeholder="e.g., 5-7 years"
-                      value={formData.employmentDetails.experience}
-                      onChange={(e) =>
-                        handleNestedChange(
-                          "employmentDetails",
-                          "experience",
-                          e.target.value
-                        )
-                      }
-                    />
-                    {errors.experience && (
+                    <div className="flex items-center gap-2 mt-1">
+                      <Input
+                        type="number"
+                        placeholder="From"
+                        value={formData.employmentDetails.experienceFrom}
+                        onChange={(e) =>
+                          handleNestedChange(
+                            "employmentDetails",
+                            "experienceFrom",
+                            e.target.value
+                          )
+                        }
+                        className="w-24"
+                      />
+                      <span>to</span>
+                      <Input
+                        type="number"
+                        placeholder="To"
+                        value={formData.employmentDetails.experienceTo}
+                        onChange={(e) =>
+                          handleNestedChange(
+                            "employmentDetails",
+                            "experienceTo",
+                            e.target.value
+                          )
+                        }
+                        className="w-24"
+                      />
+                      <span>Years</span>
+                    </div>
+
+                    {(errors.experienceFrom || errors.experienceTo) && (
                       <p className="text-red-500 text-xs mt-1">
-                        {errors.experience}
+                        {errors.experienceFrom}<br /> {errors.experienceTo}
                       </p>
                     )}
                   </div>
@@ -1048,7 +1083,55 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                     </div>
                   </div>
 
+                  {/* Salary */}
                   <div>
+                    <label className="text-sm">Annual Salary</label>
+                    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                      <Select
+                        value={formData.salary.currency}
+                        onValueChange={(value) =>
+                          handleNestedChange("salary", "currency", value)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Currency" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {currencyOptions.map((currency) => (
+                            <SelectItem key={currency} value={currency}>
+                              {currency}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      <input
+                        type="number"
+                        placeholder="Min salary"
+                        value={salary.from}
+                        onChange={(e) =>
+                          setSalary({ ...salary, from: e.target.value })
+                        }
+                      />
+                      <span>To</span>
+                      <input
+                        type="number"
+                        placeholder="Max salary"
+                        value={salary.to}
+                        onChange={(e) =>
+                          setSalary({ ...salary, to: e.target.value })
+                        }
+                      />
+                      {/* <span>Lacs</span> */}
+                    </div>
+                    {errors.salaryRange && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.salaryRange}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* <div>
                     <label className="text-sm">Salary From</label>
                     <Input
                       type="text"
@@ -1080,8 +1163,8 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                         {errors.salaryRange}
                       </p>
                     )}
-                  </div>
-                  <div>
+                  </div> */}
+                  {/* <div>
                     <label className="text-sm">Currency *</label>
                     <Select
                       value={formData.salary.currency}
@@ -1105,7 +1188,7 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
                         {errors.currency}
                       </p>
                     )}
-                  </div>
+                  </div> */}
                 </div>
               </TabsContent>
 
