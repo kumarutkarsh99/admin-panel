@@ -39,12 +39,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import CandidateProfileModal from "@/components/modals/CandidateProfileModal";
 import { BulkUpdateFieldsModal } from "@/components/modals/BulkUpdateFieldsModal";
 import AssignToJobModal from "@/components/modals/AssigntoJobModal";
-import {
-  ALL_COLUMNS,
-  TABS,
-  getStatusColor,
-  getRecruiterStatusColor,
-} from "@/lib/candidate-config";
+import { ALL_COLUMNS, TABS } from "@/lib/candidate-config";
 import { CandidateActionsPopover } from "./CandidateActionsPopover";
 
 const API_BASE_URL = "http://16.171.117.2:3000";
@@ -52,13 +47,13 @@ const FILE_SERVER_URL = "http://13.51.235.31";
 
 const noticePeriodOptions = ["15 days", "30 days", "60 days", "90 days"];
 
-interface StatusOption {
-  id: number;
-  name: string;
-  type: "candidate" | "recruiter";
-  is_active: boolean;
-  color: string;
-}
+  interface StatusOption {
+    id: number;
+    name: string;
+    type: "candidate" | "recruiter";
+    is_active: boolean;
+    color: string;
+  }
 
 interface JobAssignment {
   job_id: number;
