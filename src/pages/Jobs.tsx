@@ -28,7 +28,7 @@ import CloneJobModal from "@/components/modals/CloneJobModal";
 import PublishJobModal from "@/components/modals/PublishJobModal";
 
 const API_BASE_URL = "http://16.171.117.2:3000";
-const JOBS_PER_PAGE = 5;
+const JOBS_PER_PAGE = 10;
 
 const JOB_STATUSES = ["Draft", "Open", "Paused", "Closed", "Archived"];
 const STATUS_TABS = ["All", ...JOB_STATUSES];
