@@ -18,8 +18,6 @@ import EditJobModal from "@/components/modals/EditJobModal";
 import CloneJobModal from "@/components/modals/CloneJobModal";
 import { API_BASE_URL } from "../config/api";
 
-// const API_BASE_URL = "http://16.171.117.2:3000"; // Moved to config/api.ts
-
 const PIPELINE_STAGES = [
   "Sourced",
   "Application",

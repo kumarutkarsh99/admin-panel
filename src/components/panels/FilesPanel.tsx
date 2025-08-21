@@ -1,10 +1,10 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format, parseISO } from "date-fns";
-import { FileText, Download, Loader2, X } from "lucide-react";
+import { FileText, Download, Loader2 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+import { API_BASE_URL, FILE_SERVER_URL } from "../../config/api";
 
 export interface ResumeFile {
   id: number;
@@ -19,9 +19,6 @@ interface FilesPanelProps {
   candidateId: number;
   onResumePreview?: (resume: ResumeFile, url: string) => void;
 }
-
-const API_BASE_URL = "http://16.171.117.2:3000";
-const FILE_SERVER_URL = "http://16.171.117.2";
 
 export function FilesPanel({ candidateId, onResumePreview }: FilesPanelProps) {
   const [loading, setLoading] = useState<boolean>(false);

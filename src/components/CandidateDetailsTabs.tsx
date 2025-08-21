@@ -126,7 +126,7 @@ const handleAdded = () => {
               onValueChange={setPrimaryTab}
               aria-label="Candidate primary sections"
             >
-              <TabsList className="flex w-full overflow-x-auto">
+              <TabsList className="grid w-full grid-cols-4">
                 {[
                   { value: "files", label: "Files" },
                   { value: "notes", label: "Notes" },
@@ -136,7 +136,7 @@ const handleAdded = () => {
                   <TabsTrigger
                     key={tab.value}
                     value={tab.value}
-                    className="flex-1 text-center"
+                    className="text-center"
                   >
                     {tab.label}
                   </TabsTrigger>
@@ -171,12 +171,12 @@ const handleAdded = () => {
     );
   }
   return (
-    <div className="p-3 w-full space-y-6">
-      <div className="flex gap-6 h-[700px]">
+    <div className="p-3 w-full">
+      <div className="flex gap-6 min-h-[800px]">
         {/* Left Side - Resume Preview */}
         {selectedResume && (
-          <div className="w-1/2 border rounded-lg p-4 bg-white">
-            <div className="flex items-center justify-between mb-4">
+          <div className="w-1/2 border rounded-lg p-4 bg-white flex flex-col">
+            <div className="flex items-center justify-between mb-4 flex-shrink-0">
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <FileText className="w-5 h-5" />
                 Resume Preview
@@ -190,10 +190,10 @@ const handleAdded = () => {
                 <X className="w-4 h-4" />
               </Button>
             </div>
-            <div className="text-sm text-gray-600 mb-4 truncate">
+            <div className="text-sm text-gray-600 mb-4 truncate flex-shrink-0">
               {selectedResume.resume_url}
             </div>
-            <div className="h-[600px] border rounded overflow-hidden">
+            <div className="flex-1 border rounded overflow-hidden min-h-[600px]">
               <iframe
                 src={previewUrl}
                 title="Resume Preview"
@@ -204,31 +204,36 @@ const handleAdded = () => {
         )}
 
         {/* Right Side - Candidate Details */}
-        <div className={selectedResume ? "w-1/2" : "w-full"}>
-          <Tabs
-            value={primaryTab}
-            onValueChange={setPrimaryTab}
-            aria-label="Candidate primary sections"
-          >
-            <TabsList className="flex w-full overflow-x-auto">
-              {[
-                { value: "notes", label: "Notes" },
-                { value: "tasks", label: "Tasks" },
-                { value: "schedule", label: "Schedule" },
-                { value: "email", label: "Email" },
-                { value: "calls", label: "Calls" },
-                { value: "text", label: "Text (SMS)" },
-                { value: "activity", label: "Activity" },
-              ].map((tab) => (
-                <TabsTrigger
-                  key={tab.value}
-                  value={tab.value}
-                  className="flex-1 text-center"
-                >
-                  {tab.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+        <div className={`${selectedResume ? "w-1/2" : "w-full"} flex flex-col space-y-4`}>
+          {/* First Tab Group */}
+          <div className="flex-1">
+            <Tabs
+              value={primaryTab}
+              onValueChange={setPrimaryTab}
+              aria-label="Candidate primary sections"
+              className="h-full flex flex-col"
+            >
+              <TabsList className="grid w-full grid-cols-7 flex-shrink-0 mb-4">
+                {[
+                  { value: "notes", label: "Notes" },
+                  { value: "tasks", label: "Tasks" },
+                  { value: "schedule", label: "Schedule" },
+                  { value: "email", label: "Email" },
+                  { value: "calls", label: "Calls" },
+                  { value: "text", label: "Text" },
+                  { value: "activity", label: "Activity" },
+                ].map((tab) => (
+                  <TabsTrigger
+                    key={tab.value}
+                    value={tab.value}
+                    className="text-center text-xs px-2"
+                  >
+                    {tab.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+
+              <div className="flex-1 min-h-[300px]">
 
         <TabsContent value="notes">
           <NotesPanel candidateId={candidate.id} authorId={1} refreshTrigger={handleAdded}  />
@@ -271,14 +276,19 @@ const handleAdded = () => {
         <TabsContent value="activity">
           <ActivityPanel candidate={candidate} />
         </TabsContent>
-      </Tabs>
+              </div>
+            </Tabs>
+          </div>
 
-      <Tabs
-        value={secondaryTab}
-        onValueChange={setSecondaryTab}
-        aria-label="Candidate other details"
-      >
-        <TabsList className="flex w-full overflow-x-auto">
+          {/* Second Tab Group */}
+          <div className="flex-1">
+            <Tabs
+              value={secondaryTab}
+              onValueChange={setSecondaryTab}
+              aria-label="Candidate other details"
+              className="h-full flex flex-col"
+            >
+              <TabsList className="grid w-full grid-cols-7 flex-shrink-0 mb-4">
           {[
             { value: "activities", label: "Activities" },
             { value: "files", label: "Files" },
@@ -291,13 +301,14 @@ const handleAdded = () => {
             <TabsTrigger
               key={tab.value}
               value={tab.value}
-              className="flex-1 text-center"
+              className="text-center text-xs px-2"
             >
               {tab.label}
             </TabsTrigger>
           ))}
         </TabsList>
 
+              <div className="flex-1 min-h-[300px]">
         <TabsContent value="activities">
           {/* <ActivitiesPanel activities={candidate.activities || []} /> */}
           <ActivitiesPanel candidateId={candidate.id} reloadKey={activitiesRefreshKey} />
@@ -325,7 +336,9 @@ const handleAdded = () => {
             refreshTrigger={refreshFlag}
           />
         </TabsContent>
-          </Tabs>
+              </div>
+            </Tabs>
+          </div>
         </div>
       </div>
     </div>
