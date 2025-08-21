@@ -9,8 +9,9 @@ import ForgotPasswordModal from "./modals/ForgotPasswordModal";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { API_BASE_URL } from "../config/api";
 
-const API_BASE_URL = "http://13.51.235.31:3000";
+// const API_BASE_URL = "http://16.171.117.2:3000"; // Moved to config/api.ts
 
 export default function LoginForm() {
   const { user, login } = useAuth();
@@ -161,3 +162,4 @@ export default function LoginForm() {
     </div>
   );
 }
+

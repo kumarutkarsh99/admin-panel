@@ -47,7 +47,7 @@ import {
 } from "@/lib/candidate-config";
 import { CandidateActionsPopover } from "./CandidateActionsPopover";
 
-const API_BASE_URL = "http://13.51.235.31:3000";
+const API_BASE_URL = "http://16.171.117.2:3000";
 const FILE_SERVER_URL = "http://13.51.235.31";
 
 const noticePeriodOptions = ["15 days", "30 days", "60 days", "90 days"];
@@ -1022,3 +1022,4 @@ export default function CandidateViewList({
     </div>
   );
 }
+

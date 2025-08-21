@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import axios from "axios";
 import { Download, FileSpreadsheet } from "lucide-react";
 
-const API_BASE_URL = "http://13.51.235.31:3000";
+const API_BASE_URL = "http://16.171.117.2:3000";
 
 export interface CandidateForm {
   first_name: string;
@@ -330,3 +330,4 @@ export default function Uploadbulk({
     </div>
   );
 }
+

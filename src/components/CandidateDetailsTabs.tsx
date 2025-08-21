@@ -14,51 +14,221 @@ import { ConversationsPanel } from "./panels/ConversationsPanel";
 import { CallsListPanel } from "./panels/CallsListPanel";
 import { TasksListPanel } from "./panels/TasksListPanel";
 import { NotesListPanel } from "./panels/NotesListPanel";
+import { Button } from "@/components/ui/button";
+import { X, FileText } from "lucide-react";
+import { EditCandidateForm } from "./forms/EditCandidateForm";
 
 export default function CandidateDetailsTabs({
   candidate,
   fetchCandidates,
+  isEditMode = false,
+  onEditModeChange,
 }: {
   candidate: any;
   fetchCandidates: () => void;
+  isEditMode?: boolean;
+  onEditModeChange?: (isEdit: boolean) => void;
 }) {
   const [primaryTab, setPrimaryTab] = useState<string>("notes");
   const [secondaryTab, setSecondaryTab] = useState<string>("activities");
   const [refreshFlag, setRefreshFlag] = useState(false);
   const [activitiesReloadKey, setActivitiesReloadKey] = useState(0);
   const [activitiesRefreshKey, setActivitiesRefreshKey] = useState(0);
+  
+  // Resume preview state
+  const [selectedResume, setSelectedResume] = useState<any>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>("");
 
 const handleAdded = () => {
   setRefreshFlag((f) => !f);           // trigger useEffect
   setActivitiesReloadKey((k) => k+1);  // force remount child component
   setActivitiesRefreshKey(prev => prev + 1);
 };
+
+  const handleResumePreview = (resume: any, url: string) => {
+    setSelectedResume(resume);
+    setPreviewUrl(url);
+  };
+
+  const closePreview = () => {
+    setSelectedResume(null);
+    setPreviewUrl("");
+  };
+
+  const handleEditCancel = () => {
+    if (onEditModeChange) {
+      onEditModeChange(false);
+    }
+  };
+
+  const handleEditSave = () => {
+    fetchCandidates();
+    if (onEditModeChange) {
+      onEditModeChange(false);
+    }
+  };
+
+  // Three-column layout when both edit mode and resume are selected
+  if (isEditMode && selectedResume) {
+    return (
+      <div className="p-3 w-full">
+        <div className="flex gap-4 h-[700px]">
+          {/* Center - Resume Preview */}
+          <div className="w-1/2 border rounded-lg p-4 bg-white">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Resume Preview
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={closePreview}
+                className="p-2"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="text-sm text-gray-600 mb-4 truncate">
+              {selectedResume.resume_url}
+            </div>
+            <div className="h-[600px] border rounded overflow-hidden">
+              <iframe
+                src={previewUrl}
+                title="Resume Preview"
+                className="w-full h-full"
+              />
+            </div>
+          </div>
+
+          {/* Right - Edit Form */}
+          <div className="w-1/2">
+            <EditCandidateForm
+              candidate={candidate}
+              onSaveSuccess={handleEditSave}
+              onCancel={handleEditCancel}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Two-column layout when only edit mode is active
+  if (isEditMode) {
+    return (
+      <div className="p-3 w-full">
+        <div className="flex gap-6 h-[700px]">
+          {/* Left - Candidate Tabs (with Files for resume selection) */}
+          <div className="w-1/2">
+            <Tabs
+              value={primaryTab}
+              onValueChange={setPrimaryTab}
+              aria-label="Candidate primary sections"
+            >
+              <TabsList className="flex w-full overflow-x-auto">
+                {[
+                  { value: "files", label: "Files" },
+                  { value: "notes", label: "Notes" },
+                  { value: "tasks", label: "Tasks" },
+                  { value: "activities", label: "Activities" },
+                ].map((tab) => (
+                  <TabsTrigger
+                    key={tab.value}
+                    value={tab.value}
+                    className="flex-1 text-center"
+                  >
+                    {tab.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+
+              <TabsContent value="files">
+                <FilesPanel candidateId={candidate.id} onResumePreview={handleResumePreview} />
+              </TabsContent>
+              <TabsContent value="notes">
+                <NotesPanel candidateId={candidate.id} authorId={1} refreshTrigger={handleAdded} />
+              </TabsContent>
+              <TabsContent value="tasks">
+                <TasksPanel candidateId={candidate.id} authorId={1} refreshTrigger={handleAdded} />
+              </TabsContent>
+              <TabsContent value="activities">
+                <ActivitiesPanel candidateId={candidate.id} reloadKey={activitiesRefreshKey} />
+              </TabsContent>
+            </Tabs>
+          </div>
+
+          {/* Right - Edit Form */}
+          <div className="w-1/2">
+            <EditCandidateForm
+              candidate={candidate}
+              onSaveSuccess={handleEditSave}
+              onCancel={handleEditCancel}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="p-3 w-full space-y-6">
-      <Tabs
-        value={primaryTab}
-        onValueChange={setPrimaryTab}
-        aria-label="Candidate primary sections"
-      >
-        <TabsList className="flex w-full overflow-x-auto">
-          {[
-            { value: "notes", label: "Notes" },
-            { value: "tasks", label: "Tasks" },
-            { value: "schedule", label: "Schedule" },
-            { value: "email", label: "Email" },
-            { value: "calls", label: "Calls" },
-            { value: "text", label: "Text (SMS)" },
-            { value: "activity", label: "Activity" },
-          ].map((tab) => (
-            <TabsTrigger
-              key={tab.value}
-              value={tab.value}
-              className="flex-1 text-center"
-            >
-              {tab.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+      <div className="flex gap-6 h-[700px]">
+        {/* Left Side - Resume Preview */}
+        {selectedResume && (
+          <div className="w-1/2 border rounded-lg p-4 bg-white">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Resume Preview
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={closePreview}
+                className="p-2"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="text-sm text-gray-600 mb-4 truncate">
+              {selectedResume.resume_url}
+            </div>
+            <div className="h-[600px] border rounded overflow-hidden">
+              <iframe
+                src={previewUrl}
+                title="Resume Preview"
+                className="w-full h-full"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Right Side - Candidate Details */}
+        <div className={selectedResume ? "w-1/2" : "w-full"}>
+          <Tabs
+            value={primaryTab}
+            onValueChange={setPrimaryTab}
+            aria-label="Candidate primary sections"
+          >
+            <TabsList className="flex w-full overflow-x-auto">
+              {[
+                { value: "notes", label: "Notes" },
+                { value: "tasks", label: "Tasks" },
+                { value: "schedule", label: "Schedule" },
+                { value: "email", label: "Email" },
+                { value: "calls", label: "Calls" },
+                { value: "text", label: "Text (SMS)" },
+                { value: "activity", label: "Activity" },
+              ].map((tab) => (
+                <TabsTrigger
+                  key={tab.value}
+                  value={tab.value}
+                  className="flex-1 text-center"
+                >
+                  {tab.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
 
         <TabsContent value="notes">
           <NotesPanel candidateId={candidate.id} authorId={1} refreshTrigger={handleAdded}  />
@@ -133,7 +303,7 @@ const handleAdded = () => {
           <ActivitiesPanel candidateId={candidate.id} reloadKey={activitiesRefreshKey} />
         </TabsContent>
         <TabsContent value="files">
-          <FilesPanel candidateId={candidate.id}  />
+          <FilesPanel candidateId={candidate.id} onResumePreview={handleResumePreview} />
         </TabsContent>
         <TabsContent value="scorecards">
           <ScorecardsPanel scorecards={candidate.scorecards} />
@@ -155,7 +325,9 @@ const handleAdded = () => {
             refreshTrigger={refreshFlag}
           />
         </TabsContent>
-      </Tabs>
+          </Tabs>
+        </div>
+      </div>
     </div>
   );
 }
