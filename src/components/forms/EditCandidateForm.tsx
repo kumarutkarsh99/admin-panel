@@ -87,7 +87,7 @@ export const EditCandidateForm: React.FC<EditCandidateFormProps> = ({
 
     try {
       const response = await axios.put(
-        `${API_BASE_URL}/candidate/updateCandidate/${candidate.id}`,
+        `${API_BASE_URL}/candidate/${candidate.id}`,
         formData
       );
 
