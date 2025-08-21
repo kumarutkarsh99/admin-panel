@@ -230,3 +230,5 @@ export const jobFunctions = [
   "System Analyst",
   "Software Support Engineer",
 ];
+
+export const API_BASE_URL = "http://16.171.117.2:3000";
