@@ -252,3 +252,4 @@ export default function Candidates() {
     </Layout>
   );
 }
+
