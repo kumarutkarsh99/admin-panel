@@ -21,9 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import axios from "axios";
 import { Upload, Loader2, Download, FileSpreadsheet, Currency } from "lucide-react";
-import { currencyOptions,  TEMPLATE_HEADERS,JobsForm,initialForm,educationLevels,employmentTypes,industries,jobFunctions} from "@/components/constants/jobConstants";
-const API_BASE_URL = "http://16.171.117.2:3000";
-
+import { currencyOptions,API_BASE_URL,  TEMPLATE_HEADERS,JobsForm,initialForm,educationLevels,employmentTypes,industries,jobFunctions} from "@/components/constants/jobConstants";
 interface PostNewJobModalProps {
   open: boolean;
   onClose: () => void;
@@ -54,7 +52,6 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
   const [jobFunctionSuggestions, setJobFunctionSuggestions] = useState<
     string[]
   >([]);
-  // const [salary, setSalary] = useState<Salary>({ from: 0, to: 0, currency: "INR" });
   const [showJobFunctionSuggestions, setShowJobFunctionSuggestions] =
   useState(false);
 
