@@ -26,8 +26,7 @@ import { toast } from "sonner";
 import EditJobModal from "@/components/modals/EditJobModal";
 import CloneJobModal from "@/components/modals/CloneJobModal";
 import PublishJobModal from "@/components/modals/PublishJobModal";
-
-const API_BASE_URL = "http://16.171.117.2:3000";
+import { API_BASE_URL } from "../config/api";
 const JOBS_PER_PAGE = 10;
 
 const JOB_STATUSES = ["Draft", "Open", "Paused", "Closed", "Archived"];
@@ -673,3 +672,4 @@ export default function Jobs() {
     </Layout>
   );
 }
+
