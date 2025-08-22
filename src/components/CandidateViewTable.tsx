@@ -39,13 +39,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import CandidateProfileModal from "@/components/modals/CandidateProfileModal";
 import { BulkUpdateFieldsModal } from "@/components/modals/BulkUpdateFieldsModal";
 import AssignToJobModal from "@/components/modals/AssigntoJobModal";
-import {
-  ALL_COLUMNS,
-  TABS,
-  getStatusColor,
-  getRecruiterStatusColor,
-} from "@/lib/candidate-config";
+import { ALL_COLUMNS, TABS } from "@/lib/candidate-config";
 import { CandidateActionsPopover } from "./CandidateActionsPopover";
+import PitchClientModal from "@/components/modals/PitchClientModal";
 
 const API_BASE_URL = "http://16.171.117.2:3000";
 const FILE_SERVER_URL = "http://16.171.117.2";
@@ -224,6 +220,7 @@ export default function CandidateViewList({
 }: CandidateViewListProps) {
   const [localCandidates, setLocalCandidates] = useState<CandidateForm[]>([]);
   const [isAddModalOpen, setAddModalOpen] = useState(false);
+  const [isPitchModalOpen, setIsPitchModalOpen] = useState(false);
   const [expandedCandidates, setExpandedCandidates] = useState<Set<number>>(
     new Set()
   );
@@ -278,6 +275,14 @@ export default function CandidateViewList({
     });
   };
 
+  const handlePitch = () => {
+    if (selected.size === 0) {
+      toast.info("Please select at least one candidate to pitch.");
+      return;
+    }
+    setIsPitchModalOpen(true);
+  };
+
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<string>("all");
@@ -295,6 +300,11 @@ export default function CandidateViewList({
 
   const lowerTerm = searchQuery.toLowerCase().trim();
   const safe = (s?: string | null) => s?.toLowerCase() ?? "";
+
+  const selectedCandidatesData = useMemo(
+    () => localCandidates.filter((c) => selected.has(c.id)),
+    [localCandidates, selected]
+  );
 
   const filtered = useMemo(
     () =>
@@ -505,6 +515,9 @@ export default function CandidateViewList({
               </Button>
               <Button size="sm" onClick={handleEdit} variant="outline">
                 Update fields
+              </Button>
+              <Button size="sm" variant="outline" onClick={handlePitch}>
+                Pitch to Client
               </Button>
               <Button size="sm" variant="outline">
                 Email
@@ -1019,6 +1032,18 @@ export default function CandidateViewList({
         onOpenChange={setProfileModalOpen}
         candidate={selectedCandidate}
         fetchCandidates={fetchCandidates}
+      />
+      <PitchClientModal
+        open={isPitchModalOpen}
+        onOpenChange={setIsPitchModalOpen}
+        selectedCandidates={selectedCandidatesData}
+        onSuccess={() => {
+          setIsPitchModalOpen(false);
+          setSelected(new Set());
+          toast.success(
+            `${selectedCandidatesData.length} candidate(s) have been pitched successfully!`
+          );
+        }}
       />
     </div>
   );

@@ -20,8 +20,19 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
-import { API_BASE_URL } from "../../config/api";
-
+import {
+  currencyOptions,
+  API_BASE_URL,
+  TEMPLATE_HEADERS,
+  JobsForm,
+  initialForm,
+  educationLevels,
+  employmentTypes,
+  industries,
+  jobFunctions,
+} from "@/components/constants/jobConstants";
+import { Form } from "react-hook-form";
+import { DialogClose } from "@radix-ui/react-dialog";
 type CloneJobModalProps = {
   open: boolean;
   onOpenChange: (val: boolean) => void;
@@ -51,6 +62,17 @@ interface JobForm {
   salary_currency: string;
   status: string;
   priority: string;
+  salary: {
+    from: number;
+    to: number;
+    currency: string;
+  };
+  employmentDetails: {
+    experienceFrom: number;
+    experienceTo: number;
+  };
+  company: string;
+  about_company: string;
 }
 
 export default function CloneJobModal({
@@ -78,9 +100,13 @@ export default function CloneJobModal({
     keywords: [],
     salary_from: "",
     salary_to: "",
-    salary_currency: "USD",
     status: "Draft",
     priority: "Medium",
+    salary: { from: 0, to: 0, currency: "INR" },
+    salary_currency: "INR",
+    employmentDetails: { experienceFrom: 0, experienceTo: 0 },
+    company: "",
+    about_company: "",
   };
 
   const fieldRefs = useRef<Record<string, HTMLElement | null>>({});
@@ -88,6 +114,7 @@ export default function CloneJobModal({
   const [form, setForm] = useState<JobForm>({ ...initialFormState });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [status, setStatus] = useState("Draft");
 
   useEffect(() => {
     if (open && jobId) {
@@ -123,11 +150,22 @@ export default function CloneJobModal({
             salary_currency: job.salary_currency || "USD",
             status: job.status || "Draft",
             priority: job.priority || "Medium",
+            employmentDetails: {
+              experienceFrom: job.experience_from,
+              experienceTo: job.experience_to,
+            },
+            salary: {
+              from: job.salary_from,
+              to: job.salary_to,
+              currency: job.salary_currency,
+            },
+            company: job.company,
+            about_company: job.about_company,
           });
         })
         .catch((err) => {
-          console.error("Failed to load job:", err);
-          toast.error("Failed to load job data.");
+          console.error("Failed to Clone the job:", err);
+          toast.error("There is some issue to clone the job ");
         })
         .finally(() => setLoading(false));
     }
@@ -179,6 +217,15 @@ export default function CloneJobModal({
   ) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+  };
+  const handleNestedChange = (section: string, field: string, value: any) => {
+    setForm((prev) => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [field]: value,
+      },
+    }));
   };
 
   const handleCheckboxChange = (checked: boolean) => {
@@ -249,36 +296,33 @@ export default function CloneJobModal({
     }
     setLoading(true);
 
+    //define new payload
     const payload = {
-      jobTitle: form.job_title,
-      jobCode: form.job_code,
+      job_title: form.job_title,
+      job_code: form.job_code,
       department: form.department,
       workplace: form.workplace,
-      officeLocation: {
-        primary: form.office_primary_location,
-        onCareersPage: form.office_on_careers_page,
-        additional: form.office_location_additional,
-      },
-      description: {
-        about: form.description_about,
-        requirements: form.description_requirements,
-        benefits: form.description_benefits,
-      },
-      companyDetails: {
-        industry: form.company_industry,
-        jobFunction: form.company_job_function,
-      },
-      employmentDetails: {
-        employmentType: form.employment_type,
-        experience: form.experience,
-        education: form.education,
-        keywords: form.keywords,
-      },
-      salary: {
-        from: Number(form.salary_from),
-        to: Number(form.salary_to),
-        currency: form.salary_currency,
-      },
+      office_primary_location: form.office_primary_location,
+      office_on_careers_page: form.office_on_careers_page,
+      office_location_additional: form.office_location_additional,
+      description_about: form.description_about,
+      description_requirements: form.description_requirements,
+      description_benefits: form.description_benefits,
+      company_industry: form.company_industry,
+      company_job_function: form.company_job_function,
+      employment_type: form.employment_type,
+      experience: form.experience,
+      education: form.education,
+      keywords: form.keywords,
+      salary_from: form.salary.from,
+      salary_to: form.salary.to,
+      salary_currency: form.salary_currency,
+      status: form.status,
+      priority: form.priority,
+      experienceFrom: form.employmentDetails.experienceFrom,
+      experienceTo: form.employmentDetails.experienceTo,
+      company: form.company,
+      about_company: form.about_company,
     };
 
     try {
@@ -298,8 +342,8 @@ export default function CloneJobModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-5xl rounded-2xl p-0 overflow-hidden">
-        <div className="max-h-[90vh] overflow-y-auto p-6 space-y-6">
+      <DialogContent className="sm:max-w-[80vw] min-h-[80vh] rounded-2xl p-0 overflow-hidden">
+        <div className="max-h-[75vh] overflow-y-auto p-6 space-y-6">
           <DialogHeader>
             <DialogTitle className="text-2xl font-semibold">
               Clone Job
@@ -494,7 +538,7 @@ export default function CloneJobModal({
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Job Benefits
+                  Benefits
                 </label>
                 <Textarea
                   name="description_benefits"
@@ -504,6 +548,13 @@ export default function CloneJobModal({
                 />
               </div>
             </div>
+
+            {/* Industry, Job Function, etc. ... unchanged */}
+
+            <div className="md:col-span-2 mt-4 mb-2">
+              <h3 className="text-xl font-semibold">Company Details</h3>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">
@@ -541,7 +592,7 @@ export default function CloneJobModal({
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
+              {/* <div>
                 <label className="block text-sm font-medium mb-1">
                   Salary From
                 </label>
@@ -555,23 +606,45 @@ export default function CloneJobModal({
                 {errors.salary_from && (
                   <p className="text-red-500 text-xs">{errors.salary_from}</p>
                 )}
-              </div>
+              </div> */}
               <div>
-                <label className="block text-sm font-medium mb-1">
-                  Salary To
-                </label>
-                <Input
-                  name="salary_to"
-                  placeholder="Salary To"
-                  value={form.salary_to}
-                  onChange={handleChange}
-                  ref={(el) => (fieldRefs.current.salary_to = el)}
-                />
-                {errors.salary_to && (
-                  <p className="text-red-500 text-xs">{errors.salary_to}</p>
-                )}
-                {errors.salary_range && (
-                  <p className="text-red-500 text-xs">{errors.salary_range}</p>
+                <label className="text-sm">Experience *</label>
+                <div className="flex items-center gap-2 mt-1">
+                  <Input
+                    type="number"
+                    placeholder="From"
+                    value={form.employmentDetails.experienceFrom}
+                    onChange={(e) =>
+                      handleNestedChange(
+                        "employmentDetails",
+                        "experienceFrom",
+                        e.target.value
+                      )
+                    }
+                    className="w-24"
+                  />
+                  <span>to</span>
+                  <Input
+                    type="number"
+                    placeholder="To"
+                    value={form.employmentDetails.experienceTo}
+                    onChange={(e) =>
+                      handleNestedChange(
+                        "employmentDetails",
+                        "experienceTo",
+                        e.target.value
+                      )
+                    }
+                    className="w-24"
+                  />
+                  <span>Years</span>
+                </div>
+
+                {(errors.experienceFrom || errors.experienceTo) && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.experienceFrom}
+                    <br /> {errors.experienceTo}
+                  </p>
                 )}
               </div>
               <div>
@@ -592,10 +665,97 @@ export default function CloneJobModal({
                 )}
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Keywords (Press Enter to add)
-              </label>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 mt-10 mb-2">
+              <div className="md:col-span-2 mb-4">
+                <h3 className="text-xl font-semibold">Salary Information</h3>
+              </div>
+
+              {/* Salary */}
+              <div>
+                <label className="text-sm">Annual Salary</label>
+                <div
+                  style={{ display: "flex", gap: "8px", alignItems: "center" }}
+                >
+                  <Select
+                    value={form.salary.currency}
+                    onValueChange={(value) =>
+                      handleNestedChange("salary", "currency", value)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Currency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {currencyOptions.map((currency) => (
+                        <SelectItem key={currency} value={currency}>
+                          {currency}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {/* FROM */}
+                  <input
+                    type="number"
+                    placeholder="Min salary"
+                    value={form.salary.from}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      handleNestedChange(
+                        "salary",
+                        "from",
+                        val === "" ? "" : Number(val)
+                      );
+                    }}
+                  />
+                  <span>To</span>
+                  {/* TO */}
+                  <input
+                    type="number"
+                    placeholder="Max salary"
+                    value={form.salary.to}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      handleNestedChange(
+                        "salary",
+                        "to",
+                        val === "" ? "" : Number(val)
+                      );
+                    }}
+                  />{" "}
+                  lacs
+                </div>
+                {errors.salaryRange && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.salaryRange}
+                  </p>
+                )}
+              </div>
+
+              {/* <div>
+    <label className="text-sm">Salary From</label>
+    <Input
+      name="salary_from"
+      placeholder="Minimum salary"
+      value={form.salary_from}
+      onChange={handleChange}
+      type="number"
+    />
+  </div>
+  <div>
+    <label className="text-sm">Salary To</label>
+    <Input
+      name="salary_to"
+      placeholder="Maximum salary"
+      value={form.salary_to}
+      onChange={handleChange}
+      type="number"
+    />
+  </div> */}
+            </div>
+
+            <div className="mt-5 md:mt-5">
+              <label className="text-sm">Keywords (Press Enter to add)</label>
               <Input
                 onKeyDown={handleKeywordAdd}
                 placeholder="Add keyword and press Enter"
@@ -615,16 +775,19 @@ export default function CloneJobModal({
                 ))}
               </div>
             </div>
-            <div className="pt-4 flex justify-end">
-              <Button
-                type="submit"
-                disabled={loading}
-                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                {loading ? "Posting..." : "Post Job"}
-              </Button>
-            </div>
           </form>
+        </div>
+
+        <div className="p-6 pt-4 flex justify-end gap-3 border-t bg-gray-50 sticky bottom-0">
+          <DialogClose asChild>
+            <Button
+              type="submit"
+              disabled={loading}
+              className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              {loading ? "Posting..." : "Post Job"}
+            </Button>
+          </DialogClose>
         </div>
       </DialogContent>
     </Dialog>
