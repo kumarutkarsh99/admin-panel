@@ -16,8 +16,7 @@ import {
 import axios from "axios";
 import EditJobModal from "@/components/modals/EditJobModal";
 import CloneJobModal from "@/components/modals/CloneJobModal";
-
-const API_BASE_URL = "http://16.171.117.2:3000";
+import { API_BASE_URL } from "../config/api";
 
 const PIPELINE_STAGES = [
   "Sourced",
@@ -520,3 +519,4 @@ export default function Jobs() {
     </Layout>
   );
 }
+

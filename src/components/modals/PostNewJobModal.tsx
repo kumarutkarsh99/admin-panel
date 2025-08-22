@@ -1205,3 +1205,4 @@ const PostNewJobModal: React.FC<PostNewJobModalProps> = ({
 };
 
 export default PostNewJobModal;
+
