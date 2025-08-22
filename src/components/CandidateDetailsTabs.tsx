@@ -34,14 +34,14 @@ export default function CandidateDetailsTabs({
   const [refreshFlag, setRefreshFlag] = useState(false);
   const [activitiesReloadKey, setActivitiesReloadKey] = useState(0);
   const [activitiesRefreshKey, setActivitiesRefreshKey] = useState(0);
-  
+
   const [selectedResume, setSelectedResume] = useState<any>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
 
   const handleAdded = () => {
     setRefreshFlag((f) => !f);
-    setActivitiesReloadKey((k) => k+1);
-    setActivitiesRefreshKey(prev => prev + 1);
+    setActivitiesReloadKey((k) => k + 1);
+    setActivitiesRefreshKey((prev) => prev + 1);
   };
 
   const handleResumePreview = (resume: any, url: string) => {
@@ -140,16 +140,30 @@ export default function CandidateDetailsTabs({
               </div>
 
               <TabsContent value="files">
-                <FilesPanel candidateId={candidate.id} onResumePreview={handleResumePreview} />
+                <FilesPanel
+                  candidateId={candidate.id}
+                  onResumePreview={handleResumePreview}
+                />
               </TabsContent>
               <TabsContent value="notes">
-                <NotesPanel candidateId={candidate.id} authorId={1} refreshTrigger={handleAdded} />
+                <NotesPanel
+                  candidateId={candidate.id}
+                  authorId={1}
+                  refreshTrigger={handleAdded}
+                />
               </TabsContent>
               <TabsContent value="tasks">
-                <TasksPanel candidateId={candidate.id} authorId={1} refreshTrigger={handleAdded} />
+                <TasksPanel
+                  candidateId={candidate.id}
+                  authorId={1}
+                  refreshTrigger={handleAdded}
+                />
               </TabsContent>
               <TabsContent value="activities">
-                <ActivitiesPanel candidateId={candidate.id} reloadKey={activitiesRefreshKey} />
+                <ActivitiesPanel
+                  candidateId={candidate.id}
+                  reloadKey={activitiesRefreshKey}
+                />
               </TabsContent>
             </Tabs>
           </div>
@@ -198,7 +212,11 @@ export default function CandidateDetailsTabs({
           </div>
         )}
 
-        <div className={`${selectedResume ? "w-1/2" : "w-full"} flex flex-col space-y-4`}>
+        <div
+          className={`${
+            selectedResume ? "w-1/2" : "w-full"
+          } flex flex-col space-y-4`}
+        >
           <div className="flex-1">
             <Tabs
               value={primaryTab}
@@ -220,7 +238,7 @@ export default function CandidateDetailsTabs({
                     <TabsTrigger
                       key={tab.value}
                       value={tab.value}
-                      className="text-center whitespace-nowrap px-4 py-2 min-w-fit"
+                      className="text-center whitespace-nowrap px-4 py-2 min-w-fit flex-1 justify-center"
                     >
                       {tab.label}
                     </TabsTrigger>
@@ -230,7 +248,11 @@ export default function CandidateDetailsTabs({
 
               <div className="flex-1 min-h-[300px]">
                 <TabsContent value="notes">
-                  <NotesPanel candidateId={candidate.id} authorId={1} refreshTrigger={handleAdded}  />
+                  <NotesPanel
+                    candidateId={candidate.id}
+                    authorId={1}
+                    refreshTrigger={handleAdded}
+                  />
                 </TabsContent>
                 <TabsContent value="tasks">
                   <TasksPanel
@@ -240,28 +262,38 @@ export default function CandidateDetailsTabs({
                   />
                 </TabsContent>
                 <TabsContent value="schedule">
-                  <SchedulePanel candidate={{
-                    candidateId: candidate.id,
-                    candidateName: `${candidate.first_name} ${candidate.last_name}`,
-                  }} refreshTrigger={handleAdded}/>
+                  <SchedulePanel
+                    candidate={{
+                      candidateId: candidate.id,
+                      candidateName: `${candidate.first_name} ${candidate.last_name}`,
+                    }}
+                    refreshTrigger={handleAdded}
+                  />
                 </TabsContent>
                 <TabsContent value="email">
-                  <EmailPanel candidate={{
-                    candidateId: candidate.id,
-                    candidateName: `${candidate.first_name} ${candidate.last_name}`,
-                  }} refreshTrigger={handleAdded}/>
+                  <EmailPanel
+                    candidate={{
+                      candidateId: candidate.id,
+                      candidateName: `${candidate.first_name} ${candidate.last_name}`,
+                    }}
+                    refreshTrigger={handleAdded}
+                  />
                 </TabsContent>
                 <TabsContent value="calls">
-                  <CallsPanel candidate={{
-                    candidateId: candidate.id,
-                    candidateName: `${candidate.first_name} ${candidate.last_name}`,
-                  }} />
+                  <CallsPanel
+                    candidate={{
+                      candidateId: candidate.id,
+                      candidateName: `${candidate.first_name} ${candidate.last_name}`,
+                    }}
+                  />
                 </TabsContent>
                 <TabsContent value="text">
-                  <TextPanel candidate={{
-                    candidateId: candidate.id,
-                    candidateName: `${candidate.first_name} ${candidate.last_name}`,
-                  }} />
+                  <TextPanel
+                    candidate={{
+                      candidateId: candidate.id,
+                      candidateName: `${candidate.first_name} ${candidate.last_name}`,
+                    }}
+                  />
                 </TabsContent>
                 <TabsContent value="activity">
                   <ActivityPanel candidate={candidate} />
@@ -278,7 +310,7 @@ export default function CandidateDetailsTabs({
               className="h-full flex flex-col"
             >
               <div className="w-full overflow-x-auto flex-shrink-0 mb-4">
-                <TabsList className="flex min-w-max w-full">
+                <TabsList className="flex w-full">
                   {[
                     { value: "activities", label: "Activities" },
                     { value: "files", label: "Files" },
@@ -291,7 +323,7 @@ export default function CandidateDetailsTabs({
                     <TabsTrigger
                       key={tab.value}
                       value={tab.value}
-                      className="text-center whitespace-nowrap px-4 py-2 min-w-fit"
+                      className="text-center whitespace-nowrap px-4 py-2 min-w-fit flex-1 justify-center"
                     >
                       {tab.label}
                     </TabsTrigger>
@@ -301,10 +333,16 @@ export default function CandidateDetailsTabs({
 
               <div className="flex-1 min-h-[300px]">
                 <TabsContent value="activities">
-                  <ActivitiesPanel candidateId={candidate.id} reloadKey={activitiesRefreshKey} />
+                  <ActivitiesPanel
+                    candidateId={candidate.id}
+                    reloadKey={activitiesRefreshKey}
+                  />
                 </TabsContent>
                 <TabsContent value="files">
-                  <FilesPanel candidateId={candidate.id} onResumePreview={handleResumePreview} />
+                  <FilesPanel
+                    candidateId={candidate.id}
+                    onResumePreview={handleResumePreview}
+                  />
                 </TabsContent>
                 <TabsContent value="scorecards">
                   <ScorecardsPanel scorecards={candidate.scorecards} />
@@ -313,7 +351,10 @@ export default function CandidateDetailsTabs({
                   <ConversationsPanel conversations={candidate.conversations} />
                 </TabsContent>
                 <TabsContent value="calls_list">
-                  <CallsListPanel calls={candidate.calls} candidateId={candidate.id} />
+                  <CallsListPanel
+                    calls={candidate.calls}
+                    candidateId={candidate.id}
+                  />
                 </TabsContent>
                 <TabsContent value="Notes_list">
                   <NotesListPanel candidateId={candidate.id} authorId={1} />

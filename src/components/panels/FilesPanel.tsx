@@ -94,7 +94,7 @@ export function FilesPanel({ candidateId, onResumePreview }: FilesPanelProps) {
   };
 
   return (
-    <div className="h-[600px]">
+    <div className="h-[600px] px-4">
       <div className="mb-4">
         <h3 className="text-lg font-semibold">Resume Files</h3>
       </div>
@@ -156,4 +156,3 @@ export function FilesPanel({ candidateId, onResumePreview }: FilesPanelProps) {
     </div>
   );
 }
-
