@@ -60,13 +60,13 @@ export default function PitchClientModal({
         setIsLoadingClients(true);
         try {
           const response = await axios.get(
-            `${API_BASE_URL}/clients/getAllClients`
+            `${API_BASE_URL}/client/getAllClient`
           );
           if (response.data && Array.isArray(response.data.result)) {
             setClients(response.data.result);
           }
         } catch (error) {
-          // toast.error("Failed to fetch clients.");
+          toast.error("Failed to fetch clients.");
           console.error(error);
         } finally {
           setIsLoadingClients(false);
@@ -77,7 +77,7 @@ export default function PitchClientModal({
   }, [open]);
 
   useEffect(() => {
-    if (selectedCandidates.length > 0) {
+    if (selectedCandidates.length > 0 && clients.length > 0) {
       const clientName =
         clients.find((c) => c.id.toString() === selectedClientId)?.name ||
         "[Client Name]";
@@ -85,10 +85,18 @@ export default function PitchClientModal({
         .map((c) => `- ${c.first_name} ${c.last_name}`)
         .join("\n");
 
-      const defaultMessage = `Dear ${clientName},\n\nPlease find the profiles of the following candidates for your review:\n\n${candidateList}\n\nLooking forward to your feedback.\n\nBest regards,`;
+      const defaultMessage = `Dear ${clientName},\n\nThese candidates are shortlisted for the Assistant Manager role. Please find the profiles of the following candidates for your review:\n\n${candidateList}\n\nLooking forward to your feedback.`;
       setPitchMessage(defaultMessage);
     }
   }, [selectedCandidates, selectedClientId, clients]);
+
+  useEffect(() => {
+    if (!open) {
+      setSelectedClientId("");
+      setPitchMessage("");
+      setIsSending(false);
+    }
+  }, [open]);
 
   const handleSendPitch = async () => {
     if (!selectedClientId) {
@@ -97,11 +105,13 @@ export default function PitchClientModal({
     }
     setIsSending(true);
     try {
-      await axios.post(`${API_BASE_URL}/pitch/send`, {
-        clientId: parseInt(selectedClientId, 10),
-        candidateIds: selectedCandidates.map((c) => c.id),
+      await axios.post(`${API_BASE_URL}/client/createPitch`, {
+        client_id: parseInt(selectedClientId, 10),
+        candidate_ids: selectedCandidates.map((c) => c.id),
         message: pitchMessage,
       });
+
+      toast.success("Pitch sent successfully!");
       onSuccess();
     } catch (error) {
       toast.error("Failed to send pitch. Please try again.");
@@ -182,7 +192,11 @@ export default function PitchClientModal({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSendPitch} disabled={isSending}>
+          <Button
+            onClick={handleSendPitch}
+            disabled={isSending}
+            className="bg-blue-500"
+          >
             {isSending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Send Pitch
           </Button>
